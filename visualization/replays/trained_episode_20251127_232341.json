@@ -1,0 +1,21 @@
+{
+  "metadata": {
+    "grid_size": 24,
+    "max_steps": 500,
+    "win_score": 3,
+    "tackle_cooldown": 50,
+    "final_scores": {
+      "blue": 2,
+      "red": 0
+    },
+    "episode_stats": {
+      "blue_captures": 2,
+      "red_captures": 0,
+      "blue_stuns": 3,
+      "red_stuns": 3,
+      "blue_flag_pickups": 4,
+      "red_flag_pickups": 1,
+      "total_steps": 500
+    },
+    "timestamp": "2025-11-27T23:23:41.572232",
+    "model_path": 

@@ -120,12 +120,18 @@ Score: Blue 0 - 0 Red
 ### 2. Training starten
 
 ```bash
-python train.py --timesteps 500000 --envs 4
+# Neues Training (Default-Pfade: dashboard/data, training/models, training/logs, visualization/replays)
+python train.py --timesteps 500000 --envs 12 --name Run1
+
+# Fortsetzen eines gespeicherten Modells (relative Pfade werden gegen training/models/ aufgelöst)
+python train.py --timesteps 500000 --envs 12 --name Run1 --load training/models/ctf_YYYYMMDD_HHMMSS_100000_steps.zip
 ```
 
 **Parameter:**
-- `--timesteps`: Anzahl der Trainingsschritte (default: 500,000)
-- `--envs`: Anzahl paralleler Environments (default: 4)
+- `--timesteps`: Anzahl der Trainingsschritte (default: 5,000,000)
+- `--envs`: Anzahl paralleler Environments (default: 8)
+- `--load`: Modell (.zip) laden und Training fortsetzen; relative Pfade werden gegen `training/models/` geprüft
+- `--name`: Optionaler Run-Name, wird für Logs/Checkpoints genutzt
 
 **Output:**
 ```
@@ -146,6 +152,8 @@ Step 2000: Mean Reward = -8.56
 **Trainierte Modelle werden gespeichert in:**
 - `training/models/ctf_YYYYMMDD_HHMMSS_XXXXX_steps.zip` (Checkpoints)
 - `training/models/ctf_YYYYMMDD_HHMMSS_final.zip` (Finales Modell)
+TensorBoard-Logs: `training/logs/`  
+Replays: `visualization/replays/`
 
 ### 3. Replay erstellen
 
@@ -169,7 +177,10 @@ Output:
 
 ### 4. 3D Visualisierung öffnen
 
-**WICHTIG: Server im Root-Verzeichnis starten!**
+**WICHTIG: Server im Projekt-Root starten!**  
+Dateipfade sind auf das Root bezogen:
+- Replays: `visualization/replays/*.json`
+- Dashboard-Daten: `dashboard/data/training_logs.json`
 
 ```bash
 # Im Projekt-Root (nicht im visualization-Ordner!)
@@ -180,8 +191,7 @@ python -m http.server 8000
 # Dashboard: http://localhost:8000/dashboard/
 ```
 
-**Methode 2: Direkt öffnen**
-
+**Methode 2: Direkt öffnen**  
 Öffne `visualization/index.html` direkt im Browser (funktioniert möglicherweise nicht wegen CORS).
 
 **Steuerung:**
