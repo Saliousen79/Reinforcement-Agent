@@ -94,7 +94,12 @@ if __name__ == "__main__":
             exit(1)
 
         print(f"[+] Lade Modell: {model_path}")
-        model = PPO.load(model_path)
+        try:
+            model = PPO.load(model_path)
+        except Exception as e:
+            print(f"[!] Fehler beim Laden des Modells: {e}")
+            print("[!] Mögliche Ursache: Observation Space hat sich geändert (Shape Mismatch)")
+            exit(1)
 
     elif not args.demo:
         print("[!] Kein Modell angegeben und nicht im Demo-Modus. Starte mit zufaelligen Aktionen.")
@@ -106,10 +111,15 @@ if __name__ == "__main__":
     print("[*] Nehme Episode auf...")
     replay_data = record_episode(env, model, seed=args.seed)
 
-    # Replay speichern
+    # Replay speichern mit Metadaten im Dateinamen
     os.makedirs(REPLAYS_DIR, exist_ok=True)
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = f"episode_{timestamp}.json"
+
+    # Füge Score und Typ zum Dateinamen hinzu
+    score_blue = replay_data['metadata']['final_scores']['blue']
+    score_red = replay_data['metadata']['final_scores']['red']
+    episode_type = "trained" if model else "demo"
+    filename = f"{episode_type}_Blue{score_blue}v{score_red}Red_{timestamp}.json"
     filepath = os.path.join(REPLAYS_DIR, filename)
 
     with open(filepath, "w") as f:

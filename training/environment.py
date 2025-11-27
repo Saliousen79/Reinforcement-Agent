@@ -48,9 +48,23 @@ class CaptureTheFlagEnv(ParallelEnv):
         self.render_mode = render_mode
 
         # Statische Wände (Rechtecke) blockieren direkte Wege
+        # Layout: "Die Arena" - Taktische Map mit Deckung und Flanken-Möglichkeiten
         self.walls = [
-            {"x_min": 11, "x_max": 13, "y_min": 4, "y_max": 8},
-            {"x_min": 11, "x_max": 13, "y_min": 16, "y_max": 20},
+            # --- ZENTRUM (Sichtschutz) ---
+            # Vier Säulen, die einen "Platz" in der Mitte bilden
+            {"x_min": 10, "x_max": 11, "y_min": 10, "y_max": 11},
+            {"x_min": 13, "x_max": 14, "y_min": 10, "y_max": 11},
+            {"x_min": 10, "x_max": 11, "y_min": 13, "y_max": 14},
+            {"x_min": 13, "x_max": 14, "y_min": 13, "y_max": 14},
+
+            # --- BLUE DEFENSE (Links) ---
+            # Ein "Bunker" oben und unten zum Verstecken
+            {"x_min": 5, "x_max": 7, "y_min": 4, "y_max": 5},   # Unten
+            {"x_min": 5, "x_max": 7, "y_min": 19, "y_max": 20}, # Oben
+
+            # --- RED DEFENSE (Rechts - Gespiegelt) ---
+            {"x_min": 17, "x_max": 19, "y_min": 4, "y_max": 5},   # Unten
+            {"x_min": 17, "x_max": 19, "y_min": 19, "y_max": 20}, # Oben
         ]
 
         # Teams
@@ -77,7 +91,7 @@ class CaptureTheFlagEnv(ParallelEnv):
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent: str) -> spaces.Space:
         """
-        Erweiterte Observation (34 Werte):
+        Erweiterte Observation (31 Werte):
         - Eigene Info (5): x, y, has_flag, is_stunned, cooldown
         - Vektor zur eigenen Base (2): dx, dy
         - Vektor zur gegnerischen Flagge (2): dx, dy
@@ -89,7 +103,7 @@ class CaptureTheFlagEnv(ParallelEnv):
         - Map Grenzen (4): Distanz zu Wänden (oben, unten, links, rechts)
         - Scores (2): own, enemy
         """
-        return spaces.Box(low=-1.0, high=2.0, shape=(34,), dtype=np.float32)
+        return spaces.Box(low=-1.0, high=2.0, shape=(31,), dtype=np.float32)
 
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent: str) -> spaces.Space:
@@ -362,17 +376,16 @@ class CaptureTheFlagEnv(ParallelEnv):
         return reward
 
     def _execute_tackle(self, agent: str) -> float:
-        """Tackle ausführen."""
+        """Tackle ausführen mit taktischer Bewertung."""
         state = self.agent_states[agent]
-        reward = 0.0
 
         # Cooldown check
         if state["tackle_cooldown"] > 0:
             return 0.0
 
-        # In eigener Base? Kann nicht tacklen (und wird nicht getackled)
-        #if self._is_in_base(state["position"], state["team"]):
-        #    continue
+        # 1. Basis-Kosten für den Versuch (Energieverbrauch)
+        # Verhindert, dass sie die Taste einfach gedrückt halten ("Spammen")
+        reward = -0.2
 
         # Cooldown setzen
         state["tackle_cooldown"] = self.tackle_cooldown
@@ -380,39 +393,65 @@ class CaptureTheFlagEnv(ParallelEnv):
         # Gegner in Reichweite finden
         enemies = self.red_agents if state["team"] == "blue" else self.blue_agents
 
+        # Positionen für Kontext-Check
+        my_team = state["team"]
+        enemy_team = "red" if my_team == "blue" else "blue"
+        enemy_flag_pos = self.flags[enemy_team]["position"]
+
         for enemy in enemies:
             enemy_state = self.agent_states[enemy]
-
-            # Distanz prüfen
             dist = np.linalg.norm(state["position"] - enemy_state["position"])
 
+            # Treffer-Check
             if dist <= self.tackle_range and self._check_line_of_sight(
                 state["position"], enemy_state["position"]
             ):
-                # Stun!
+                # Stun erfolgreich!
                 enemy_state["is_stunned"] = True
                 enemy_state["stun_timer"] = self.stun_duration
 
-                reward += 3.0  # Basis Stun-Reward
+                # --- TAKTISCHE ANALYSE ---
 
-                # Stats
-                if state["team"] == "blue":
-                    self.episode_stats["blue_stuns"] += 1
-                else:
-                    self.episode_stats["red_stuns"] += 1
-
-                # Hatte Gegner eine Flagge?
+                # Fall A: "Clutch Play" - Gegner hat unsere Flagge!
                 if enemy_state["has_flag"]:
-                    reward += 10.0  # Bonus für Flaggenträger stunnen!
+                    reward += 15.0
                     enemy_state["has_flag"] = False
 
                     # Flagge fallen lassen
-                    dropped_flag = "red" if state["team"] == "blue" else "blue"
+                    dropped_flag = "red" if my_team == "blue" else "blue"
                     self.flags[dropped_flag]["carried_by"] = None
                     self.flags[dropped_flag]["at_base"] = False
-                    # Position bleibt wo sie ist
 
-                break  # Nur einen Gegner pro Tackle
+                    # Stats
+                    if my_team == "blue":
+                        self.episode_stats["blue_stuns"] += 1
+                    else:
+                        self.episode_stats["red_stuns"] += 1
+
+                # Fall B: "Defense" - Gegner ist in unserer Base (Einbrecher)
+                elif self._is_in_base(enemy_state["position"], my_team):
+                    reward += 5.0
+                    if my_team == "blue":
+                        self.episode_stats["blue_stuns"] += 1
+                    else:
+                        self.episode_stats["red_stuns"] += 1
+
+                # Fall C: "Offense / Clearing" - Gegner campt an der Flagge, die wir wollen
+                # (Wir schlagen ihn weg, um die Flagge zu nehmen -> SEHR GUTE TAKTIK)
+                elif np.linalg.norm(enemy_state["position"] - enemy_flag_pos) < 4.0:
+                    reward += 5.0
+                    if my_team == "blue":
+                        self.episode_stats["blue_stuns"] += 1
+                    else:
+                        self.episode_stats["red_stuns"] += 1
+
+                # Fall D: "Bullying" - Mitten auf dem Feld ohne Grund
+                else:
+                    # KEIN Reward. Durch die Kosten von -0.2 lernt der Agent:
+                    # "Das war Energieverschwendung."
+                    pass
+
+                break  # Nur ein Treffer pro Action
 
         return reward
 
@@ -433,7 +472,7 @@ class CaptureTheFlagEnv(ParallelEnv):
             enemy_flag = self.flags[enemy_team]
             if not state["has_flag"] and enemy_flag["carried_by"] is None:
                 dist_to_flag = np.linalg.norm(pos - enemy_flag["position"])
-                if dist_to_flag < 1.0:
+                if dist_to_flag < 2.0:  # Vergrößerter Pickup-Radius (war 1.0)
                     state["has_flag"] = True
                     enemy_flag["carried_by"] = agent
                     enemy_flag["at_base"] = False
@@ -465,7 +504,7 @@ class CaptureTheFlagEnv(ParallelEnv):
             own_flag = self.flags[team]
             if not own_flag["at_base"] and own_flag["carried_by"] is None:
                 dist_to_own_flag = np.linalg.norm(pos - own_flag["position"])
-                if dist_to_own_flag < 1.0:
+                if dist_to_own_flag < 2.0:  # Vergrößerter Pickup-Radius (war 1.0)
                     # Flagge zurück zur Base!
                     own_flag["position"] = self.flag_spawns[team].copy()
                     own_flag["at_base"] = True
