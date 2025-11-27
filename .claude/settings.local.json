@@ -1,7 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(python export_replay.py:*)",
+      "Bash(dir)",
+      "Bash(dir:*)",
+      "Bash(python convert_tensorboard_logs.py:*)",
+      "Bash(python reconstruct_from_models.py:*)"
     ],
     "deny": [],
     "ask": []

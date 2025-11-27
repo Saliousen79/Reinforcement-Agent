@@ -47,6 +47,68 @@ class MetricsCallback(BaseCallback):
         return True
 
 
+class BestGameCallback(BaseCallback):
+    """
+    Speichert das Replay, wenn ein neuer Highscore erreicht wurde.
+    """
+    def __init__(self, output_dir: str = "../visualization/replays"):
+        super().__init__(verbose=1)
+        self.output_dir = output_dir
+        self.best_reward = -float('inf')
+        os.makedirs(output_dir, exist_ok=True)
+
+    def _on_step(self) -> bool:
+        # 'infos' enthält Infos von allen parallelen Environments
+        infos = self.locals.get("infos", [])
+
+        for i, info in enumerate(infos):
+            # Prüfen ob Episode beendet ist (via Monitor Wrapper Info)
+            if "episode" in info:
+                episode_reward = info["episode"]["r"]
+
+                # Ist das ein neuer Rekord? (Und nicht nur zufälliges Rauschen am Anfang)
+                if episode_reward > self.best_reward:
+                    self.best_reward = episode_reward
+
+                    # Zugriff auf das Environment - muss unwrappen
+                    try:
+                        # Bei concat_vec_envs_v1 und VecMonitor
+                        if hasattr(self.training_env, 'venv'):
+                            # VecMonitor wrapper
+                            vec_env = self.training_env.venv
+                        else:
+                            vec_env = self.training_env
+
+                        # Jetzt zum eigentlichen env
+                        if hasattr(vec_env, 'par_env'):
+                            # concat_vec_envs_v1 Struktur
+                            env = vec_env.par_env
+                        elif hasattr(vec_env, 'envs'):
+                            env = vec_env.envs[i]
+                        else:
+                            env = vec_env
+
+                        # Unwrap bis zum eigentlichen Environment
+                        while hasattr(env, 'env') and not hasattr(env, 'last_replay'):
+                            env = env.env
+
+                        if hasattr(env, "last_replay"):
+                            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                            filename = f"best_game_reward_{int(episode_reward)}_{timestamp}.json"
+                            filepath = os.path.join(self.output_dir, filename)
+
+                            with open(filepath, "w") as f:
+                                json.dump(env.last_replay, f)
+
+                            if self.verbose > 0:
+                                print(f"\n🏆 Neuer Highscore: {episode_reward:.2f}! Replay gespeichert: {filename}")
+                    except Exception as e:
+                        if self.verbose > 0:
+                            print(f"\n⚠️ Konnte Replay nicht speichern: {e}")
+
+        return True
+
+
 def make_env():
     """Environment Factory."""
     return CaptureTheFlagEnv(
@@ -154,13 +216,15 @@ def train(
         save_freq=1000,
     )
 
+    best_game_cb = BestGameCallback()
+
     # Training
     print("\n🚀 Training startet...\n")
 
     try:
         model.learn(
             total_timesteps=total_timesteps,
-            callback=[checkpoint_cb, metrics_cb],
+            callback=[checkpoint_cb, metrics_cb, best_game_cb],
             progress_bar=True,
         )
 

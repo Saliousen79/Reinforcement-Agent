@@ -169,15 +169,15 @@ Output:
 
 ### 4. 3D Visualisierung öffnen
 
-**Methode 1: Lokaler HTTP Server (empfohlen)**
+**WICHTIG: Server im Root-Verzeichnis starten!**
 
 ```bash
-cd visualization
-
-# Python 3
+# Im Projekt-Root (nicht im visualization-Ordner!)
 python -m http.server 8000
 
-# Öffne Browser: http://localhost:8000
+# Öffne Browser:
+# Visualisierung: http://localhost:8000/visualization/
+# Dashboard: http://localhost:8000/dashboard/
 ```
 
 **Methode 2: Direkt öffnen**

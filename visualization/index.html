@@ -191,10 +191,28 @@
         input[type="file"] {
             display: none;
         }
+
+        #dashboard-btn {
+            background: #ff922b;
+            border-color: #ff922b;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 12px 24px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+
+        #dashboard-btn:hover {
+            background: #fd7e14;
+            border-color: #fd7e14;
+        }
     </style>
 </head>
 <body>
     <div id="canvas-container"></div>
+
+    <button id="dashboard-btn" onclick="window.location.href='../dashboard/index.html'">📊 Dashboard</button>
 
     <div id="loading">
         <div class="spinner"></div>

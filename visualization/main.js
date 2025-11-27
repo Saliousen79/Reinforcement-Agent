@@ -10,6 +10,7 @@ let isPlaying = true;
 let playbackSpeed = 1;
 let lastFrameTime = 0;
 const FRAME_DURATION = 50;
+let tackle_cooldown = 100; // Default, wird aus Metadaten überschrieben
 
 // Meshes
 const agentMeshes = {};
@@ -25,6 +26,7 @@ function init() {
     setupLights();
     setupGround();
     setupBases();
+    setupWalls();
     setupControls();
     loadAvailableEpisodes();
     animate(0);
@@ -146,6 +148,41 @@ function setupBases() {
     scene.add(redBase);
 }
 
+function setupWalls() {
+    // Wände aus dem Environment:
+    // {"x_min": 11, "x_max": 13, "y_min": 4, "y_max": 8}
+    // {"x_min": 11, "x_max": 13, "y_min": 16, "y_max": 20}
+
+    const walls = [
+        { x_min: 11, x_max: 13, y_min: 4, y_max: 8 },
+        { x_min: 11, x_max: 13, y_min: 16, y_max: 20 }
+    ];
+
+    walls.forEach(wall => {
+        const width = wall.x_max - wall.x_min;
+        const depth = wall.y_max - wall.y_min;
+        const height = 2;
+
+        const wallGeo = new THREE.BoxGeometry(width, height, depth);
+        const wallMat = new THREE.MeshStandardMaterial({
+            color: 0x2c2c2c,
+            metalness: 0.3,
+            roughness: 0.7
+        });
+
+        const wallMesh = new THREE.Mesh(wallGeo, wallMat);
+        wallMesh.position.set(
+            (wall.x_min + wall.x_max) / 2,
+            height / 2,
+            (wall.y_min + wall.y_max) / 2
+        );
+        wallMesh.castShadow = true;
+        wallMesh.receiveShadow = true;
+
+        scene.add(wallMesh);
+    });
+}
+
 function setupControls() {
     document.getElementById('play-btn').onclick = () => {
         isPlaying = true;
@@ -253,6 +290,11 @@ async function loadEpisode(filename) {
 
         replayData = data;
 
+        // Metadaten laden
+        if (data.metadata && data.metadata.tackle_cooldown) {
+            tackle_cooldown = data.metadata.tackle_cooldown;
+        }
+
         clearAgents();
         createAgents();
         createFlags();
@@ -296,6 +338,11 @@ function loadEpisodeFromFile(file) {
 
             // Daten sind gültig
             replayData = data;
+
+            // Metadaten laden
+            if (data.metadata && data.metadata.tackle_cooldown) {
+                tackle_cooldown = data.metadata.tackle_cooldown;
+            }
 
             clearAgents();
             createAgents();
@@ -436,6 +483,10 @@ function updateScene() {
         const mesh = agentMeshes[id];
         if (!mesh) return;
 
+        // Alte Position für Animationen speichern
+        const oldPos = mesh.position.clone();
+        const targetPos = new THREE.Vector3(data.position[0], 0.8, data.position[1]);
+
         // Position
         mesh.position.x += (data.position[0] - mesh.position.x) * 0.2;
         mesh.position.z += (data.position[1] - mesh.position.z) * 0.2;
@@ -453,11 +504,37 @@ function updateScene() {
         }
 
         // Has flag glow
-        if (data.has_flag) {
-            mesh.position.y = 0.8 + Math.sin(Date.now() * 0.01) * 0.1;
+        const movementSpeed = mesh.position.distanceTo(oldPos);
+
+        if (data.has_flag) { // Bobbing, wenn Flagge getragen wird
+            mesh.position.y = targetPos.y + Math.sin(Date.now() * 0.01) * 0.1;
         } else {
-            mesh.position.y = 0.8;
+            mesh.position.y = targetPos.y;
         }
+
+        // "Squash and Stretch" Lauf-Animation
+        if (movementSpeed > 0.01 && !data.is_stunned) {
+            const stretch = 1 + movementSpeed * 2;
+            const squash = 1 / (1 + movementSpeed * 1.5);
+            mesh.scale.y = stretch;
+            mesh.scale.x = squash;
+            mesh.scale.z = squash;
+        } else {
+            // Zurück zur normalen Skalierung
+            mesh.scale.lerp(new THREE.Vector3(1, 1, 1), 0.2);
+        }
+
+        // Tackle "Lunge"-Animation
+        if (data.tackle_cooldown > tackle_cooldown - 5) { // 5 Frames nach dem Tackle
+            const lungeProgress = (tackle_cooldown - data.tackle_cooldown) / 5;
+            const lungeAmount = Math.sin(lungeProgress * Math.PI) * 0.8; // Vor und zurück
+
+            const direction = new THREE.Vector3().subVectors(targetPos, oldPos).normalize();
+            if (direction.length() > 0) {
+                mesh.position.add(direction.multiplyScalar(lungeAmount));
+            }
+        }
+
     });
 
     // Update flags
