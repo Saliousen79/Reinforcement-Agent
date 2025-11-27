@@ -77,16 +77,19 @@ class CaptureTheFlagEnv(ParallelEnv):
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent: str) -> spaces.Space:
         """
-        Observation pro Agent (22 Werte):
-        - Eigene Info: x, y, has_flag, is_stunned, tackle_cooldown (5)
-        - Teammate: x, y, has_flag (3)
-        - Gegner 0: x, y, has_flag (3)
-        - Gegner 1: x, y, has_flag (3)
-        - Eigene Flagge: x, y, at_base (3)
-        - Gegner Flagge: x, y, at_base (3)
-        - Scores: own, enemy (2)
+        Erweiterte Observation (34 Werte):
+        - Eigene Info (5): x, y, has_flag, is_stunned, cooldown
+        - Vektor zur eigenen Base (2): dx, dy
+        - Vektor zur gegnerischen Flagge (2): dx, dy
+        - Vektor zur eigenen Flagge (2): dx, dy
+        - Teammate Info (4): dx, dy, has_flag, is_stunned
+        - Gegner 1 (nächster) (4): dx, dy, has_flag, is_stunned
+        - Gegner 2 (entfernter) (4): dx, dy, has_flag, is_stunned
+        - Flaggen Status (2): enemy_flag_at_base, own_flag_at_base
+        - Map Grenzen (4): Distanz zu Wänden (oben, unten, links, rechts)
+        - Scores (2): own, enemy
         """
-        return spaces.Box(low=-1.0, high=2.0, shape=(22,), dtype=np.float32)
+        return spaces.Box(low=-1.0, high=2.0, shape=(34,), dtype=np.float32)
 
     @functools.lru_cache(maxsize=None)
     def action_space(self, agent: str) -> spaces.Space:
@@ -197,6 +200,24 @@ class CaptureTheFlagEnv(ParallelEnv):
         self.current_step += 1
         rewards = {agent: 0.0 for agent in self.agents}
 
+        # --- NEU: Distanzen VOR der Bewegung merken ---
+        prev_dists = {}
+        for agent in self.agents:
+            state = self.agent_states[agent]
+            team = state["team"]
+            enemy_team = "red" if team == "blue" else "blue"
+
+            # Ziel bestimmen
+            if state["has_flag"]:
+                # Ziel: Eigene Base
+                target = np.array([2.0, 12.0]) if team == "blue" else np.array([22.0, 12.0])
+            else:
+                # Ziel: Gegnerische Flagge
+                target = self.flags[enemy_team]["position"]
+
+            prev_dists[agent] = np.linalg.norm(state["position"] - target)
+        # ---------------------------------------------
+
         # 1. Timer updaten (Stun, Cooldowns)
         self._update_timers()
 
@@ -209,6 +230,28 @@ class CaptureTheFlagEnv(ParallelEnv):
         flag_rewards = self._process_flags()
         for agent, reward in flag_rewards.items():
             rewards[agent] += reward
+
+        # --- NEU: Distance Reward (Heiß/Kalt) ---
+        for agent in self.agents:
+            state = self.agent_states[agent]
+            team = state["team"]
+            enemy_team = "red" if team == "blue" else "blue"
+
+            # Ziel wieder bestimmen (Status könnte sich geändert haben!)
+            if state["has_flag"]:
+                target = np.array([2.0, 12.0]) if team == "blue" else np.array([22.0, 12.0])
+                scale = 0.5  # Bonus fürs Heimtragen
+            else:
+                target = self.flags[enemy_team]["position"]
+                scale = 0.1  # Kleinerer Bonus fürs Hinlaufen
+
+            new_dist = np.linalg.norm(state["position"] - target)
+
+            # Belohnung für Verbesserung (alte Distanz - neue Distanz)
+            # Positiv, wenn wir näher kommen. Negativ, wenn wir weggehen.
+            dist_reward = (prev_dists[agent] - new_dist) * scale
+            rewards[agent] += dist_reward
+        # ----------------------------------------
 
         # 4. Team-basierte Rewards verteilen
         rewards = self._distribute_team_rewards(rewards)
@@ -473,48 +516,75 @@ class CaptureTheFlagEnv(ParallelEnv):
         return True
 
     def _get_observation(self, agent: str) -> np.ndarray:
-        """Observation für einen Agenten."""
+        """Observation für einen Agenten mit relativen Vektoren."""
         state = self.agent_states[agent]
+        pos = state["position"]
         team = state["team"]
         enemy_team = "red" if team == "blue" else "blue"
 
-        # Normalisierung
-        def norm_pos(p):
-            return p / self.grid_size
+        # Hilfsfunktion für relative Vektoren (normiert auf Grid-Größe)
+        def get_vec(target_pos, my_pos):
+            return (target_pos - my_pos) / self.grid_size
 
         obs = []
 
-        # Eigene Info (5)
-        obs.extend(norm_pos(state["position"]))
+        # 1. Eigene Info (5)
+        obs.extend(pos / self.grid_size)  # Absolute Pos (hilft bei Wänden)
         obs.append(1.0 if state["has_flag"] else 0.0)
         obs.append(1.0 if state["is_stunned"] else 0.0)
         obs.append(state["tackle_cooldown"] / self.tackle_cooldown)
 
-        # Teammate (3)
-        teammates = self.blue_agents if team == "blue" else self.red_agents
-        teammate = [t for t in teammates if t != agent][0]
-        tm_state = self.agent_states[teammate]
-        obs.extend(norm_pos(tm_state["position"]))
-        obs.append(1.0 if tm_state["has_flag"] else 0.0)
+        # 2. Vektor zur eigenen Base (Wo muss ich hin zum Abgeben?) (2)
+        base_center = np.array([2.0, 12.0]) if team == "blue" else np.array([22.0, 12.0])
+        obs.extend(get_vec(base_center, pos))
 
-        # Gegner (6)
-        enemies = self.red_agents if team == "blue" else self.blue_agents
-        for enemy in enemies:
-            e_state = self.agent_states[enemy]
-            obs.extend(norm_pos(e_state["position"]))
-            obs.append(1.0 if e_state["has_flag"] else 0.0)
-
-        # Eigene Flagge (3)
+        # 3. Vektoren zu Flaggen (2+2)
+        enemy_flag = self.flags[enemy_team]
         own_flag = self.flags[team]
-        obs.extend(norm_pos(own_flag["position"]))
+        obs.extend(get_vec(enemy_flag["position"], pos))  # Wo ist das Ziel?
+        obs.extend(get_vec(own_flag["position"], pos))    # Wo ist meine Flagge (Verteidigung)?
+
+        # 4. Teammate (relativ) (4)
+        teammates = [a for a in (self.blue_agents if team == "blue" else self.red_agents) if a != agent]
+        if teammates:
+            tm = teammates[0]
+            tm_state = self.agent_states[tm]
+            obs.extend(get_vec(tm_state["position"], pos))
+            obs.append(1.0 if tm_state["has_flag"] else 0.0)
+            obs.append(1.0 if tm_state["is_stunned"] else 0.0)
+        else:
+            obs.extend([0, 0, 0, 0])  # Fallback
+
+        # 5. Gegner (relativ & sortiert nach Nähe!) (4+4)
+        enemies = self.red_agents if team == "blue" else self.blue_agents
+        # Liste von (Distanz, Agent-ID) erstellen
+        enemy_list = []
+        for e in enemies:
+            e_pos = self.agent_states[e]["position"]
+            dist = np.linalg.norm(e_pos - pos)
+            enemy_list.append((dist, e))
+
+        # Sortieren: Nächster Gegner zuerst
+        enemy_list.sort(key=lambda x: x[0])
+
+        for _, e_agent in enemy_list:
+            e_state = self.agent_states[e_agent]
+            obs.extend(get_vec(e_state["position"], pos))
+            obs.append(1.0 if e_state["has_flag"] else 0.0)
+            obs.append(1.0 if e_state["is_stunned"] else 0.0)
+
+        # 6. Globaler Status (2)
+        obs.append(1.0 if enemy_flag["at_base"] else 0.0)
         obs.append(1.0 if own_flag["at_base"] else 0.0)
 
-        # Gegner Flagge (3)
-        enemy_flag = self.flags[enemy_team]
-        obs.extend(norm_pos(enemy_flag["position"]))
-        obs.append(1.0 if enemy_flag["at_base"] else 0.0)
+        # 7. Wände/Rand Wahrnehmung (4) - Bin ich am Rand?
+        # Abstand zu 0, 0, Grid, Grid
+        obs.append(pos[1] / self.grid_size)  # Abstand unten
+        obs.append((self.grid_size - pos[1]) / self.grid_size)  # Abstand oben
+        obs.append(pos[0] / self.grid_size)  # Abstand links
+        obs.append((self.grid_size - pos[0]) / self.grid_size)  # Abstand rechts
 
-        # Scores (2)
+        # 8. Scores (2)
         obs.append(self.scores[team] / self.win_score)
         obs.append(self.scores[enemy_team] / self.win_score)
 

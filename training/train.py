@@ -15,7 +15,7 @@ from environment import CaptureTheFlagEnv
 
 
 class MetricsCallback(BaseCallback):
-    """Callback für Analytics Dashboard."""
+    """Erweitertes Callback für Analytics Dashboard."""
 
     def __init__(self, log_path: str, save_freq: int = 1000, verbose: int = 1):
         super().__init__(verbose)
@@ -25,16 +25,21 @@ class MetricsCallback(BaseCallback):
             "timesteps": [],
             "mean_reward": [],
             "std_reward": [],
+            "mean_length": [],  # NEU: Wie lange dauert ein Spiel?
             "episodes": [],
         }
 
     def _on_step(self) -> bool:
         if self.n_calls % self.save_freq == 0:
+            # ep_info_buffer enthält 'r' (Reward) und 'l' (Length)
             if len(self.model.ep_info_buffer) > 0:
                 rewards = [ep["r"] for ep in self.model.ep_info_buffer]
+                lengths = [ep["l"] for ep in self.model.ep_info_buffer]  # NEU
+
                 self.metrics["timesteps"].append(self.n_calls)
                 self.metrics["mean_reward"].append(float(np.mean(rewards)))
                 self.metrics["std_reward"].append(float(np.std(rewards)))
+                self.metrics["mean_length"].append(float(np.mean(lengths)))  # NEU
                 self.metrics["episodes"].append(len(self.model.ep_info_buffer))
 
                 # Speichern
@@ -42,7 +47,7 @@ class MetricsCallback(BaseCallback):
                     json.dump(self.metrics, f, indent=2)
 
                 if self.verbose:
-                    print(f"Step {self.n_calls}: Mean Reward = {np.mean(rewards):.2f}")
+                    print(f"Step {self.n_calls}: Reward = {np.mean(rewards):.2f}, Length = {np.mean(lengths):.1f}")
 
         return True
 
@@ -161,8 +166,8 @@ def create_replay(model_path: str, output_dir: str = "../visualization/replays",
 
 
 def train(
-    total_timesteps: int = 500_000,
-    n_envs: int = 4,
+    total_timesteps: int = 5_000_000,  # Erhöht von 500k auf 5M
+    n_envs: int = 8,                   # Mehr parallele Envs für schnelleres Training
     learning_rate: float = 3e-4,
     save_freq: int = 50_000,
     log_dir: str = "../dashboard/data",
@@ -188,20 +193,21 @@ def train(
     vec_env = concat_vec_envs_v1(vec_env, n_envs, num_cpus=1, base_class="stable_baselines3")
     vec_env = VecMonitor(vec_env)
 
-    # Model
+    # Model mit verbessertem Netzwerk und Hyperparametern
     model = PPO(
         policy="MlpPolicy",
         env=vec_env,
         learning_rate=learning_rate,
-        n_steps=2048,
-        batch_size=64,
+        n_steps=1024,        # Schritte pro Update pro Env
+        batch_size=256,      # Größere Batch Size für stabilere Gradients
         n_epochs=10,
         gamma=0.99,
         gae_lambda=0.95,
         clip_range=0.2,
-        ent_coef=0.01,
+        ent_coef=0.01,       # Exploration erzwingen
         verbose=1,
         tensorboard_log="./logs",
+        policy_kwargs=dict(net_arch=[256, 256])  # Größeres Netzwerk für komplexere Observations
     )
 
     # Callbacks
@@ -253,8 +259,8 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--timesteps", type=int, default=500_000)
-    parser.add_argument("--envs", type=int, default=4)
+    parser.add_argument("--timesteps", type=int, default=5_000_000)
+    parser.add_argument("--envs", type=int, default=8)
     args = parser.parse_args()
 
     train(total_timesteps=args.timesteps, n_envs=args.envs)

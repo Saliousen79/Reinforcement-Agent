@@ -134,10 +134,6 @@
             color: #fff;
         }
 
-        #main-chart {
-            height: 400px;
-        }
-
         .error-box {
             background: rgba(255, 107, 107, 0.1);
             border: 1px solid rgba(255, 107, 107, 0.3);
@@ -214,10 +210,23 @@
         </div>
     </div>
 
-    <!-- Nur 1 Haupt-Chart -->
-    <div class="chart-container">
-        <div class="chart-title">📈 Training Progress</div>
-        <canvas id="main-chart"></canvas>
+    <!-- Zwei Charts: Reward & Efficiency -->
+    <div style="display: grid; grid-template-columns: 1fr; gap: 20px; max-width: 1200px; margin: 0 auto;">
+
+        <div class="chart-container">
+            <div class="chart-title">📈 Reward History (Performance & Stability)</div>
+            <div style="height: 350px;">
+                <canvas id="main-chart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-container">
+            <div class="chart-title">⏱️ Episode Duration (Efficiency)</div>
+            <div style="height: 250px;">
+                <canvas id="length-chart"></canvas>
+            </div>
+        </div>
+
     </div>
 
     <div id="error-container"></div>

@@ -3,6 +3,7 @@
  */
 
 let mainChart;
+let lengthChart; // Globale Variable für den zweiten Chart
 let previousData = null;
 let refreshInterval;
 const REFRESH_RATE = 5000; // 5 Sekunden
@@ -198,18 +199,21 @@ function updateKPIs(data) {
 // =====================
 
 function updateChart(data) {
+    // === CHART 1: REWARD & STABILITY ===
     const ctx = document.getElementById('main-chart');
 
-    if (mainChart) {
-        mainChart.destroy();
-    }
+    if (mainChart) mainChart.destroy();
 
     const timesteps = data.timesteps || [];
     const meanRewards = data.mean_reward || [];
     const stdRewards = data.std_reward || [];
 
-    // Glättung mit Moving Average (10 Punkte)
-    const smoothedRewards = calculateMovingAverage(meanRewards, 10);
+    // Berechne den oberen und unteren Rand für die Varianz (Schatten)
+    const upperStd = meanRewards.map((v, i) => v + (stdRewards[i] || 0));
+    const lowerStd = meanRewards.map((v, i) => v - (stdRewards[i] || 0));
+
+    // Glättung
+    const smoothedRewards = calculateMovingAverage(meanRewards, 5);
 
     mainChart = new Chart(ctx, {
         type: 'line',
@@ -219,91 +223,98 @@ function updateChart(data) {
                 {
                     label: 'Mean Reward (Smoothed)',
                     data: smoothedRewards,
-                    borderColor: '#4dabf7',
-                    backgroundColor: 'rgba(77, 171, 247, 0.1)',
+                    borderColor: '#4dabf7', // Helles Blau
                     borderWidth: 3,
-                    fill: true,
                     tension: 0.4,
-                    pointRadius: 0,
-                    pointHoverRadius: 5,
+                    pointRadius: 0
                 },
                 {
-                    label: 'Raw Mean Reward',
-                    data: meanRewards,
-                    borderColor: 'rgba(77, 171, 247, 0.3)',
-                    borderWidth: 1,
-                    fill: false,
-                    tension: 0.1,
+                    label: 'High Variance (+1 Std)',
+                    data: upperStd,
+                    borderColor: 'transparent',
+                    backgroundColor: 'rgba(77, 171, 247, 0.2)', // Transparenter Schatten
+                    fill: '+1', // Füllt bis zum nächsten Dataset (lowerStd)
                     pointRadius: 0,
-                    pointHoverRadius: 3,
+                    tension: 0.4
+                },
+                {
+                    label: 'Low Variance (-1 Std)',
+                    data: lowerStd,
+                    borderColor: 'transparent',
+                    backgroundColor: 'transparent',
+                    fill: false,
+                    pointRadius: 0,
+                    tension: 0.4
                 }
             ],
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
             plugins: {
-                legend: {
-                    labels: {
-                        color: '#fff',
-                        font: { size: 13 },
-                        usePointStyle: true,
-                    },
-                },
+                legend: { labels: { color: '#ccc' } },
                 tooltip: {
-                    mode: 'index',
-                    intersect: false,
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                    titleColor: '#fff',
-                    bodyColor: '#fff',
-                    borderColor: '#4dabf7',
-                    borderWidth: 1,
                     callbacks: {
                         label: function(context) {
-                            let label = context.dataset.label || '';
-                            if (label) {
-                                label += ': ';
-                            }
-                            label += context.parsed.y.toFixed(2);
-                            return label;
+                            if(context.dataset.label.includes('Variance')) return '';
+                            return context.dataset.label + ': ' + context.raw.toFixed(2);
                         }
                     }
-                },
+                }
             },
             scales: {
+                x: { display: false }, // X-Achse ausblenden um Platz zu sparen (Chart 2 hat sie)
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#888' },
+                    title: { display: true, text: 'Reward Points', color: '#666' }
+                }
+            }
+        }
+    });
+
+    // === CHART 2: EPISODE LENGTH ===
+    const ctxLength = document.getElementById('length-chart');
+    if (lengthChart) lengthChart.destroy();
+
+    const lengths = data.mean_length || [];
+    // Falls noch keine length daten da sind (altes Log), fülle mit 0
+    const cleanLengths = lengths.length > 0 ? lengths : new Array(timesteps.length).fill(0);
+    const smoothedLengths = calculateMovingAverage(cleanLengths, 5);
+
+    lengthChart = new Chart(ctxLength, {
+        type: 'line',
+        data: {
+            labels: timesteps,
+            datasets: [{
+                label: 'Avg Steps per Game',
+                data: smoothedLengths,
+                borderColor: '#ffd43b', // Gelb
+                backgroundColor: 'rgba(255, 212, 59, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.2,
+                pointRadius: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: { mode: 'index', intersect: false },
+            plugins: { legend: { display: false } },
+            scales: {
                 x: {
-                    title: {
-                        display: true,
-                        text: 'Timesteps',
-                        color: '#888',
-                        font: { size: 14, weight: 'bold' }
-                    },
-                    ticks: {
-                        color: '#888',
-                        maxTicksLimit: 15,
-                        callback: function(value, index, values) {
-                            return formatNumber(this.getLabelForValue(value));
-                        }
-                    },
-                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    ticks: { color: '#888', maxTicksLimit: 10, callback: (val, index) => formatNumber(timesteps[index]) },
+                    grid: { display: false }
                 },
                 y: {
-                    title: {
-                        display: true,
-                        text: 'Reward',
-                        color: '#888',
-                        font: { size: 14, weight: 'bold' }
-                    },
+                    grid: { color: 'rgba(255,255,255,0.05)' },
                     ticks: { color: '#888' },
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                },
-            },
-            interaction: {
-                mode: 'nearest',
-                axis: 'x',
-                intersect: false,
-            },
-        },
+                    title: { display: true, text: 'Steps', color: '#666' }
+                }
+            }
+        }
     });
 }
 
