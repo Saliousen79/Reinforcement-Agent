@@ -1,0 +1,500 @@
+/**
+ * Capture the Flag - Three.js 3D Visualisierung
+ */
+
+// Globals
+let scene, camera, renderer;
+let replayData = null;
+let currentFrame = 0;
+let isPlaying = true;
+let playbackSpeed = 1;
+let lastFrameTime = 0;
+const FRAME_DURATION = 50;
+
+// Meshes
+const agentMeshes = {};
+const flagMeshes = {};
+let blueBase, redBase, ground;
+
+// =====================
+// INIT
+// =====================
+
+function init() {
+    setupScene();
+    setupLights();
+    setupGround();
+    setupBases();
+    setupControls();
+    loadAvailableEpisodes();
+    animate(0);
+}
+
+function setupScene() {
+    const container = document.getElementById('canvas-container');
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0f0f1a);
+    scene.fog = new THREE.Fog(0x0f0f1a, 40, 80);
+
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.set(12, 25, 35);
+    camera.lookAt(12, 0, 12);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
+
+    // Simple orbit
+    let isDragging = false;
+    let prevMouse = { x: 0, y: 0 };
+
+    renderer.domElement.addEventListener('mousedown', e => {
+        isDragging = true;
+        prevMouse = { x: e.clientX, y: e.clientY };
+    });
+
+    renderer.domElement.addEventListener('mouseup', () => isDragging = false);
+    renderer.domElement.addEventListener('mouseleave', () => isDragging = false);
+
+    renderer.domElement.addEventListener('mousemove', e => {
+        if (!isDragging) return;
+        const dx = e.clientX - prevMouse.x;
+        const dy = e.clientY - prevMouse.y;
+
+        camera.position.x -= dx * 0.05;
+        camera.position.z -= dy * 0.05;
+        camera.lookAt(12, 0, 12);
+
+        prevMouse = { x: e.clientX, y: e.clientY };
+    });
+
+    renderer.domElement.addEventListener('wheel', e => {
+        camera.position.y += e.deltaY * 0.02;
+        camera.position.y = Math.max(10, Math.min(50, camera.position.y));
+    });
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+}
+
+function setupLights() {
+    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+
+    const sun = new THREE.DirectionalLight(0xffffff, 0.8);
+    sun.position.set(20, 30, 20);
+    sun.castShadow = true;
+    sun.shadow.mapSize.width = 2048;
+    sun.shadow.mapSize.height = 2048;
+    scene.add(sun);
+
+    scene.add(new THREE.HemisphereLight(0x6c63ff, 0x0f0f1a, 0.3));
+}
+
+function setupGround() {
+    // Main ground
+    const groundGeo = new THREE.PlaneGeometry(30, 30);
+    const groundMat = new THREE.MeshStandardMaterial({ color: 0x1a1a2e });
+    ground = new THREE.Mesh(groundGeo, groundMat);
+    ground.rotation.x = -Math.PI / 2;
+    ground.position.set(12, -0.01, 12);
+    ground.receiveShadow = true;
+    scene.add(ground);
+
+    // Grid
+    const grid = new THREE.GridHelper(24, 24, 0x333366, 0x222244);
+    grid.position.set(12, 0, 12);
+    scene.add(grid);
+
+    // Center line
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x666688 });
+    const lineGeo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(12, 0.05, 0),
+        new THREE.Vector3(12, 0.05, 24)
+    ]);
+    scene.add(new THREE.Line(lineGeo, lineMat));
+}
+
+function setupBases() {
+    // Blue Base (links)
+    const blueGeo = new THREE.PlaneGeometry(4, 8);
+    const blueMat = new THREE.MeshStandardMaterial({
+        color: 0x4dabf7,
+        transparent: true,
+        opacity: 0.3
+    });
+    blueBase = new THREE.Mesh(blueGeo, blueMat);
+    blueBase.rotation.x = -Math.PI / 2;
+    blueBase.position.set(2, 0.02, 12);
+    scene.add(blueBase);
+
+    // Red Base (rechts)
+    const redGeo = new THREE.PlaneGeometry(4, 8);
+    const redMat = new THREE.MeshStandardMaterial({
+        color: 0xff6b6b,
+        transparent: true,
+        opacity: 0.3
+    });
+    redBase = new THREE.Mesh(redGeo, redMat);
+    redBase.rotation.x = -Math.PI / 2;
+    redBase.position.set(22, 0.02, 12);
+    scene.add(redBase);
+}
+
+function setupControls() {
+    document.getElementById('play-btn').onclick = () => {
+        isPlaying = true;
+        document.getElementById('play-btn').classList.add('active');
+        document.getElementById('pause-btn').classList.remove('active');
+    };
+
+    document.getElementById('pause-btn').onclick = () => {
+        isPlaying = false;
+        document.getElementById('pause-btn').classList.add('active');
+        document.getElementById('play-btn').classList.remove('active');
+    };
+
+    document.getElementById('reset-btn').onclick = () => {
+        currentFrame = 0;
+        updateScene();
+    };
+
+    document.getElementById('speed').oninput = e => {
+        playbackSpeed = parseFloat(e.target.value);
+        document.getElementById('speed-val').textContent = playbackSpeed + 'x';
+    };
+
+    document.getElementById('episode-select').onchange = e => {
+        if (e.target.value) {
+            loadEpisode(e.target.value);
+        }
+    };
+
+    // File Upload Button
+    document.getElementById('file-upload-btn').onclick = () => {
+        document.getElementById('file-input').click();
+    };
+
+    document.getElementById('file-input').onchange = e => {
+        const file = e.target.files[0];
+        if (file) {
+            loadEpisodeFromFile(file);
+        }
+    };
+}
+
+// =====================
+// EPISODE LOADING
+// =====================
+
+async function loadAvailableEpisodes() {
+    const select = document.getElementById('episode-select');
+
+    // Versuche alle verfügbaren Episoden zu finden
+    const possibleFiles = [
+        'demo_episode.json',
+        'episode_20251127_134405.json'  // Die generierte Episode
+    ];
+
+    let loaded = false;
+
+    for (const file of possibleFiles) {
+        try {
+            const res = await fetch(`replays/${file}`, { method: 'HEAD' });
+            if (res.ok) {
+                const option = document.createElement('option');
+                option.value = file;
+                option.textContent = file.replace('.json', '').replace(/_/g, ' ');
+                select.appendChild(option);
+
+                // Lade die erste verfügbare Episode
+                if (!loaded) {
+                    await loadEpisode(file);
+                    select.value = file;
+                    loaded = true;
+                }
+            }
+        } catch (err) {
+            // Datei existiert nicht, ignorieren
+        }
+    }
+
+    if (!loaded) {
+        document.getElementById('loading').innerHTML = `
+            <p>⚠️ Keine Episode gefunden</p>
+            <p style="color:#888;font-size:0.8rem;margin-top:10px;">
+                Klicke auf "📁 Replay laden" um eine Episode hochzuladen<br>
+                oder erstelle eine Demo: python export_replay.py --demo
+            </p>
+        `;
+    }
+}
+
+async function loadEpisode(filename) {
+    document.getElementById('loading').style.display = 'block';
+
+    try {
+        const res = await fetch(`replays/${filename}`);
+        const data = await res.json();
+
+        // Validierung
+        if (!data.frames || !Array.isArray(data.frames) || data.frames.length === 0) {
+            throw new Error('Keine Frames in der Episode');
+        }
+
+        if (!data.frames[0].agents) {
+            throw new Error('Keine Agent-Daten gefunden');
+        }
+
+        replayData = data;
+
+        clearAgents();
+        createAgents();
+        createFlags();
+
+        currentFrame = 0;
+        updateScene();
+
+        document.getElementById('loading').style.display = 'none';
+        console.log(`✅ Episode geladen: ${filename} (${data.frames.length} Frames)`);
+
+    } catch (err) {
+        console.error('Load error:', err);
+        document.getElementById('loading').innerHTML = `
+            <p>⚠️ Konnte Episode nicht laden</p>
+            <p style="color:#888;font-size:0.8rem;margin-top:10px;">
+                ${err.message || 'Unbekannter Fehler'}<br><br>
+                Klicke auf "📁 Replay laden" um eine Episode hochzuladen<br>
+                oder erstelle eine Demo: python export_replay.py --demo
+            </p>
+        `;
+    }
+}
+
+function loadEpisodeFromFile(file) {
+    document.getElementById('loading').style.display = 'block';
+
+    const reader = new FileReader();
+
+    reader.onload = (e) => {
+        try {
+            const data = JSON.parse(e.target.result);
+
+            // Validierung
+            if (!data.frames || !Array.isArray(data.frames) || data.frames.length === 0) {
+                throw new Error('Keine Frames gefunden');
+            }
+
+            if (!data.frames[0].agents) {
+                throw new Error('Keine Agent-Daten gefunden');
+            }
+
+            // Daten sind gültig
+            replayData = data;
+
+            clearAgents();
+            createAgents();
+            createFlags();
+
+            currentFrame = 0;
+            updateScene();
+
+            document.getElementById('loading').style.display = 'none';
+
+            // Update dropdown
+            const select = document.getElementById('episode-select');
+            select.innerHTML = `<option value="">${file.name}</option>`;
+
+            console.log(`✅ Episode geladen: ${data.frames.length} Frames`);
+
+        } catch (err) {
+            console.error('Parse error:', err);
+            document.getElementById('loading').innerHTML = `
+                <p>⚠️ Fehler beim Laden der Datei</p>
+                <p style="color:#888;font-size:0.8rem;margin-top:10px;">
+                    ${err.message || 'Ungültiges JSON-Format'}<br><br>
+                    Stelle sicher, dass die Datei mit export_replay.py erstellt wurde.
+                </p>
+            `;
+        }
+    };
+
+    reader.onerror = () => {
+        document.getElementById('loading').innerHTML = `
+            <p>⚠️ Fehler beim Lesen der Datei</p>
+        `;
+    };
+
+    reader.readAsText(file);
+}
+
+function clearAgents() {
+    Object.values(agentMeshes).forEach(m => scene.remove(m));
+    Object.values(flagMeshes).forEach(m => scene.remove(m));
+    Object.keys(agentMeshes).forEach(k => delete agentMeshes[k]);
+    Object.keys(flagMeshes).forEach(k => delete flagMeshes[k]);
+}
+
+function createAgents() {
+    if (!replayData || !replayData.frames || !replayData.frames[0]) {
+        console.error('Keine Replay-Daten verfügbar');
+        return;
+    }
+
+    const frame = replayData.frames[0];
+
+    if (!frame.agents) {
+        console.error('Keine Agent-Daten im ersten Frame');
+        return;
+    }
+
+    Object.entries(frame.agents).forEach(([id, data]) => {
+        const isBlue = data.team === 'blue';
+        const color = isBlue ? 0x4dabf7 : 0xff6b6b;
+
+        // Body
+        const bodyGeo = new THREE.CapsuleGeometry(0.4, 0.8, 8, 16);
+        const bodyMat = new THREE.MeshStandardMaterial({ color });
+        const body = new THREE.Mesh(bodyGeo, bodyMat);
+        body.castShadow = true;
+
+        // Eyes
+        const eyeGeo = new THREE.SphereGeometry(0.1);
+        const eyeMat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+
+        const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
+        leftEye.position.set(-0.15, 0.3, 0.35);
+        body.add(leftEye);
+
+        const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
+        rightEye.position.set(0.15, 0.3, 0.35);
+        body.add(rightEye);
+
+        // Stun indicator (hidden initially)
+        const stunGeo = new THREE.RingGeometry(0.5, 0.7, 16);
+        const stunMat = new THREE.MeshBasicMaterial({ color: 0xffd43b, side: THREE.DoubleSide });
+        const stunRing = new THREE.Mesh(stunGeo, stunMat);
+        stunRing.rotation.x = -Math.PI / 2;
+        stunRing.position.y = 1.5;
+        stunRing.visible = false;
+        stunRing.name = 'stunRing';
+        body.add(stunRing);
+
+        body.position.set(data.position[0], 0.8, data.position[1]);
+        body.userData = { team: data.team, originalColor: color };
+
+        scene.add(body);
+        agentMeshes[id] = body;
+    });
+}
+
+function createFlags() {
+    ['blue', 'red'].forEach(team => {
+        const isBlue = team === 'blue';
+        const color = isBlue ? 0x4dabf7 : 0xff6b6b;
+
+        // Pole
+        const poleGeo = new THREE.CylinderGeometry(0.05, 0.05, 2);
+        const poleMat = new THREE.MeshStandardMaterial({ color: 0x888888 });
+        const pole = new THREE.Mesh(poleGeo, poleMat);
+
+        // Flag cloth
+        const flagGeo = new THREE.PlaneGeometry(0.8, 0.5);
+        const flagMat = new THREE.MeshStandardMaterial({
+            color,
+            side: THREE.DoubleSide,
+            emissive: color,
+            emissiveIntensity: 0.3,
+        });
+        const flag = new THREE.Mesh(flagGeo, flagMat);
+        flag.position.set(0.4, 0.5, 0);
+        pole.add(flag);
+
+        pole.position.set(isBlue ? 2 : 22, 1, 12);
+
+        scene.add(pole);
+        flagMeshes[team] = pole;
+    });
+}
+
+// =====================
+// UPDATE & ANIMATION
+// =====================
+
+function updateScene() {
+    if (!replayData || !replayData.frames[currentFrame]) return;
+
+    const frame = replayData.frames[currentFrame];
+
+    // Update agents
+    Object.entries(frame.agents).forEach(([id, data]) => {
+        const mesh = agentMeshes[id];
+        if (!mesh) return;
+
+        // Position
+        mesh.position.x += (data.position[0] - mesh.position.x) * 0.2;
+        mesh.position.z += (data.position[1] - mesh.position.z) * 0.2;
+
+        // Stun effect
+        const stunRing = mesh.getObjectByName('stunRing');
+        if (stunRing) {
+            stunRing.visible = data.is_stunned;
+            if (data.is_stunned) {
+                stunRing.rotation.z += 0.1;
+                mesh.material.color.setHex(0x666666);
+            } else {
+                mesh.material.color.setHex(mesh.userData.originalColor);
+            }
+        }
+
+        // Has flag glow
+        if (data.has_flag) {
+            mesh.position.y = 0.8 + Math.sin(Date.now() * 0.01) * 0.1;
+        } else {
+            mesh.position.y = 0.8;
+        }
+    });
+
+    // Update flags
+    Object.entries(frame.flags).forEach(([team, data]) => {
+        const mesh = flagMeshes[team];
+        if (!mesh) return;
+
+        mesh.position.x += (data.position[0] - mesh.position.x) * 0.2;
+        mesh.position.z += (data.position[1] - mesh.position.z) * 0.2;
+
+        // Carried flag is higher
+        mesh.position.y = data.carried_by ? 1.5 : 1;
+    });
+
+    // Update UI
+    document.getElementById('step-display').textContent = `Step: ${frame.step}`;
+    document.getElementById('blue-score').textContent = frame.scores.blue;
+    document.getElementById('red-score').textContent = frame.scores.red;
+}
+
+function animate(timestamp) {
+    requestAnimationFrame(animate);
+
+    if (isPlaying && replayData) {
+        const elapsed = timestamp - lastFrameTime;
+        if (elapsed > FRAME_DURATION / playbackSpeed) {
+            currentFrame++;
+            if (currentFrame >= replayData.frames.length) {
+                currentFrame = 0;
+            }
+            lastFrameTime = timestamp;
+        }
+    }
+
+    updateScene();
+    renderer.render(scene, camera);
+}
+
+// Start
+init();

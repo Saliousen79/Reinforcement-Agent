@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚩 Capture the Flag - RL Project</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #4dabf7, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #888;
+            font-weight: 300;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 30px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .card:hover {
+            transform: translateY(-8px);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .card-desc {
+            color: #aaa;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .info {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 30px;
+        }
+
+        .info h3 {
+            margin-bottom: 12px;
+            color: #4dabf7;
+        }
+
+        .info p {
+            color: #ccc;
+            line-height: 1.7;
+            margin-bottom: 8px;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(108, 99, 255, 0.2);
+            color: #6c63ff;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            margin: 4px 4px 4px 0;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚩 Capture the Flag</h1>
+            <p class="subtitle">Multi-Agent Reinforcement Learning Project</p>
+        </header>
+
+        <div class="cards">
+            <a href="visualization/index.html" class="card">
+                <span class="card-icon">🎮</span>
+                <div class="card-title">3D Visualisierung</div>
+                <div class="card-desc">Interaktiver Replay Viewer mit Three.js - Beobachte trainierte Agenten in Aktion</div>
+            </a>
+
+            <a href="dashboard/index.html" class="card">
+                <span class="card-icon">📊</span>
+                <div class="card-title">Analytics Dashboard</div>
+                <div class="card-desc">Training Metriken, Charts und Performance-Analyse in Echtzeit</div>
+            </a>
+
+            <a href="README.md" class="card">
+                <span class="card-icon">📖</span>
+                <div class="card-title">Dokumentation</div>
+                <div class="card-desc">Vollständige Anleitung für Installation, Training und Nutzung</div>
+            </a>
+        </div>
+
+        <div class="info">
+            <h3>⚡ Quick Start</h3>
+            <p><strong>1. Dependencies installieren:</strong><br>
+            <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; font-size: 0.9rem;">cd training && pip install -r requirements.txt</code></p>
+
+            <p><strong>2. Demo Episode erstellen:</strong><br>
+            <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; font-size: 0.9rem;">python export_replay.py --demo</code></p>
+
+            <p><strong>3. Training starten (optional):</strong><br>
+            <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; font-size: 0.9rem;">python train.py --timesteps 100000 --envs 4</code></p>
+        </div>
+
+        <div class="info">
+            <h3>🎯 Features</h3>
+            <p>
+                <span class="badge">PettingZoo Environment</span>
+                <span class="badge">PPO Training</span>
+                <span class="badge">Team Cooperation</span>
+                <span class="badge">3D Viewer</span>
+                <span class="badge">Real-time Analytics</span>
+            </p>
+        </div>
+
+        <footer>
+            <p>Multi-Agent RL · Stable-Baselines3 · Three.js</p>
+        </footer>
+    </div>
+</body>
+</html>
