@@ -6,7 +6,8 @@
       "Bash(dir)",
       "Bash(dir:*)",
       "Bash(python convert_tensorboard_logs.py:*)",
-      "Bash(python reconstruct_from_models.py:*)"
+      "Bash(python reconstruct_from_models.py:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []

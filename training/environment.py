@@ -147,13 +147,31 @@ class CaptureTheFlagEnv(ParallelEnv):
         # Agent States
         self.agent_states = {}
 
-        def spawn_with_offset(x: float, y: float) -> np.ndarray:
-            y_offset = np.random.uniform(-3, 3)
-            return np.array([x, np.clip(y + y_offset, 0, self.grid_size - 1)])
+        # --- Startpositionen zufällig in eigener Hälfte ---
+        def get_random_start_pos(team: str) -> np.ndarray:
+            """Findet eine zufällige, freie Position in der Team-Hälfte."""
+            # Grid ist 24x24.
+            # Blue Zone: X = 1 bis 9 (Links)
+            # Red Zone:  X = 15 bis 23 (Rechts)
+            # Y = 1 bis 23 (Höhe)
 
-        # Blue Team - linke Seite
+            x_min, x_max = (1.0, 9.0) if team == "blue" else (15.0, 23.0)
+
+            for _ in range(100): # Sicherheitsschleife
+                x = np.random.uniform(x_min, x_max)
+                y = np.random.uniform(1.0, self.grid_size - 1.0)
+                pos = np.array([x, y])
+
+                # WICHTIG: Prüfen, ob wir versehentlich in einer Wand spawnen
+                if not self._is_in_wall(pos):
+                    return pos
+
+            # Fallback (sollte eigentlich nie passieren)
+            return np.array([3.0, 12.0]) if team == "blue" else np.array([21.0, 12.0])
+
+        # Blue Team - linke Seite (Random)
         self.agent_states["blue_0"] = {
-            "position": spawn_with_offset(3.0, 10.0),
+            "position": get_random_start_pos("blue"),
             "has_flag": False,
             "is_stunned": False,
             "stun_timer": 0,
@@ -161,7 +179,7 @@ class CaptureTheFlagEnv(ParallelEnv):
             "team": "blue",
         }
         self.agent_states["blue_1"] = {
-            "position": spawn_with_offset(3.0, 14.0),
+            "position": get_random_start_pos("blue"),
             "has_flag": False,
             "is_stunned": False,
             "stun_timer": 0,
@@ -169,9 +187,9 @@ class CaptureTheFlagEnv(ParallelEnv):
             "team": "blue",
         }
 
-        # Red Team - rechte Seite
+        # Red Team - rechte Seite (Random)
         self.agent_states["red_0"] = {
-            "position": spawn_with_offset(21.0, 10.0),
+            "position": get_random_start_pos("red"),
             "has_flag": False,
             "is_stunned": False,
             "stun_timer": 0,
@@ -179,7 +197,7 @@ class CaptureTheFlagEnv(ParallelEnv):
             "team": "red",
         }
         self.agent_states["red_1"] = {
-            "position": spawn_with_offset(21.0, 14.0),
+            "position": get_random_start_pos("red"),
             "has_flag": False,
             "is_stunned": False,
             "stun_timer": 0,
@@ -670,6 +688,7 @@ class CaptureTheFlagEnv(ParallelEnv):
                 "tackle_cooldown": self.tackle_cooldown,
                 "final_scores": self.scores.copy(),
                 "episode_stats": self.episode_stats.copy(),
+                "walls": self.walls,  # NEU: Map-Layout für Visualisierung
             },
             "frames": self.episode_history,
         }

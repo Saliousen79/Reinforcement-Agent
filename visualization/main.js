@@ -15,6 +15,7 @@ let tackle_cooldown = 100; // Default, wird aus Metadaten überschrieben
 // Meshes
 const agentMeshes = {};
 const flagMeshes = {};
+const wallMeshes = [];  // Array für dynamische Wände
 let blueBase, redBase, ground;
 
 // =====================
@@ -148,13 +149,18 @@ function setupBases() {
     scene.add(redBase);
 }
 
-function setupWalls() {
-    // Wände aus dem Environment - "Die Arena" Layout
-    // ZENTRUM (Sichtschutz) - 4 Säulen
-    // BLUE DEFENSE (Links) - 2 Bunker
-    // RED DEFENSE (Rechts) - 2 Bunker
+function clearWalls() {
+    // Entferne alte Wände aus der Szene
+    wallMeshes.forEach(mesh => scene.remove(mesh));
+    wallMeshes.length = 0;
+}
 
-    const walls = [
+function setupWalls(customWalls = null) {
+    // Lösche alte Wände zuerst
+    clearWalls();
+
+    // Standard "Die Arena" Layout - wird verwendet wenn kein customWalls übergeben wird
+    const defaultWalls = [
         // --- ZENTRUM (Sichtschutz) ---
         // Vier Säulen, die einen "Platz" in der Mitte bilden
         { x_min: 10, x_max: 11, y_min: 10, y_max: 11 },
@@ -171,6 +177,8 @@ function setupWalls() {
         { x_min: 17, x_max: 19, y_min: 4, y_max: 5 },   // Unten
         { x_min: 17, x_max: 19, y_min: 19, y_max: 20 }  // Oben
     ];
+
+    const walls = customWalls || defaultWalls;
 
     walls.forEach(wall => {
         const width = wall.x_max - wall.x_min;
@@ -194,6 +202,7 @@ function setupWalls() {
         wallMesh.receiveShadow = true;
 
         scene.add(wallMesh);
+        wallMeshes.push(wallMesh);  // Zur Liste hinzufügen für späteres Löschen
     });
 }
 
@@ -309,6 +318,15 @@ async function loadEpisode(filename) {
             tackle_cooldown = data.metadata.tackle_cooldown;
         }
 
+        // NEU: Wände aus Replay-Metadaten laden (falls vorhanden)
+        if (data.metadata && data.metadata.walls) {
+            console.log(`🗺️ Lade Map-Layout aus Replay (${data.metadata.walls.length} Wände)`);
+            setupWalls(data.metadata.walls);
+        } else {
+            console.log('🗺️ Keine Map-Info im Replay - verwende Standard-Arena-Layout');
+            setupWalls();  // Fallback auf Standard-Map
+        }
+
         clearAgents();
         createAgents();
         createFlags();
@@ -356,6 +374,15 @@ function loadEpisodeFromFile(file) {
             // Metadaten laden
             if (data.metadata && data.metadata.tackle_cooldown) {
                 tackle_cooldown = data.metadata.tackle_cooldown;
+            }
+
+            // NEU: Wände aus Replay-Metadaten laden (falls vorhanden)
+            if (data.metadata && data.metadata.walls) {
+                console.log(`🗺️ Lade Map-Layout aus Replay (${data.metadata.walls.length} Wände)`);
+                setupWalls(data.metadata.walls);
+            } else {
+                console.log('🗺️ Keine Map-Info im Replay - verwende Standard-Arena-Layout');
+                setupWalls();  // Fallback auf Standard-Map
             }
 
             clearAgents();
