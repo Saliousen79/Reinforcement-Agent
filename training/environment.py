@@ -439,6 +439,7 @@ class CaptureTheFlagEnv(ParallelEnv):
 
                     # Flagge bestimmen
                     dropped_flag = "red" if my_team == "blue" else "blue"
+                    flag_team = dropped_flag  # Team der Flagge (wem sie gehört)
 
                     # --- NEU: BOUNCE MECHANIK ---
                     # 1. Vektor vom Tackler (Ich) zum Opfer (Gegner) berechnen
@@ -457,21 +458,31 @@ class CaptureTheFlagEnv(ParallelEnv):
                     new_flag_pos[0] = np.clip(new_flag_pos[0], 0, self.grid_size - 1)
                     new_flag_pos[1] = np.clip(new_flag_pos[1], 0, self.grid_size - 1)
 
-                    # 5. Wand-Check: Wenn sie in einer Wand landen würde, nutze Fallback
-                    if not self._is_in_wall(new_flag_pos):
+                    # 5. CRITICAL FIX: Wenn Flagge in gegnerischer Base landen würde → Reset!
+                    # Verhindert Bug wo Flagge in gegnerischer Base aufgenommen wird = sofort Punkt
+                    enemy_of_flag = "red" if flag_team == "blue" else "blue"
+                    if self._is_in_base(new_flag_pos, enemy_of_flag):
+                        # Flagge zur eigenen Spawn-Position zurücksetzen
+                        self.flags[dropped_flag]["position"] = self.flag_spawns[flag_team].copy()
+                        self.flags[dropped_flag]["at_base"] = True
+                        self.flags[dropped_flag]["carried_by"] = None
+                    # 6. Wand-Check: Wenn sie in einer Wand landen würde, nutze Fallback
+                    elif not self._is_in_wall(new_flag_pos):
                         self.flags[dropped_flag]["position"] = new_flag_pos
+                        self.flags[dropped_flag]["at_base"] = False
+                        self.flags[dropped_flag]["carried_by"] = None
                     else:
                         # Fallback 1: Midpoint zwischen Tackler und Opfer
                         midpoint = (state["position"] + enemy_state["position"]) / 2.0
-                        if not self._is_in_wall(midpoint):
+                        if not self._is_in_wall(midpoint) and not self._is_in_base(midpoint, enemy_of_flag):
                             self.flags[dropped_flag]["position"] = midpoint
+                            self.flags[dropped_flag]["at_base"] = False
+                            self.flags[dropped_flag]["carried_by"] = None
                         else:
-                            # Fallback 2: Position des Tacklers (sicher, weil er dort steht)
-                            self.flags[dropped_flag]["position"] = state["position"].copy()
-
-                    # Status updaten
-                    self.flags[dropped_flag]["carried_by"] = None
-                    self.flags[dropped_flag]["at_base"] = False
+                            # Fallback 2: Zurück zur Spawn (sicherste Option)
+                            self.flags[dropped_flag]["position"] = self.flag_spawns[flag_team].copy()
+                            self.flags[dropped_flag]["at_base"] = True
+                            self.flags[dropped_flag]["carried_by"] = None
                     # ----------------------------
 
                     # Stats updaten

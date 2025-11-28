@@ -18,8 +18,8 @@ from stable_baselines3 import PPO
 
 from environment import CaptureTheFlagEnv
 
-MODELS_DIR = "models"
-REPLAYS_DIR = "../visualization/replays"
+MODELS_DIR = "training/models"
+REPLAYS_DIR = "visualization/replays"
 
 
 def find_latest_model() -> str:
