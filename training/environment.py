@@ -12,7 +12,7 @@ SPIELREGELN (Klassisches CTF):
 import numpy as np
 from gymnasium import spaces
 from pettingzoo import ParallelEnv
-from typing import Dict, Optional
+from typing import Dict, Optional, List
 import functools
 
 
@@ -105,7 +105,7 @@ class CaptureTheFlagEnv(ParallelEnv):
         """Gibt die Mitte der Base eines Teams zurück."""
         return self.flag_spawns[team].copy()
 
-    def _get_team_agents(self, team: str) -> list[str]:
+    def _get_team_agents(self, team: str) -> List[str]:
         """Gibt die Agenten eines Teams zurück."""
         return self.blue_agents if team == "blue" else self.red_agents
 
@@ -381,13 +381,16 @@ class CaptureTheFlagEnv(ParallelEnv):
 
     # ========== STEP LOGIC ==========
 
-    def _calculate_prev_distances(self) -> Dict[str, float]:
-        """Berechnet Distanzen zum Ziel VOR der Bewegung."""
+    def _calculate_prev_distances(self) -> Dict[str, Dict[str, float]]:
+        """Berechnet Distanzen zum Ziel VOR der Bewegung (inkl. has_flag Status)."""
         prev_dists = {}
         for agent in self.agents:
             state = self.agent_states[agent]
             target = self._get_agent_target(agent)
-            prev_dists[agent] = np.linalg.norm(state["position"] - target)
+            prev_dists[agent] = {
+                "distance": np.linalg.norm(state["position"] - target),
+                "has_flag": state["has_flag"]  # Status merken
+            }
         return prev_dists
 
     def _get_agent_target(self, agent: str) -> np.ndarray:
@@ -581,7 +584,8 @@ class CaptureTheFlagEnv(ParallelEnv):
                 else:
                     # CAPTURE FEHLGESCHLAGEN - Eigene Flagge ist weg!
                     # Kleiner negativer Reward (Agent lernt: "Ich muss erst meine Flagge zurückholen")
-                    rewards[agent] -= 2.0
+                    # Nicht zu groß, damit Agent nicht zu defensiv wird
+                    rewards[agent] -= 0.5
                     self.episode_stats[f"{team}_failed_captures"] += 1
 
             # 3. Eigene Flagge zurücksetzen (wenn am Boden)
@@ -595,20 +599,35 @@ class CaptureTheFlagEnv(ParallelEnv):
 
         return rewards
 
-    def _calculate_distance_rewards(self, prev_dists: Dict[str, float]) -> Dict[str, float]:
-        """Berechnet Distance Shaping (Heiß/Kalt Belohnung)."""
+    def _calculate_distance_rewards(self, prev_dists: Dict[str, Dict[str, float]]) -> Dict[str, float]:
+        """
+        Berechnet Distance Shaping (Heiß/Kalt Belohnung).
+
+        WICHTIG: Reward wird nur gegeben wenn has_flag Status gleich geblieben ist,
+        um negative Rewards beim Flaggen-Pickup zu vermeiden.
+        """
         rewards = {}
 
         for agent in self.agents:
             state = self.agent_states[agent]
+            prev_has_flag = prev_dists[agent]["has_flag"]
+
+            # Hat sich der Flaggen-Status geändert? (Pickup oder Drop)
+            if state["has_flag"] != prev_has_flag:
+                # Kein Distance Reward wenn Status sich geändert hat
+                # (verhindert negative Rewards beim Pickup)
+                rewards[agent] = 0.0
+                continue
+
             target = self._get_agent_target(agent)
             new_dist = np.linalg.norm(state["position"] - target)
+            prev_dist = prev_dists[agent]["distance"]
 
             # Skalierung: Mehr Belohnung fürs Heimtragen
             scale = 0.5 if state["has_flag"] else 0.1
 
             # Belohnung für Verbesserung (alte Distanz - neue Distanz)
-            dist_reward = (prev_dists[agent] - new_dist) * scale
+            dist_reward = (prev_dist - new_dist) * scale
             rewards[agent] = dist_reward
 
         return rewards
