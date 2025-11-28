@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Watch AI agents in action - 3D visualization of Capture the Flag gameplay">
+    <title>Live Demo - 3D Replay | CTF AI Project</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Demo-specific styles */
+        body {
+            overflow: hidden;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+        }
+
+        .demo-overlay {
+            position: fixed;
+            z-index: 100;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        #scoreboard {
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .score-blue { color: var(--blue-team); }
+        .score-red { color: var(--red-team); }
+
+        .overlay-controls {
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+            max-width: 90vw;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .speed-control input[type="range"] {
+            width: 100px;
+        }
+
+        .demo-sidebar {
+            top: 80px;
+            right: 2rem;
+            width: 320px;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
+
+        .demo-sidebar.collapsed {
+            transform: translateX(calc(100% + 2rem));
+        }
+
+        .sidebar-toggle {
+            position: fixed;
+            top: 90px;
+            right: 2rem;
+            z-index: 101;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-toggle:hover {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+        }
+
+        #step-info {
+            top: 80px;
+            left: 2rem;
+            font-size: 1.2rem;
+            color: var(--accent-purple);
+            font-weight: 600;
+        }
+
+        #replay-context-box {
+            top: 150px;
+            left: 2rem;
+            width: 400px;
+            max-height: calc(100vh - 250px);
+            overflow-y: auto;
+        }
+
+        .replay-item {
+            padding: 0.75rem;
+            margin-bottom: 0.5rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+        }
+
+        .replay-item:hover {
+            background: var(--accent-green);
+            color: var(--bg-primary);
+            border-color: var(--accent-green);
+        }
+
+        .replay-item.active {
+            background: var(--accent-purple);
+            border-color: var(--accent-purple);
+        }
+
+        #loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--bg-primary);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #loading-overlay.hidden {
+            display: none;
+        }
+
+        .event-log {
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .event-item {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: var(--bg-tertiary);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            border-left: 3px solid var(--accent-green);
+        }
+
+        .event-capture { border-left-color: var(--flag-yellow); }
+        .event-stun { border-left-color: var(--red-team); }
+        .event-pickup { border-left-color: var(--blue-team); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .demo-sidebar {
+                width: 100%;
+                right: 0;
+                left: 0;
+                top: auto;
+                bottom: 0;
+                max-height: 40vh;
+                border-radius: 16px 16px 0 0;
+            }
+
+            .sidebar-toggle {
+                right: 1rem;
+                top: auto;
+                bottom: 1rem;
+            }
+
+            .overlay-controls {
+                bottom: 1rem;
+                padding: 1rem;
+                flex-wrap: wrap;
+            }
+
+            #scoreboard {
+                font-size: 1.3rem;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <div class="logo">Saliou Dieng</div>
+            <ul>
+                <li><a href="index.html#challenge" data-i18n="nav.documentation">Dokumentation</a></li>
+                <li><a href="dashboard.html" data-i18n="nav.statistics">Kennzahlen</a></li>
+                <li><a href="demo.html" data-i18n="nav.demo">Live Demo</a></li>
+                <li><a href="https://github.com/Saliousen79/Reinforcement-Agent" class="github-link" target="_blank">
+                    <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                    </svg>
+                    GitHub
+                </a></li>
+                <li>
+                    <select id="language-selector" style="background: var(--bg-tertiary); border: 1px solid var(--glass-border); color: var(--text-primary); padding: 0.5rem 1rem; border-radius: 8px; font-size: 1rem; cursor: pointer; font-family: var(--font-body);">
+                        <option value="de">🇩🇪 Deutsch</option>
+                        <option value="en">🇬🇧 English</option>
+                        <option value="fr">🇫🇷 Français</option>
+                    </select>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- 3D Canvas -->
+    <div id="canvas-container"></div>
+
+    <!-- Step Info -->
+    <div class="demo-overlay" id="step-info">
+        <div><span data-i18n="demo.step">Step</span>: <span id="step-display">0</span></div>
+    </div>
+
+    <!-- Replay Context Box (Read-only) -->
+    <div class="demo-overlay" id="replay-context-box">
+        <h3 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--accent-green);" data-i18n="demo.replay-context">Replay Kontext</h3>
+        <div id="replay-context-content" style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.6;">
+            <p style="margin-bottom: 0;">Wähle ein Replay aus, um Kontext-Informationen zu sehen.</p>
+        </div>
+    </div>
+
+    <!-- Scoreboard -->
+    <div class="demo-overlay" id="scoreboard">
+        <span class="score-blue"><span data-i18n="demo.blue">Blue</span>: <span id="blue-score">0</span></span>
+        <span style="color: var(--text-muted);">vs</span>
+        <span class="score-red"><span data-i18n="demo.red">Red</span>: <span id="red-score">0</span></span>
+    </div>
+
+    <!-- Controls (Theater Mode) -->
+    <div class="demo-overlay overlay-controls">
+        <button id="play-btn" class="active">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: middle;">
+                <path d="M11.596 8.697l-6.363 3.692c-.54.313-1.233-.066-1.233-.697V4.308c0-.63.692-1.01 1.233-.696l6.363 3.692a.802.802 0 0 1 0 1.393z"/>
+            </svg>
+            <span data-i18n="demo.play">Play</span>
+        </button>
+        <button id="pause-btn">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: middle;">
+                <path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/>
+            </svg>
+            <span data-i18n="demo.pause">Pause</span>
+        </button>
+        <button id="reset-btn">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: middle;">
+                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+            </svg>
+            <span data-i18n="demo.reset">Reset</span>
+        </button>
+
+        <div class="speed-control">
+            <span data-i18n="demo.speed">Speed</span>:
+            <input type="range" id="speed-slider" min="0.5" max="3" step="0.5" value="1">
+            <span id="speed-value">1x</span>
+        </div>
+
+        <input type="file" id="file-input" accept=".json" style="display: none;">
+        <button id="upload-btn" style="background: var(--accent-green); border-color: var(--accent-green); color: var(--bg-primary);">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="vertical-align: middle;">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+            </svg>
+            <span data-i18n="demo.upload">Upload Replay</span>
+        </button>
+    </div>
+
+    <!-- Sidebar Toggle -->
+    <div class="sidebar-toggle" id="sidebar-toggle">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+            <path fill-rule="evenodd" d="M2 2.5a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5zm0 4a.5.5 0 0 1 .5-.5h11a.5.5 0 0 1 0 1h-11a.5.5 0 0 1-.5-.5z"/>
+        </svg>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="demo-overlay demo-sidebar" id="sidebar">
+        <h3 style="margin-bottom: 1rem;" data-i18n="demo.available-replays">Available Replays</h3>
+        <div id="replay-list">
+            <div class="loading-container">
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid var(--glass-border);">
+            <h4 style="margin-bottom: 0.75rem; font-size: 0.95rem; color: var(--text-secondary);" data-i18n="demo.legend">Legende</h4>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 14px; height: 14px; background: var(--blue-team); border-radius: 50%; border: 2px solid #fff;"></div>
+                    <span data-i18n="demo.blue-team">Blaues Team</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 14px; height: 14px; background: var(--red-team); border-radius: 50%; border: 2px solid #fff;"></div>
+                    <span data-i18n="demo.red-team">Rotes Team</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <svg width="14" height="14" viewBox="0 0 20 20">
+                        <rect x="2" y="2" width="2" height="16" fill="#888"/>
+                        <path d="M 4,2 L 16,8 L 4,14 Z" fill="var(--blue-team)"/>
+                    </svg>
+                    <span data-i18n="demo.blue-flag">Blaue Flagge</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <svg width="14" height="14" viewBox="0 0 20 20">
+                        <rect x="16" y="2" width="2" height="16" fill="#888"/>
+                        <path d="M 16,2 L 4,8 L 16,14 Z" fill="var(--red-team)"/>
+                    </svg>
+                    <span data-i18n="demo.red-flag">Rote Flagge</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 14px; height: 14px; background: #2c2c2c; border: 1px solid #666; border-radius: 2px;"></div>
+                    <span data-i18n="demo.walls">Wände</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <p style="margin-top: 1rem; color: var(--text-secondary);" data-i18n="demo.loading">Loading replay data...</p>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.152.0/build/three.min.js"></script>
+
+    <!-- Translation Script -->
+    <script>
+        const translations = {
+            de: {
+                'nav.documentation': 'Dokumentation',
+                'nav.statistics': 'Kennzahlen',
+                'nav.demo': 'Live Demo',
+                'demo.step': 'Step',
+                'demo.blue': 'Blau',
+                'demo.red': 'Rot',
+                'demo.play': 'Play',
+                'demo.pause': 'Pause',
+                'demo.reset': 'Reset',
+                'demo.speed': 'Geschwindigkeit',
+                'demo.upload': 'Replay hochladen',
+                'demo.available-replays': 'Verfügbare Replays',
+                'demo.replay-context': 'Replay Kontext',
+                'demo.legend': 'Legende',
+                'demo.blue-team': 'Blaues Team',
+                'demo.red-team': 'Rotes Team',
+                'demo.blue-flag': 'Blaue Flagge',
+                'demo.red-flag': 'Rote Flagge',
+                'demo.walls': 'Wände',
+                'demo.loading': 'Lade Replay-Daten...'
+            },
+            en: {
+                'nav.documentation': 'Documentation',
+                'nav.statistics': 'Statistics',
+                'nav.demo': 'Live Demo',
+                'demo.step': 'Step',
+                'demo.blue': 'Blue',
+                'demo.red': 'Red',
+                'demo.play': 'Play',
+                'demo.pause': 'Pause',
+                'demo.reset': 'Reset',
+                'demo.speed': 'Speed',
+                'demo.upload': 'Upload Replay',
+                'demo.available-replays': 'Available Replays',
+                'demo.replay-context': 'Replay Context',
+                'demo.legend': 'Legend',
+                'demo.blue-team': 'Blue Team',
+                'demo.red-team': 'Red Team',
+                'demo.blue-flag': 'Blue Flag',
+                'demo.red-flag': 'Red Flag',
+                'demo.walls': 'Walls',
+                'demo.loading': 'Loading replay data...'
+            },
+            fr: {
+                'nav.documentation': 'Documentation',
+                'nav.statistics': 'Statistiques',
+                'nav.demo': 'Démo en Direct',
+                'demo.step': 'Étape',
+                'demo.blue': 'Bleu',
+                'demo.red': 'Rouge',
+                'demo.play': 'Jouer',
+                'demo.pause': 'Pause',
+                'demo.reset': 'Réinitialiser',
+                'demo.speed': 'Vitesse',
+                'demo.upload': 'Télécharger Replay',
+                'demo.available-replays': 'Replays Disponibles',
+                'demo.replay-context': 'Contexte du Replay',
+                'demo.legend': 'Légende',
+                'demo.blue-team': 'Équipe Bleue',
+                'demo.red-team': 'Équipe Rouge',
+                'demo.blue-flag': 'Drapeau Bleu',
+                'demo.red-flag': 'Drapeau Rouge',
+                'demo.walls': 'Murs',
+                'demo.loading': 'Chargement des données de replay...'
+            }
+        };
+
+        function setLanguage(lang) {
+            localStorage.setItem('preferred-language', lang);
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                        element.placeholder = translations[lang][key];
+                    } else {
+                        element.textContent = translations[lang][key];
+                    }
+                }
+            });
+        }
+
+        const savedLang = localStorage.getItem('preferred-language') || 'de';
+        const langSelector = document.getElementById('language-selector');
+        if (langSelector) {
+            langSelector.value = savedLang;
+            setLanguage(savedLang);
+            langSelector.addEventListener('change', (e) => {
+                setLanguage(e.target.value);
+            });
+        }
+    </script>
+
+    <!-- Demo Script -->
+    <script src="js/demo.js"></script>
+</body>
+</html>

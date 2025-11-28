@@ -437,12 +437,38 @@ class CaptureTheFlagEnv(ParallelEnv):
                     reward += 15.0
                     enemy_state["has_flag"] = False
 
-                    # Flagge fallen lassen
+                    # Flagge bestimmen
                     dropped_flag = "red" if my_team == "blue" else "blue"
+
+                    # --- NEU: BOUNCE MECHANIK ---
+                    # 1. Vektor vom Tackler (Ich) zum Opfer (Gegner) berechnen
+                    bounce_vec = enemy_state["position"] - state["position"]
+
+                    # 2. Vektor normalisieren (auf Länge 1 bringen)
+                    norm = np.linalg.norm(bounce_vec)
+                    if norm > 0:
+                        bounce_vec = bounce_vec / norm
+
+                    # 3. Zielposition berechnen (2 Blöcke in Stoßrichtung)
+                    bounce_dist = 2.0
+                    new_flag_pos = enemy_state["position"] + (bounce_vec * bounce_dist)
+
+                    # 4. Begrenzen auf Spielfeld (Clamping), damit sie nicht rausfliegt
+                    new_flag_pos[0] = np.clip(new_flag_pos[0], 0, self.grid_size - 1)
+                    new_flag_pos[1] = np.clip(new_flag_pos[1], 0, self.grid_size - 1)
+
+                    # 5. Wand-Check: Wenn sie in einer Wand landen würde, bleibt sie beim Opfer
+                    if not self._is_in_wall(new_flag_pos):
+                        self.flags[dropped_flag]["position"] = new_flag_pos
+                    else:
+                        self.flags[dropped_flag]["position"] = enemy_state["position"].copy()
+
+                    # Status updaten
                     self.flags[dropped_flag]["carried_by"] = None
                     self.flags[dropped_flag]["at_base"] = False
+                    # ----------------------------
 
-                    # Stats
+                    # Stats updaten
                     if my_team == "blue":
                         self.episode_stats["blue_stuns"] += 1
                     else:
