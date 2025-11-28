@@ -1,6 +1,12 @@
 """
 Capture the Flag Environment für Multi-Agent RL.
 2v2 Teams konkurrieren um Flaggen zu erobern.
+
+SPIELREGELN (Klassisches CTF):
+1. Sammle die gegnerische Flagge und bringe sie zu deiner Base
+2. Du kannst nur scoren wenn DEINE Flagge in deiner Base ist!
+3. Tackle Gegner um sie zu stoppen und Flaggen zu droppen
+4. Verteidige deine Flagge und bringe sie zurück wenn gestohlen
 """
 
 import numpy as np
@@ -88,6 +94,116 @@ class CaptureTheFlagEnv(ParallelEnv):
         self.episode_history = []
         self.episode_stats = {}
 
+    # ========== HILFSFUNKTIONEN ==========
+
+    @staticmethod
+    def _get_enemy_team(team: str) -> str:
+        """Gibt das gegnerische Team zurück."""
+        return "red" if team == "blue" else "blue"
+
+    def _get_base_center(self, team: str) -> np.ndarray:
+        """Gibt die Mitte der Base eines Teams zurück."""
+        return self.flag_spawns[team].copy()
+
+    def _get_team_agents(self, team: str) -> list[str]:
+        """Gibt die Agenten eines Teams zurück."""
+        return self.blue_agents if team == "blue" else self.red_agents
+
+    def _is_in_base(self, position: np.ndarray, team: str) -> bool:
+        """Prüfen ob Position in einer Base ist."""
+        base = self.bases[team]
+        return (base["x_min"] <= position[0] <= base["x_max"] and
+                base["y_min"] <= position[1] <= base["y_max"])
+
+    def _is_in_wall(self, position: np.ndarray) -> bool:
+        """Prüfen ob eine Position in einer Wand liegt."""
+        for wall in self.walls:
+            if (wall["x_min"] <= position[0] <= wall["x_max"] and
+                    wall["y_min"] <= position[1] <= wall["y_max"]):
+                return True
+        return False
+
+    def _check_line_of_sight(self, pos1: np.ndarray, pos2: np.ndarray) -> bool:
+        """Line-of-sight mit linearer Abtastung: True, wenn keine Wand dazwischen liegt."""
+        samples = 25
+        for t in np.linspace(0, 1, samples):
+            # Skip the exact endpoints to avoid false positives on current tile
+            if t in (0, 1):
+                continue
+            sample = pos1 + t * (pos2 - pos1)
+            if self._is_in_wall(sample):
+                return False
+        return True
+
+    def _clamp_position(self, position: np.ndarray) -> np.ndarray:
+        """Begrenzt Position auf Spielfeld."""
+        return np.array([
+            np.clip(position[0], 0, self.grid_size - 1),
+            np.clip(position[1], 0, self.grid_size - 1)
+        ])
+
+    def _drop_flag_safely(self, flag_team: str, drop_position: np.ndarray,
+                         tackler_pos: np.ndarray, victim_pos: np.ndarray) -> None:
+        """
+        Lässt eine Flagge sicher fallen (mit Bounce-Mechanik).
+
+        Logik:
+        1. Berechne Bounce-Position (2 Blöcke von Tackler weg)
+        2. Validiere Position (nicht in Wand, nicht in gegnerischer Base)
+        3. Falls ungültig: Versuche Midpoint
+        4. Falls auch ungültig: Reset zur Spawn-Position
+        """
+        enemy_of_flag = self._get_enemy_team(flag_team)
+
+        # 1. Bounce-Vektor berechnen (von Tackler zu Opfer)
+        bounce_vec = victim_pos - tackler_pos
+        norm = np.linalg.norm(bounce_vec)
+        if norm > 0:
+            bounce_vec = bounce_vec / norm
+        else:
+            # Fallback: Kein Vektor möglich, direkt zu Spawn
+            self._reset_flag_to_spawn(flag_team)
+            return
+
+        # 2. Bounce-Position berechnen (2 Blöcke in Stoßrichtung)
+        bounce_dist = 2.0
+        bounce_pos = victim_pos + (bounce_vec * bounce_dist)
+        bounce_pos = self._clamp_position(bounce_pos)
+
+        # 3. Validierung: Nicht in gegnerischer Base (würde sofortigen Capture ermöglichen)
+        if self._is_in_base(bounce_pos, enemy_of_flag):
+            # Flagge würde in gegnerischer Base landen → Reset!
+            self._reset_flag_to_spawn(flag_team)
+            return
+
+        # 4. Validierung: Nicht in Wand
+        if not self._is_in_wall(bounce_pos):
+            # Position ist gut!
+            self.flags[flag_team]["position"] = bounce_pos
+            self.flags[flag_team]["at_base"] = False
+            self.flags[flag_team]["carried_by"] = None
+            return
+
+        # 5. Fallback 1: Midpoint zwischen Tackler und Opfer
+        midpoint = (tackler_pos + victim_pos) / 2.0
+        if (not self._is_in_wall(midpoint) and
+            not self._is_in_base(midpoint, enemy_of_flag)):
+            self.flags[flag_team]["position"] = midpoint
+            self.flags[flag_team]["at_base"] = False
+            self.flags[flag_team]["carried_by"] = None
+            return
+
+        # 6. Fallback 2: Zurück zur Spawn (sicherste Option)
+        self._reset_flag_to_spawn(flag_team)
+
+    def _reset_flag_to_spawn(self, flag_team: str) -> None:
+        """Setzt eine Flagge zur Spawn-Position zurück."""
+        self.flags[flag_team]["position"] = self.flag_spawns[flag_team].copy()
+        self.flags[flag_team]["at_base"] = True
+        self.flags[flag_team]["carried_by"] = None
+
+    # ========== GYMNASIUM API ==========
+
     @functools.lru_cache(maxsize=None)
     def observation_space(self, agent: str) -> spaces.Space:
         """
@@ -117,11 +233,9 @@ class CaptureTheFlagEnv(ParallelEnv):
 
     def reset(self, seed: Optional[int] = None, options: Optional[dict] = None):
         """Environment zurücksetzen."""
-        # --- NEU: Das letzte Spiel sichern bevor wir löschen ---
+        # Letztes Spiel sichern für Replay
         if hasattr(self, "episode_history") and len(self.episode_history) > 0:
-            # Wir speichern direkt das fertige JSON-Objekt
             self.last_replay = self.get_replay_data()
-        # -------------------------------------------------------
 
         if seed is not None:
             np.random.seed(seed)
@@ -138,6 +252,8 @@ class CaptureTheFlagEnv(ParallelEnv):
             "red_stuns": 0,
             "blue_flag_pickups": 0,
             "red_flag_pickups": 0,
+            "blue_failed_captures": 0,  # NEU: Capture-Versuche ohne eigene Flagge
+            "red_failed_captures": 0,   # NEU
             "total_steps": 0,
         }
 
@@ -147,63 +263,43 @@ class CaptureTheFlagEnv(ParallelEnv):
         # Agent States
         self.agent_states = {}
 
-        # --- Startpositionen zufällig in eigener Hälfte ---
+        # Startpositionen zufällig in eigener Hälfte
         def get_random_start_pos(team: str) -> np.ndarray:
             """Findet eine zufällige, freie Position in der Team-Hälfte."""
-            # Grid ist 24x24.
-            # Blue Zone: X = 1 bis 9 (Links)
-            # Red Zone:  X = 15 bis 23 (Rechts)
-            # Y = 1 bis 23 (Höhe)
-
             x_min, x_max = (1.0, 9.0) if team == "blue" else (15.0, 23.0)
 
-            for _ in range(100): # Sicherheitsschleife
+            for _ in range(100):  # Sicherheitsschleife
                 x = np.random.uniform(x_min, x_max)
                 y = np.random.uniform(1.0, self.grid_size - 1.0)
                 pos = np.array([x, y])
 
-                # WICHTIG: Prüfen, ob wir versehentlich in einer Wand spawnen
                 if not self._is_in_wall(pos):
                     return pos
 
-            # Fallback (sollte eigentlich nie passieren)
+            # Fallback
             return np.array([3.0, 12.0]) if team == "blue" else np.array([21.0, 12.0])
 
-        # Blue Team - linke Seite (Random)
-        self.agent_states["blue_0"] = {
-            "position": get_random_start_pos("blue"),
-            "has_flag": False,
-            "is_stunned": False,
-            "stun_timer": 0,
-            "tackle_cooldown": 0,
-            "team": "blue",
-        }
-        self.agent_states["blue_1"] = {
-            "position": get_random_start_pos("blue"),
-            "has_flag": False,
-            "is_stunned": False,
-            "stun_timer": 0,
-            "tackle_cooldown": 0,
-            "team": "blue",
-        }
+        # Blue Team
+        for agent in self.blue_agents:
+            self.agent_states[agent] = {
+                "position": get_random_start_pos("blue"),
+                "has_flag": False,
+                "is_stunned": False,
+                "stun_timer": 0,
+                "tackle_cooldown": 0,
+                "team": "blue",
+            }
 
-        # Red Team - rechte Seite (Random)
-        self.agent_states["red_0"] = {
-            "position": get_random_start_pos("red"),
-            "has_flag": False,
-            "is_stunned": False,
-            "stun_timer": 0,
-            "tackle_cooldown": 0,
-            "team": "red",
-        }
-        self.agent_states["red_1"] = {
-            "position": get_random_start_pos("red"),
-            "has_flag": False,
-            "is_stunned": False,
-            "stun_timer": 0,
-            "tackle_cooldown": 0,
-            "team": "red",
-        }
+        # Red Team
+        for agent in self.red_agents:
+            self.agent_states[agent] = {
+                "position": get_random_start_pos("red"),
+                "has_flag": False,
+                "is_stunned": False,
+                "stun_timer": 0,
+                "tackle_cooldown": 0,
+                "team": "red",
+            }
 
         # Flaggen
         self.flags = {
@@ -232,23 +328,8 @@ class CaptureTheFlagEnv(ParallelEnv):
         self.current_step += 1
         rewards = {agent: 0.0 for agent in self.agents}
 
-        # --- NEU: Distanzen VOR der Bewegung merken ---
-        prev_dists = {}
-        for agent in self.agents:
-            state = self.agent_states[agent]
-            team = state["team"]
-            enemy_team = "red" if team == "blue" else "blue"
-
-            # Ziel bestimmen
-            if state["has_flag"]:
-                # Ziel: Eigene Base
-                target = np.array([2.0, 12.0]) if team == "blue" else np.array([22.0, 12.0])
-            else:
-                # Ziel: Gegnerische Flagge
-                target = self.flags[enemy_team]["position"]
-
-            prev_dists[agent] = np.linalg.norm(state["position"] - target)
-        # ---------------------------------------------
+        # Distanzen VOR der Bewegung merken (für Distance Shaping)
+        prev_dists = self._calculate_prev_distances()
 
         # 1. Timer updaten (Stun, Cooldowns)
         self._update_timers()
@@ -258,65 +339,27 @@ class CaptureTheFlagEnv(ParallelEnv):
             agent_reward = self._execute_action(agent, action)
             rewards[agent] += agent_reward
 
-        # 3. Flaggen-Logik
+        # 3. Flaggen-Logik (Pickup, Capture, Return)
         flag_rewards = self._process_flags()
         for agent, reward in flag_rewards.items():
             rewards[agent] += reward
 
-        # --- NEU: Distance Reward (Heiß/Kalt) ---
-        for agent in self.agents:
-            state = self.agent_states[agent]
-            team = state["team"]
-            enemy_team = "red" if team == "blue" else "blue"
+        # 4. Distance Shaping (Heiß/Kalt Belohnung)
+        distance_rewards = self._calculate_distance_rewards(prev_dists)
+        for agent, reward in distance_rewards.items():
+            rewards[agent] += reward
 
-            # Ziel wieder bestimmen (Status könnte sich geändert haben!)
-            if state["has_flag"]:
-                target = np.array([2.0, 12.0]) if team == "blue" else np.array([22.0, 12.0])
-                scale = 0.5  # Bonus fürs Heimtragen
-            else:
-                target = self.flags[enemy_team]["position"]
-                scale = 0.1  # Kleinerer Bonus fürs Hinlaufen
-
-            new_dist = np.linalg.norm(state["position"] - target)
-
-            # Belohnung für Verbesserung (alte Distanz - neue Distanz)
-            # Positiv, wenn wir näher kommen. Negativ, wenn wir weggehen.
-            dist_reward = (prev_dists[agent] - new_dist) * scale
-            rewards[agent] += dist_reward
-        # ----------------------------------------
-
-        # 4. Team-basierte Rewards verteilen
+        # 5. Team-basierte Rewards verteilen
         rewards = self._distribute_team_rewards(rewards)
 
-        # 5. Kleine Zeitstrafe
+        # 6. Kleine Zeitstrafe (fördert schnelles Spielen)
         for agent in self.agents:
             rewards[agent] -= 0.01
 
-        # 6. Gewinn-Check
-        game_over = False
-        if self.scores["blue"] >= self.win_score:
-            for agent in self.blue_agents:
-                rewards[agent] += 100
-            for agent in self.red_agents:
-                rewards[agent] -= 50
-            game_over = True
-        elif self.scores["red"] >= self.win_score:
-            for agent in self.red_agents:
-                rewards[agent] += 100
-            for agent in self.blue_agents:
-                rewards[agent] -= 50
-            game_over = True
-
-        # 7. Zeit abgelaufen?
-        if self.current_step >= self.max_steps:
-            game_over = True
-            # Bonus für führendes Team
-            if self.scores["blue"] > self.scores["red"]:
-                for agent in self.blue_agents:
-                    rewards[agent] += 20
-            elif self.scores["red"] > self.scores["blue"]:
-                for agent in self.red_agents:
-                    rewards[agent] += 20
+        # 7. Gewinn-Check
+        game_over, win_rewards = self._check_game_end()
+        for agent, reward in win_rewards.items():
+            rewards[agent] += reward
 
         # 8. Frame speichern
         self._save_frame()
@@ -336,6 +379,30 @@ class CaptureTheFlagEnv(ParallelEnv):
 
         return observations, rewards, terminations, truncations, infos
 
+    # ========== STEP LOGIC ==========
+
+    def _calculate_prev_distances(self) -> Dict[str, float]:
+        """Berechnet Distanzen zum Ziel VOR der Bewegung."""
+        prev_dists = {}
+        for agent in self.agents:
+            state = self.agent_states[agent]
+            target = self._get_agent_target(agent)
+            prev_dists[agent] = np.linalg.norm(state["position"] - target)
+        return prev_dists
+
+    def _get_agent_target(self, agent: str) -> np.ndarray:
+        """Gibt das aktuelle Ziel eines Agenten zurück."""
+        state = self.agent_states[agent]
+        team = state["team"]
+
+        if state["has_flag"]:
+            # Ziel: Eigene Base
+            return self._get_base_center(team)
+        else:
+            # Ziel: Gegnerische Flagge
+            enemy_team = self._get_enemy_team(team)
+            return self.flags[enemy_team]["position"]
+
     def _update_timers(self):
         """Stun-Timer und Cooldowns updaten."""
         for agent in self.possible_agents:
@@ -354,13 +421,16 @@ class CaptureTheFlagEnv(ParallelEnv):
     def _execute_action(self, agent: str, action: int) -> float:
         """Aktion ausführen, Reward zurückgeben."""
         state = self.agent_states[agent]
-        reward = 0.0
 
         # Gestunnte Agenten können nichts tun
         if state["is_stunned"]:
             return 0.0
 
-        # Bewegungsgeschwindigkeit
+        # Tackle-Aktion
+        if action == 5:
+            return self._execute_tackle(agent)
+
+        # Bewegung
         speed = 0.4
         if state["has_flag"]:
             speed *= (1 - self.carrier_speed_penalty)
@@ -368,7 +438,7 @@ class CaptureTheFlagEnv(ParallelEnv):
         pos = state["position"]
         new_pos = pos.copy()
 
-        # Bewegung
+        # Richtung berechnen
         if action == 0:  # hoch
             new_pos[1] = min(new_pos[1] + speed, self.grid_size - 1)
         elif action == 1:  # runter
@@ -379,21 +449,17 @@ class CaptureTheFlagEnv(ParallelEnv):
             new_pos[0] = min(new_pos[0] + speed, self.grid_size - 1)
         elif action == 4:  # nichts
             pass
-        elif action == 5:  # tackle
-            reward += self._execute_tackle(agent)
 
         # Kollisionsabfrage mit Wänden
-        # Prüfe sowohl, ob die neue Position in einer Wand ist,
-        # als auch ob der Bewegungspfad eine Wand kreuzt
         if not self._is_in_wall(new_pos) and self._check_line_of_sight(pos, new_pos):
             pos[:] = new_pos
 
         # Flagge mitbewegen wenn getragen
         if state["has_flag"]:
-            flag_team = "red" if state["team"] == "blue" else "blue"
-            self.flags[flag_team]["position"] = pos.copy()
+            enemy_team = self._get_enemy_team(state["team"])
+            self.flags[enemy_team]["position"] = pos.copy()
 
-        return reward
+        return 0.0
 
     def _execute_tackle(self, agent: str) -> float:
         """Tackle ausführen mit taktischer Bewertung."""
@@ -403,26 +469,23 @@ class CaptureTheFlagEnv(ParallelEnv):
         if state["tackle_cooldown"] > 0:
             return 0.0
 
-        # 1. Basis-Kosten für den Versuch (Energieverbrauch)
-        # Verhindert, dass sie die Taste einfach gedrückt halten ("Spammen")
+        # Basis-Kosten für den Versuch (verhindert Spammen)
         reward = -0.2
 
         # Cooldown setzen
         state["tackle_cooldown"] = self.tackle_cooldown
 
         # Gegner in Reichweite finden
-        enemies = self.red_agents if state["team"] == "blue" else self.blue_agents
-
-        # Positionen für Kontext-Check
         my_team = state["team"]
-        enemy_team = "red" if my_team == "blue" else "blue"
+        enemy_team = self._get_enemy_team(my_team)
+        enemies = self._get_team_agents(enemy_team)
         enemy_flag_pos = self.flags[enemy_team]["position"]
 
         for enemy in enemies:
             enemy_state = self.agent_states[enemy]
             dist = np.linalg.norm(state["position"] - enemy_state["position"])
 
-            # Treffer-Check
+            # Treffer-Check (in Reichweite UND Sichtlinie)
             if dist <= self.tackle_range and self._check_line_of_sight(
                 state["position"], enemy_state["position"]
             ):
@@ -430,96 +493,49 @@ class CaptureTheFlagEnv(ParallelEnv):
                 enemy_state["is_stunned"] = True
                 enemy_state["stun_timer"] = self.stun_duration
 
-                # --- TAKTISCHE ANALYSE ---
+                # TAKTISCHE ANALYSE
 
                 # Fall A: "Clutch Play" - Gegner hat unsere Flagge!
                 if enemy_state["has_flag"]:
                     reward += 15.0
                     enemy_state["has_flag"] = False
 
-                    # Flagge bestimmen
-                    dropped_flag = "red" if my_team == "blue" else "blue"
-                    flag_team = dropped_flag  # Team der Flagge (wem sie gehört)
+                    # Flagge droppen (mit Bounce-Mechanik)
+                    dropped_flag_team = my_team  # Unsere Flagge, die er hatte
+                    self._drop_flag_safely(
+                        dropped_flag_team,
+                        enemy_state["position"],
+                        state["position"],
+                        enemy_state["position"]
+                    )
 
-                    # --- NEU: BOUNCE MECHANIK ---
-                    # 1. Vektor vom Tackler (Ich) zum Opfer (Gegner) berechnen
-                    bounce_vec = enemy_state["position"] - state["position"]
-
-                    # 2. Vektor normalisieren (auf Länge 1 bringen)
-                    norm = np.linalg.norm(bounce_vec)
-                    if norm > 0:
-                        bounce_vec = bounce_vec / norm
-
-                    # 3. Zielposition berechnen (2 Blöcke in Stoßrichtung)
-                    bounce_dist = 2.0
-                    new_flag_pos = enemy_state["position"] + (bounce_vec * bounce_dist)
-
-                    # 4. Begrenzen auf Spielfeld (Clamping), damit sie nicht rausfliegt
-                    new_flag_pos[0] = np.clip(new_flag_pos[0], 0, self.grid_size - 1)
-                    new_flag_pos[1] = np.clip(new_flag_pos[1], 0, self.grid_size - 1)
-
-                    # 5. CRITICAL FIX: Wenn Flagge in gegnerischer Base landen würde → Reset!
-                    # Verhindert Bug wo Flagge in gegnerischer Base aufgenommen wird = sofort Punkt
-                    enemy_of_flag = "red" if flag_team == "blue" else "blue"
-                    if self._is_in_base(new_flag_pos, enemy_of_flag):
-                        # Flagge zur eigenen Spawn-Position zurücksetzen
-                        self.flags[dropped_flag]["position"] = self.flag_spawns[flag_team].copy()
-                        self.flags[dropped_flag]["at_base"] = True
-                        self.flags[dropped_flag]["carried_by"] = None
-                    # 6. Wand-Check: Wenn sie in einer Wand landen würde, nutze Fallback
-                    elif not self._is_in_wall(new_flag_pos):
-                        self.flags[dropped_flag]["position"] = new_flag_pos
-                        self.flags[dropped_flag]["at_base"] = False
-                        self.flags[dropped_flag]["carried_by"] = None
-                    else:
-                        # Fallback 1: Midpoint zwischen Tackler und Opfer
-                        midpoint = (state["position"] + enemy_state["position"]) / 2.0
-                        if not self._is_in_wall(midpoint) and not self._is_in_base(midpoint, enemy_of_flag):
-                            self.flags[dropped_flag]["position"] = midpoint
-                            self.flags[dropped_flag]["at_base"] = False
-                            self.flags[dropped_flag]["carried_by"] = None
-                        else:
-                            # Fallback 2: Zurück zur Spawn (sicherste Option)
-                            self.flags[dropped_flag]["position"] = self.flag_spawns[flag_team].copy()
-                            self.flags[dropped_flag]["at_base"] = True
-                            self.flags[dropped_flag]["carried_by"] = None
-                    # ----------------------------
-
-                    # Stats updaten
-                    if my_team == "blue":
-                        self.episode_stats["blue_stuns"] += 1
-                    else:
-                        self.episode_stats["red_stuns"] += 1
+                    # Stats
+                    self.episode_stats[f"{my_team}_stuns"] += 1
 
                 # Fall B: "Defense" - Gegner ist in unserer Base (Einbrecher)
                 elif self._is_in_base(enemy_state["position"], my_team):
                     reward += 5.0
-                    if my_team == "blue":
-                        self.episode_stats["blue_stuns"] += 1
-                    else:
-                        self.episode_stats["red_stuns"] += 1
+                    self.episode_stats[f"{my_team}_stuns"] += 1
 
-                # Fall C: "Offense / Clearing" - Gegner campt an der Flagge, die wir wollen
-                # (Wir schlagen ihn weg, um die Flagge zu nehmen -> SEHR GUTE TAKTIK)
+                # Fall C: "Offense / Clearing" - Gegner campt an der Flagge
                 elif np.linalg.norm(enemy_state["position"] - enemy_flag_pos) < 4.0:
                     reward += 5.0
-                    if my_team == "blue":
-                        self.episode_stats["blue_stuns"] += 1
-                    else:
-                        self.episode_stats["red_stuns"] += 1
+                    self.episode_stats[f"{my_team}_stuns"] += 1
 
                 # Fall D: "Bullying" - Mitten auf dem Feld ohne Grund
-                else:
-                    # KEIN Reward. Durch die Kosten von -0.2 lernt der Agent:
-                    # "Das war Energieverschwendung."
-                    pass
+                # Kein Reward, nur die -0.2 Kosten (Agent lernt: Verschwendung)
 
                 break  # Nur ein Treffer pro Action
 
         return reward
 
     def _process_flags(self) -> Dict[str, float]:
-        """Flaggen-Aufnahme, -Abgabe und -Reset."""
+        """
+        Flaggen-Aufnahme, -Abgabe und -Reset.
+
+        WICHTIG: Klassische CTF-Regel:
+        - Capture nur möglich wenn eigene Flagge at_base!
+        """
         rewards = {agent: 0.0 for agent in self.possible_agents}
 
         for agent in self.possible_agents:
@@ -529,108 +545,135 @@ class CaptureTheFlagEnv(ParallelEnv):
 
             pos = state["position"]
             team = state["team"]
-            enemy_team = "red" if team == "blue" else "blue"
+            enemy_team = self._get_enemy_team(team)
 
             # 1. Gegnerische Flagge aufnehmen
             enemy_flag = self.flags[enemy_team]
             if not state["has_flag"] and enemy_flag["carried_by"] is None:
                 dist_to_flag = np.linalg.norm(pos - enemy_flag["position"])
-                if dist_to_flag < 2.0:  # Vergrößerter Pickup-Radius (war 1.0)
+                if dist_to_flag < 2.0:  # Pickup-Radius
                     state["has_flag"] = True
                     enemy_flag["carried_by"] = agent
                     enemy_flag["at_base"] = False
                     rewards[agent] += 5.0
 
-                    if team == "blue":
-                        self.episode_stats["blue_flag_pickups"] += 1
-                    else:
-                        self.episode_stats["red_flag_pickups"] += 1
+                    self.episode_stats[f"{team}_flag_pickups"] += 1
 
-                    # --- ANTI-FARMING: Penalty für das bestohlen Team ---
-                    # Verhindert "Baiting": Gegner absichtlich Flagge nehmen lassen,
-                    # nur um ihn dann zu tacklen und Punkte zu farmen
-                    enemy_agents = self.red_agents if team == "blue" else self.blue_agents
+                    # Anti-Farming: Penalty für das bestohlen Team
+                    enemy_agents = self._get_team_agents(enemy_team)
                     for enemy in enemy_agents:
                         rewards[enemy] -= 8.0
-                    # ------------------------------------------------------
 
-            # 2. Flagge in eigene Base bringen = CAPTURE!
+            # 2. Flagge in eigene Base bringen = CAPTURE (nur wenn eigene Flagge at_base!)
             if state["has_flag"] and self._is_in_base(pos, team):
-                # CAPTURE!
-                self.scores[team] += 1
-                rewards[agent] += 50.0
+                own_flag = self.flags[team]
 
-                if team == "blue":
-                    self.episode_stats["blue_captures"] += 1
+                # KLASSISCHE CTF-REGEL: Capture nur wenn eigene Flagge sicher ist!
+                if own_flag["at_base"]:
+                    # CAPTURE ERFOLGREICH!
+                    self.scores[team] += 1
+                    rewards[agent] += 50.0
+                    self.episode_stats[f"{team}_captures"] += 1
+
+                    # Flagge zurücksetzen
+                    state["has_flag"] = False
+                    self._reset_flag_to_spawn(enemy_team)
                 else:
-                    self.episode_stats["red_captures"] += 1
-
-                # Flagge zurücksetzen
-                state["has_flag"] = False
-                enemy_flag["position"] = self.flag_spawns[enemy_team].copy()
-                enemy_flag["carried_by"] = None
-                enemy_flag["at_base"] = True
+                    # CAPTURE FEHLGESCHLAGEN - Eigene Flagge ist weg!
+                    # Kleiner negativer Reward (Agent lernt: "Ich muss erst meine Flagge zurückholen")
+                    rewards[agent] -= 2.0
+                    self.episode_stats[f"{team}_failed_captures"] += 1
 
             # 3. Eigene Flagge zurücksetzen (wenn am Boden)
             own_flag = self.flags[team]
             if not own_flag["at_base"] and own_flag["carried_by"] is None:
                 dist_to_own_flag = np.linalg.norm(pos - own_flag["position"])
-                if dist_to_own_flag < 2.0:  # Vergrößerter Pickup-Radius (war 1.0)
+                if dist_to_own_flag < 2.0:  # Return-Radius
                     # Flagge zurück zur Base!
-                    own_flag["position"] = self.flag_spawns[team].copy()
-                    own_flag["at_base"] = True
+                    self._reset_flag_to_spawn(team)
                     rewards[agent] += 8.0
+
+        return rewards
+
+    def _calculate_distance_rewards(self, prev_dists: Dict[str, float]) -> Dict[str, float]:
+        """Berechnet Distance Shaping (Heiß/Kalt Belohnung)."""
+        rewards = {}
+
+        for agent in self.agents:
+            state = self.agent_states[agent]
+            target = self._get_agent_target(agent)
+            new_dist = np.linalg.norm(state["position"] - target)
+
+            # Skalierung: Mehr Belohnung fürs Heimtragen
+            scale = 0.5 if state["has_flag"] else 0.1
+
+            # Belohnung für Verbesserung (alte Distanz - neue Distanz)
+            dist_reward = (prev_dists[agent] - new_dist) * scale
+            rewards[agent] = dist_reward
 
         return rewards
 
     def _distribute_team_rewards(self, rewards: Dict[str, float]) -> Dict[str, float]:
         """Team-Rewards verteilen (Captures zählen für alle)."""
-        blue_total = sum(rewards[a] for a in self.blue_agents)
-        red_total = sum(rewards[a] for a in self.red_agents)
+        blue_total = sum(rewards.get(a, 0.0) for a in self.blue_agents)
+        red_total = sum(rewards.get(a, 0.0) for a in self.red_agents)
 
         # Wenn ein Teammate einen großen Reward bekommt, bekommt der andere einen Teil
         for agent in self.blue_agents:
-            team_bonus = (blue_total - rewards[agent]) * 0.3
-            rewards[agent] += team_bonus
+            team_bonus = (blue_total - rewards.get(agent, 0.0)) * 0.3
+            rewards[agent] = rewards.get(agent, 0.0) + team_bonus
 
         for agent in self.red_agents:
-            team_bonus = (red_total - rewards[agent]) * 0.3
-            rewards[agent] += team_bonus
+            team_bonus = (red_total - rewards.get(agent, 0.0)) * 0.3
+            rewards[agent] = rewards.get(agent, 0.0) + team_bonus
 
         return rewards
 
-    def _is_in_base(self, position: np.ndarray, team: str) -> bool:
-        """Prüfen ob Position in einer Base ist."""
-        base = self.bases[team]
-        return (base["x_min"] <= position[0] <= base["x_max"] and
-                base["y_min"] <= position[1] <= base["y_max"])
+    def _check_game_end(self) -> tuple[bool, Dict[str, float]]:
+        """
+        Prüft ob das Spiel vorbei ist.
 
-    def _is_in_wall(self, position: np.ndarray) -> bool:
-        """Prüfen ob eine Position in einer Wand liegt."""
-        for wall in self.walls:
-            if (wall["x_min"] <= position[0] <= wall["x_max"] and
-                    wall["y_min"] <= position[1] <= wall["y_max"]):
-                return True
-        return False
+        Returns:
+            (game_over, win_rewards)
+        """
+        rewards = {agent: 0.0 for agent in self.possible_agents}
 
-    def _check_line_of_sight(self, pos1: np.ndarray, pos2: np.ndarray) -> bool:
-        """Line-of-sight mit linearer Abtastung: True, wenn keine Wand dazwischen liegt."""
-        samples = 25
-        for t in np.linspace(0, 1, samples):
-            # Skip the exact endpoints to avoid false positives on current tile
-            if t in (0, 1):
-                continue
-            sample = pos1 + t * (pos2 - pos1)
-            if self._is_in_wall(sample):
-                return False
-        return True
+        # Gewinn durch Score
+        if self.scores["blue"] >= self.win_score:
+            for agent in self.blue_agents:
+                rewards[agent] += 100
+            for agent in self.red_agents:
+                rewards[agent] -= 50
+            return True, rewards
+
+        elif self.scores["red"] >= self.win_score:
+            for agent in self.red_agents:
+                rewards[agent] += 100
+            for agent in self.blue_agents:
+                rewards[agent] -= 50
+            return True, rewards
+
+        # Zeit abgelaufen
+        if self.current_step >= self.max_steps:
+            # Bonus für führendes Team
+            if self.scores["blue"] > self.scores["red"]:
+                for agent in self.blue_agents:
+                    rewards[agent] += 20
+            elif self.scores["red"] > self.scores["blue"]:
+                for agent in self.red_agents:
+                    rewards[agent] += 20
+            return True, rewards
+
+        return False, rewards
+
+    # ========== OBSERVATION ==========
 
     def _get_observation(self, agent: str) -> np.ndarray:
         """Observation für einen Agenten mit relativen Vektoren."""
         state = self.agent_states[agent]
         pos = state["position"]
         team = state["team"]
-        enemy_team = "red" if team == "blue" else "blue"
+        enemy_team = self._get_enemy_team(team)
 
         # Hilfsfunktion für relative Vektoren (normiert auf Grid-Größe)
         def get_vec(target_pos, my_pos):
@@ -644,18 +687,18 @@ class CaptureTheFlagEnv(ParallelEnv):
         obs.append(1.0 if state["is_stunned"] else 0.0)
         obs.append(state["tackle_cooldown"] / self.tackle_cooldown)
 
-        # 2. Vektor zur eigenen Base (Wo muss ich hin zum Abgeben?) (2)
-        base_center = np.array([2.0, 12.0]) if team == "blue" else np.array([22.0, 12.0])
+        # 2. Vektor zur eigenen Base (2)
+        base_center = self._get_base_center(team)
         obs.extend(get_vec(base_center, pos))
 
         # 3. Vektoren zu Flaggen (2+2)
         enemy_flag = self.flags[enemy_team]
         own_flag = self.flags[team]
         obs.extend(get_vec(enemy_flag["position"], pos))  # Wo ist das Ziel?
-        obs.extend(get_vec(own_flag["position"], pos))    # Wo ist meine Flagge (Verteidigung)?
+        obs.extend(get_vec(own_flag["position"], pos))    # Wo ist meine Flagge?
 
         # 4. Teammate (relativ) (4)
-        teammates = [a for a in (self.blue_agents if team == "blue" else self.red_agents) if a != agent]
+        teammates = [a for a in self._get_team_agents(team) if a != agent]
         if teammates:
             tm = teammates[0]
             tm_state = self.agent_states[tm]
@@ -666,7 +709,7 @@ class CaptureTheFlagEnv(ParallelEnv):
             obs.extend([0, 0, 0, 0])  # Fallback
 
         # 5. Gegner (relativ & sortiert nach Nähe!) (4+4)
-        enemies = self.red_agents if team == "blue" else self.blue_agents
+        enemies = self._get_team_agents(enemy_team)
         # Liste von (Distanz, Agent-ID) erstellen
         enemy_list = []
         for e in enemies:
@@ -687,8 +730,7 @@ class CaptureTheFlagEnv(ParallelEnv):
         obs.append(1.0 if enemy_flag["at_base"] else 0.0)
         obs.append(1.0 if own_flag["at_base"] else 0.0)
 
-        # 7. Wände/Rand Wahrnehmung (4) - Bin ich am Rand?
-        # Abstand zu 0, 0, Grid, Grid
+        # 7. Wände/Rand Wahrnehmung (4)
         obs.append(pos[1] / self.grid_size)  # Abstand unten
         obs.append((self.grid_size - pos[1]) / self.grid_size)  # Abstand oben
         obs.append(pos[0] / self.grid_size)  # Abstand links
@@ -699,6 +741,8 @@ class CaptureTheFlagEnv(ParallelEnv):
         obs.append(self.scores[enemy_team] / self.win_score)
 
         return np.array(obs, dtype=np.float32)
+
+    # ========== REPLAY & RENDERING ==========
 
     def _save_frame(self):
         """Frame für Replay speichern."""
@@ -739,7 +783,7 @@ class CaptureTheFlagEnv(ParallelEnv):
                 "tackle_cooldown": self.tackle_cooldown,
                 "final_scores": self.scores.copy(),
                 "episode_stats": self.episode_stats.copy(),
-                "walls": self.walls,  # NEU: Map-Layout für Visualisierung
+                "walls": self.walls,
             },
             "frames": self.episode_history,
         }
