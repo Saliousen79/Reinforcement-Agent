@@ -457,11 +457,17 @@ class CaptureTheFlagEnv(ParallelEnv):
                     new_flag_pos[0] = np.clip(new_flag_pos[0], 0, self.grid_size - 1)
                     new_flag_pos[1] = np.clip(new_flag_pos[1], 0, self.grid_size - 1)
 
-                    # 5. Wand-Check: Wenn sie in einer Wand landen würde, bleibt sie beim Opfer
+                    # 5. Wand-Check: Wenn sie in einer Wand landen würde, nutze Fallback
                     if not self._is_in_wall(new_flag_pos):
                         self.flags[dropped_flag]["position"] = new_flag_pos
                     else:
-                        self.flags[dropped_flag]["position"] = enemy_state["position"].copy()
+                        # Fallback 1: Midpoint zwischen Tackler und Opfer
+                        midpoint = (state["position"] + enemy_state["position"]) / 2.0
+                        if not self._is_in_wall(midpoint):
+                            self.flags[dropped_flag]["position"] = midpoint
+                        else:
+                            # Fallback 2: Position des Tacklers (sicher, weil er dort steht)
+                            self.flags[dropped_flag]["position"] = state["position"].copy()
 
                     # Status updaten
                     self.flags[dropped_flag]["carried_by"] = None
@@ -528,6 +534,14 @@ class CaptureTheFlagEnv(ParallelEnv):
                         self.episode_stats["blue_flag_pickups"] += 1
                     else:
                         self.episode_stats["red_flag_pickups"] += 1
+
+                    # --- ANTI-FARMING: Penalty für das bestohlen Team ---
+                    # Verhindert "Baiting": Gegner absichtlich Flagge nehmen lassen,
+                    # nur um ihn dann zu tacklen und Punkte zu farmen
+                    enemy_agents = self.red_agents if team == "blue" else self.blue_agents
+                    for enemy in enemy_agents:
+                        rewards[enemy] -= 8.0
+                    # ------------------------------------------------------
 
             # 2. Flagge in eigene Base bringen = CAPTURE!
             if state["has_flag"] and self._is_in_base(pos, team):

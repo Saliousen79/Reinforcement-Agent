@@ -25,16 +25,26 @@ DEFAULT_TENSORBOARD_DIR = BASE_DIR / "logs"
 class MetricsCallback(BaseCallback):
     """Erweitertes Callback für Analytics Dashboard."""
 
-    def __init__(self, log_path: str, save_freq: int = 1000, verbose: int = 1):
+    def __init__(self, log_path: str, save_freq: int = 1000, verbose: int = 1,
+                 model_name: str = "Unknown", total_timesteps: int = 0):
         super().__init__(verbose)
         self.log_path = log_path
         self.save_freq = save_freq
+        self.model_name = model_name
+        self.total_timesteps = total_timesteps
         self.metrics = {
+            "model_name": model_name,
+            "total_timesteps": total_timesteps,
+            "current_timesteps": 0,
+            "progress_percent": 0.0,
+            "last_update": None,
             "timesteps": [],
             "mean_reward": [],
             "std_reward": [],
             "mean_length": [],  # NEU: Wie lange dauert ein Spiel?
             "episodes": [],
+            "max_reward": 0.0,
+            "current_mean_reward": 0.0,
         }
 
     def _on_step(self) -> bool:
@@ -44,18 +54,29 @@ class MetricsCallback(BaseCallback):
                 rewards = [ep["r"] for ep in self.model.ep_info_buffer]
                 lengths = [ep["l"] for ep in self.model.ep_info_buffer]  # NEU
 
+                mean_reward = float(np.mean(rewards))
+                max_reward_current = float(np.max(rewards))
+
                 self.metrics["timesteps"].append(self.n_calls)
-                self.metrics["mean_reward"].append(float(np.mean(rewards)))
+                self.metrics["mean_reward"].append(mean_reward)
                 self.metrics["std_reward"].append(float(np.std(rewards)))
                 self.metrics["mean_length"].append(float(np.mean(lengths)))  # NEU
                 self.metrics["episodes"].append(len(self.model.ep_info_buffer))
+
+                # Update Live-Metriken
+                self.metrics["current_timesteps"] = self.n_calls
+                self.metrics["current_mean_reward"] = mean_reward
+                self.metrics["max_reward"] = max(self.metrics["max_reward"], max_reward_current)
+                if self.total_timesteps > 0:
+                    self.metrics["progress_percent"] = (self.n_calls / self.total_timesteps) * 100
+                self.metrics["last_update"] = datetime.now().isoformat()
 
                 # Speichern
                 with open(self.log_path, "w") as f:
                     json.dump(self.metrics, f, indent=2)
 
                 if self.verbose:
-                    print(f"Step {self.n_calls}: Reward = {np.mean(rewards):.2f}, Length = {np.mean(lengths):.1f}")
+                    print(f"Step {self.n_calls}: Reward = {mean_reward:.2f}, Length = {np.mean(lengths):.1f}")
 
         return True
 
@@ -272,6 +293,8 @@ def train(
     metrics_cb = MetricsCallback(
         log_path=str(log_dir / "training_logs.json"),
         save_freq=1000,
+        model_name=run_name,
+        total_timesteps=total_timesteps,
     )
 
     best_game_cb = BestGameCallback()

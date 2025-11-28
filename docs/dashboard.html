@@ -43,36 +43,66 @@
         <!-- Header -->
         <section style="text-align: center; margin-bottom: 3rem;">
             <h1 data-i18n="dashboard.title">Training Dashboard</h1>
-            <p style="margin: 1rem auto; max-width: 600px;" data-i18n="dashboard.subtitle">Real-time analytics and performance metrics from 100,000+ training timesteps</p>
+            <p style="margin: 1rem auto; max-width: 600px;" data-i18n="dashboard.subtitle">Live-Fortschritt und Performance-Metriken</p>
 
-            <!-- Run Selector -->
-            <div style="margin-top: 2rem;">
-                <label for="run-select" style="color: var(--text-secondary); margin-right: 1rem;" data-i18n="dashboard.training-run">Training Run:</label>
-                <select id="run-select" style="min-width: 200px;">
-                    <option value="default" data-i18n="dashboard.latest-run">Latest Run (Beta)</option>
-                </select>
+            <!-- Model Info -->
+            <div style="margin-top: 2rem; padding: 1rem; background: var(--bg-secondary); border-radius: 12px; max-width: 800px; margin: 2rem auto;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <div style="color: var(--text-muted); font-size: 0.875rem;" data-i18n="dashboard.model-name">Modellname</div>
+                        <div style="font-size: 1.25rem; font-weight: 600; color: var(--accent-green);" id="model-name">--</div>
+                    </div>
+                    <div style="flex: 1; min-width: 300px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="color: var(--text-muted); font-size: 0.875rem;" data-i18n="dashboard.progress">Fortschritt</span>
+                            <span style="color: var(--text-secondary); font-size: 0.875rem;"><span id="current-steps">--</span> / <span id="total-steps">--</span></span>
+                        </div>
+                        <div style="background: var(--bg-tertiary); border-radius: 8px; height: 8px; overflow: hidden;">
+                            <div id="progress-bar" style="background: linear-gradient(90deg, var(--accent-green), var(--accent-blue)); height: 100%; width: 0%; transition: width 0.3s ease;"></div>
+                        </div>
+                        <div style="text-align: center; margin-top: 0.5rem; font-size: 1.125rem; font-weight: 600; color: var(--accent-green);" id="progress-percent">0%</div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="color: var(--text-muted); font-size: 0.875rem;" data-i18n="dashboard.last-update">Letzte Aktualisierung</div>
+                        <div style="font-size: 0.95rem; color: var(--text-secondary);" id="last-update">--</div>
+                    </div>
+                </div>
             </div>
         </section>
 
         <div style="max-width: 1400px; margin: 0 auto; padding: 0 2rem;">
             <!-- Key Metrics (Bento Grid) -->
             <section class="bento-grid" style="margin-bottom: 3rem;">
-                <div class="metric-card">
-                    <div class="metric-value" id="max-reward">--</div>
-                    <div class="metric-label" data-i18n="dashboard.peak-reward">Peak Reward</div>
+                <div class="metric-card" style="background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 212, 255, 0.05));">
+                    <div class="metric-value" id="mean-reward" style="color: var(--accent-green);">--</div>
+                    <div class="metric-label" data-i18n="dashboard.mean-reward">Mean Reward (Aktuell)</div>
                 </div>
-                <div class="metric-card">
-                    <div class="metric-value" id="total-timesteps">--</div>
-                    <div class="metric-label" data-i18n="dashboard.total-timesteps">Total Timesteps</div>
+                <div class="metric-card" style="background: linear-gradient(135deg, rgba(108, 99, 255, 0.1), rgba(0, 212, 255, 0.05));">
+                    <div class="metric-value" id="max-reward" style="color: var(--accent-blue);">--</div>
+                    <div class="metric-label" data-i18n="dashboard.peak-reward">Höchster Reward</div>
                 </div>
                 <div class="metric-card">
                     <div class="metric-value" id="avg-episode-length">--</div>
-                    <div class="metric-label" data-i18n="dashboard.avg-episode">Avg Episode Length</div>
+                    <div class="metric-label" data-i18n="dashboard.avg-episode">Durchschn. Episode</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="std-reward">--</div>
+                    <div class="metric-label" data-i18n="dashboard.reward-stability">Reward Stabilität (Std)</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-value" id="total-episodes">--</div>
+                    <div class="metric-label" data-i18n="dashboard.total-episodes">Gesamt Episoden</div>
+                </div>
+                <div class="metric-card" id="live-indicator-card" style="background: linear-gradient(135deg, rgba(0, 255, 136, 0.05), rgba(0, 0, 0, 0.1));">
+                    <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <div id="live-dot" style="width: 12px; height: 12px; background: #00ff88; border-radius: 50%; animation: pulse 2s infinite;"></div>
+                        <div class="metric-label" style="margin: 0; font-size: 1rem;" data-i18n="dashboard.live-status">LIVE Training</div>
+                    </div>
                 </div>
             </section>
 
             <!-- Main Chart: Reward over Time -->
-            <section class="chart-container" style="grid-column: 1 / -1;">
+            <section class="chart-container" style="grid-column: 1 / -1; height: 400px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                     <h3 data-i18n="dashboard.reward-progress">Reward Progress</h3>
                     <div style="color: var(--text-muted); font-size: 0.9rem;">
@@ -80,18 +110,24 @@
                         <button id="reset-zoom" class="button" style="padding: 0.5rem 1rem; font-size: 0.9rem;" data-i18n="dashboard.reset-zoom">Reset Zoom</button>
                     </div>
                 </div>
-                <canvas id="reward-chart"></canvas>
+                <div style="height: calc(100% - 60px); position: relative;">
+                    <canvas id="reward-chart"></canvas>
+                </div>
             </section>
 
             <!-- Secondary Charts -->
             <section class="content-grid" style="margin-top: 2rem;">
-                <div class="chart-container">
+                <div class="chart-container" style="height: 350px;">
                     <h3 data-i18n="dashboard.episode-length">Episode Length Evolution</h3>
-                    <canvas id="length-chart"></canvas>
+                    <div style="height: calc(100% - 50px); position: relative;">
+                        <canvas id="length-chart"></canvas>
+                    </div>
                 </div>
-                <div class="chart-container">
+                <div class="chart-container" style="height: 350px;">
                     <h3 data-i18n="dashboard.reward-distribution">Reward Distribution</h3>
-                    <canvas id="distribution-chart"></canvas>
+                    <div style="height: calc(100% - 50px); position: relative;">
+                        <canvas id="distribution-chart"></canvas>
+                    </div>
                 </div>
             </section>
 
@@ -147,6 +183,20 @@
         <p style="color: var(--text-muted); margin: 0;" data-i18n="dashboard.data-source">Data sourced from training_logs.json</p>
     </footer>
 
+    <!-- Pulse Animation -->
+    <style>
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(1.2);
+            }
+        }
+    </style>
+
     <!-- Translation Script -->
     <script>
         const translations = {
@@ -155,12 +205,17 @@
                 'nav.statistics': 'Kennzahlen',
                 'nav.demo': 'Live Demo',
                 'dashboard.title': 'Training Dashboard',
-                'dashboard.subtitle': 'Echtzeit-Analysen und Performance-Metriken aus 100.000+ Trainingsschritten',
-                'dashboard.training-run': 'Trainingslauf:',
-                'dashboard.latest-run': 'Neuester Lauf (Beta)',
-                'dashboard.peak-reward': 'Peak Reward',
+                'dashboard.subtitle': 'Live-Fortschritt und Performance-Metriken',
+                'dashboard.model-name': 'Modellname',
+                'dashboard.progress': 'Fortschritt',
+                'dashboard.last-update': 'Letzte Aktualisierung',
+                'dashboard.mean-reward': 'Mean Reward (Aktuell)',
+                'dashboard.peak-reward': 'Höchster Reward',
                 'dashboard.total-timesteps': 'Gesamte Timesteps',
                 'dashboard.avg-episode': 'Durchschn. Episode',
+                'dashboard.reward-stability': 'Reward Stabilität (Std)',
+                'dashboard.total-episodes': 'Gesamt Episoden',
+                'dashboard.live-status': 'LIVE Training',
                 'dashboard.reward-progress': 'Reward-Fortschritt',
                 'dashboard.zoom-info': 'Scrollen zum Zoomen | Ziehen zum Verschieben',
                 'dashboard.reset-zoom': 'Zoom zurücksetzen',
@@ -175,12 +230,17 @@
                 'nav.statistics': 'Statistics',
                 'nav.demo': 'Live Demo',
                 'dashboard.title': 'Training Dashboard',
-                'dashboard.subtitle': 'Real-time analytics and performance metrics from 100,000+ training timesteps',
-                'dashboard.training-run': 'Training Run:',
-                'dashboard.latest-run': 'Latest Run (Beta)',
+                'dashboard.subtitle': 'Live progress and performance metrics',
+                'dashboard.model-name': 'Model Name',
+                'dashboard.progress': 'Progress',
+                'dashboard.last-update': 'Last Update',
+                'dashboard.mean-reward': 'Mean Reward (Current)',
                 'dashboard.peak-reward': 'Peak Reward',
                 'dashboard.total-timesteps': 'Total Timesteps',
                 'dashboard.avg-episode': 'Avg Episode Length',
+                'dashboard.reward-stability': 'Reward Stability (Std)',
+                'dashboard.total-episodes': 'Total Episodes',
+                'dashboard.live-status': 'LIVE Training',
                 'dashboard.reward-progress': 'Reward Progress',
                 'dashboard.zoom-info': 'Scroll to zoom | Drag to pan',
                 'dashboard.reset-zoom': 'Reset Zoom',
@@ -195,12 +255,17 @@
                 'nav.statistics': 'Statistiques',
                 'nav.demo': 'Démo en Direct',
                 'dashboard.title': 'Tableau de Bord d\'Entraînement',
-                'dashboard.subtitle': 'Analyses en temps réel et métriques de performance à partir de plus de 100 000 étapes d\'entraînement',
-                'dashboard.training-run': 'Exécution d\'Entraînement:',
-                'dashboard.latest-run': 'Dernière Exécution (Beta)',
+                'dashboard.subtitle': 'Progrès en direct et métriques de performance',
+                'dashboard.model-name': 'Nom du Modèle',
+                'dashboard.progress': 'Progrès',
+                'dashboard.last-update': 'Dernière Mise à Jour',
+                'dashboard.mean-reward': 'Récompense Moyenne (Actuelle)',
                 'dashboard.peak-reward': 'Récompense Maximale',
                 'dashboard.total-timesteps': 'Timesteps Totaux',
                 'dashboard.avg-episode': 'Longueur Moy. d\'Épisode',
+                'dashboard.reward-stability': 'Stabilité des Récompenses (Std)',
+                'dashboard.total-episodes': 'Épisodes Totaux',
+                'dashboard.live-status': 'Entraînement EN DIRECT',
                 'dashboard.reward-progress': 'Progression des Récompenses',
                 'dashboard.zoom-info': 'Faire défiler pour zoomer | Glisser pour déplacer',
                 'dashboard.reset-zoom': 'Réinitialiser le Zoom',

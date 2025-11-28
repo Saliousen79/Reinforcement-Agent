@@ -6,18 +6,30 @@
 // Global chart instances
 let rewardChart, lengthChart, distributionChart;
 let trainingData = null;
+let autoRefreshInterval = null;
+let lastUpdateTime = null;
 
 // Chart.js default configuration
 Chart.defaults.color = '#b4b4c8';
 Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
 Chart.defaults.font.family = "'Inter', 'Segoe UI', sans-serif";
 
+// Auto-refresh configuration
+const AUTO_REFRESH_ENABLED = true;
+const REFRESH_INTERVAL = 3000; // 3 seconds
+
 // Load data on page load
 document.addEventListener('DOMContentLoaded', async () => {
     await loadTrainingData();
     initializeCharts();
     updateMetrics();
+    updateLiveInfo();
     hideLoading();
+
+    // Start auto-refresh if enabled
+    if (AUTO_REFRESH_ENABLED) {
+        startAutoRefresh();
+    }
 });
 
 /**
@@ -148,7 +160,10 @@ function initializeCharts() {
                     },
                     grid: {
                         color: 'rgba(255, 255, 255, 0.05)'
-                    }
+                    },
+                    min: -50,
+                    max: 150,
+                    grace: '10%'
                 }
             },
             interaction: {
@@ -219,7 +234,10 @@ function initializeCharts() {
                     },
                     grid: {
                         color: 'rgba(255, 255, 255, 0.05)'
-                    }
+                    },
+                    min: 0,
+                    max: 500,
+                    grace: '5%'
                 }
             }
         }
@@ -296,17 +314,27 @@ function initializeCharts() {
 function updateMetrics() {
     if (!trainingData) return;
 
+    // Current mean reward (latest value)
+    const currentMeanReward = trainingData.current_mean_reward ||
+        (trainingData.mean_reward.length > 0 ? trainingData.mean_reward[trainingData.mean_reward.length - 1] : 0);
+    document.getElementById('mean-reward').textContent = currentMeanReward.toFixed(1);
+
     // Max reward
-    const maxReward = Math.max(...trainingData.mean_reward);
+    const maxReward = trainingData.max_reward || Math.max(...trainingData.mean_reward);
     document.getElementById('max-reward').textContent = maxReward.toFixed(1);
 
-    // Total timesteps
-    const totalTimesteps = trainingData.timesteps[trainingData.timesteps.length - 1];
-    document.getElementById('total-timesteps').textContent = formatNumber(totalTimesteps);
-
-    // Average episode length
+    // Average episode length (all time)
     const avgLength = trainingData.mean_length.reduce((a, b) => a + b, 0) / trainingData.mean_length.length;
     document.getElementById('avg-episode-length').textContent = avgLength.toFixed(0);
+
+    // Current standard deviation (latest value)
+    const currentStd = trainingData.std_reward.length > 0 ?
+        trainingData.std_reward[trainingData.std_reward.length - 1] : 0;
+    document.getElementById('std-reward').textContent = currentStd.toFixed(1);
+
+    // Total episodes
+    const totalEpisodes = trainingData.episodes.reduce((a, b) => a + b, 0);
+    document.getElementById('total-episodes').textContent = formatNumber(totalEpisodes);
 
     // Generate insights
     generateInsights();
@@ -426,9 +454,120 @@ function showError(message) {
 }
 
 /**
- * Run selector (placeholder for multiple training runs)
+ * Update live training information
  */
-document.getElementById('run-select')?.addEventListener('change', (e) => {
-    // In the future, this could load different training runs
-    console.log('Selected run:', e.target.value);
-});
+function updateLiveInfo() {
+    if (!trainingData) return;
+
+    // Model name
+    const modelName = trainingData.model_name || 'Unknown';
+    document.getElementById('model-name').textContent = modelName;
+
+    // Current and total timesteps
+    const currentSteps = trainingData.current_timesteps ||
+        (trainingData.timesteps.length > 0 ? trainingData.timesteps[trainingData.timesteps.length - 1] : 0);
+    const totalSteps = trainingData.total_timesteps || currentSteps;
+
+    document.getElementById('current-steps').textContent = formatNumber(currentSteps);
+    document.getElementById('total-steps').textContent = formatNumber(totalSteps);
+
+    // Progress percentage
+    const progressPercent = trainingData.progress_percent ||
+        (totalSteps > 0 ? (currentSteps / totalSteps) * 100 : 0);
+    document.getElementById('progress-percent').textContent = progressPercent.toFixed(1) + '%';
+    document.getElementById('progress-bar').style.width = progressPercent + '%';
+
+    // Last update time
+    if (trainingData.last_update) {
+        const updateTime = new Date(trainingData.last_update);
+        const now = new Date();
+        const diffSeconds = Math.floor((now - updateTime) / 1000);
+
+        let timeText;
+        if (diffSeconds < 10) {
+            timeText = 'Gerade eben';
+        } else if (diffSeconds < 60) {
+            timeText = `Vor ${diffSeconds}s`;
+        } else if (diffSeconds < 3600) {
+            timeText = `Vor ${Math.floor(diffSeconds / 60)}m`;
+        } else {
+            timeText = updateTime.toLocaleTimeString();
+        }
+
+        document.getElementById('last-update').textContent = timeText;
+
+        // Update live indicator
+        const isRecent = diffSeconds < 30; // Training is considered "live" if updated in last 30 seconds
+        const liveDot = document.getElementById('live-dot');
+        const liveCard = document.getElementById('live-indicator-card');
+
+        if (isRecent) {
+            liveDot.style.background = '#00ff88';
+            liveCard.style.opacity = '1';
+        } else {
+            liveDot.style.background = '#ff6b6b';
+            liveCard.style.opacity = '0.6';
+        }
+    } else {
+        document.getElementById('last-update').textContent = '--';
+    }
+}
+
+/**
+ * Start auto-refresh
+ */
+function startAutoRefresh() {
+    console.log('Starting auto-refresh every', REFRESH_INTERVAL / 1000, 'seconds');
+
+    autoRefreshInterval = setInterval(async () => {
+        await loadTrainingData();
+
+        if (trainingData) {
+            // Update charts with new data
+            updateCharts();
+            updateMetrics();
+            updateLiveInfo();
+        }
+    }, REFRESH_INTERVAL);
+}
+
+/**
+ * Stop auto-refresh
+ */
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+        console.log('Auto-refresh stopped');
+    }
+}
+
+/**
+ * Update existing charts with new data
+ */
+function updateCharts() {
+    if (!trainingData) return;
+
+    // Update reward chart
+    if (rewardChart) {
+        rewardChart.data.labels = trainingData.timesteps;
+        rewardChart.data.datasets[0].data = trainingData.mean_reward;
+        rewardChart.data.datasets[1].data = trainingData.std_reward;
+        rewardChart.update('none'); // 'none' for no animation, faster update
+    }
+
+    // Update length chart
+    if (lengthChart) {
+        lengthChart.data.labels = trainingData.timesteps;
+        lengthChart.data.datasets[0].data = trainingData.mean_length;
+        lengthChart.update('none');
+    }
+
+    // Update distribution chart
+    if (distributionChart) {
+        const rewardBins = createHistogram(trainingData.mean_reward, 10);
+        distributionChart.data.labels = rewardBins.labels;
+        distributionChart.data.datasets[0].data = rewardBins.counts;
+        distributionChart.update('none');
+    }
+}
