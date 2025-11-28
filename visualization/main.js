@@ -149,13 +149,27 @@ function setupBases() {
 }
 
 function setupWalls() {
-    // Wände aus dem Environment:
-    // {"x_min": 11, "x_max": 13, "y_min": 4, "y_max": 8}
-    // {"x_min": 11, "x_max": 13, "y_min": 16, "y_max": 20}
+    // Wände aus dem Environment - "Die Arena" Layout
+    // ZENTRUM (Sichtschutz) - 4 Säulen
+    // BLUE DEFENSE (Links) - 2 Bunker
+    // RED DEFENSE (Rechts) - 2 Bunker
 
     const walls = [
-        { x_min: 11, x_max: 13, y_min: 4, y_max: 8 },
-        { x_min: 11, x_max: 13, y_min: 16, y_max: 20 }
+        // --- ZENTRUM (Sichtschutz) ---
+        // Vier Säulen, die einen "Platz" in der Mitte bilden
+        { x_min: 10, x_max: 11, y_min: 10, y_max: 11 },
+        { x_min: 13, x_max: 14, y_min: 10, y_max: 11 },
+        { x_min: 10, x_max: 11, y_min: 13, y_max: 14 },
+        { x_min: 13, x_max: 14, y_min: 13, y_max: 14 },
+
+        // --- BLUE DEFENSE (Links) ---
+        // Ein "Bunker" oben und unten zum Verstecken
+        { x_min: 5, x_max: 7, y_min: 4, y_max: 5 },   // Unten
+        { x_min: 5, x_max: 7, y_min: 19, y_max: 20 }, // Oben
+
+        // --- RED DEFENSE (Rechts - Gespiegelt) ---
+        { x_min: 17, x_max: 19, y_min: 4, y_max: 5 },   // Unten
+        { x_min: 17, x_max: 19, y_min: 19, y_max: 20 }  // Oben
     ];
 
     walls.forEach(wall => {

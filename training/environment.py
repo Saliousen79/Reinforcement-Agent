@@ -365,7 +365,9 @@ class CaptureTheFlagEnv(ParallelEnv):
             reward += self._execute_tackle(agent)
 
         # Kollisionsabfrage mit Wänden
-        if not self._is_in_wall(new_pos):
+        # Prüfe sowohl, ob die neue Position in einer Wand ist,
+        # als auch ob der Bewegungspfad eine Wand kreuzt
+        if not self._is_in_wall(new_pos) and self._check_line_of_sight(pos, new_pos):
             pos[:] = new_pos
 
         # Flagge mitbewegen wenn getragen
