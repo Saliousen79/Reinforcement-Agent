@@ -20,9 +20,9 @@ ENV/
 .ipynb_checkpoints/
 
 # Training artifacts
-training/logs/
-training/models/
-*.zip
+#training/logs/
+#training/models/
+#*.zip
 
 # OS
 .DS_Store
