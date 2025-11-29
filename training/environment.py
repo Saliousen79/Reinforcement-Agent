@@ -9,30 +9,21 @@ SPIELREGELN (Klassisches CTF):
 4. Verteidige deine Flagge und bringe sie zurück wenn gestohlen
 
 ═══════════════════════════════════════════════════════════════════
-REWARD SYSTEM (Minimalistisch - Version 2.0)
+FINAL REWARD STRUCTURE
 ═══════════════════════════════════════════════════════════════════
 
-POSITIVE REWARDS:
-  • CAPTURE:              +100.0   (Der Nordstern - einziges Hauptziel)
-  • WIN:                  +30.0    (Teamwork-Signal)
-  • TACKLE_FLAG_CARRIER:  +2.0     (Einziger Hint - 50 Tackles = 1 Capture)
+PRIMÄR:
+  • CAPTURE:              +100.0   (Hauptziel)
+  • WIN:                  +30.0    (Sieg)
+  • LOSE:                 -30.0    (Niederlage)
 
-NEGATIVE REWARDS:
-  • LOSE:                 -30.0    (Verlieren tut weh)
+OFFENSE-HILFE:
+  • CARRIER_DISTANCE:     +0.1 pro Grid (NUR für Carrier)
 
-EXPLIZIT ENTFERNT (führten zu unerwünschtem Verhalten):
-  ✗ Distance Shaping      → Mittel-Bias (Agenten laufen nur durch Mitte)
-  ✗ Flag Pickup Reward    → Redundant + Stagnation (Farming)
-  ✗ Flag Return Reward    → Intrinsisch durch Capture-Regel motiviert
-  ✗ Team Penalties        → Verzerrtes Lernsignal
-  ✗ Tactical Tackles      → Agenten sollen selbst lernen wann sinnvoll
-  ✗ Time Penalty          → Unnötige Verzerrung
-  ✗ Team Reward Share     → Individuelle Verantwortung wichtiger
+DEFENSE-HILFE (kritisch!):
+  • TACKLE_FLAG_CARRIER:  +8.0     (Flaggenträger tackeln)
+  • FLAG_RETURN:          +5.0     (Eigene Flagge zurückbringen)
 
-PHILOSOPHIE:
-Der Agent bekommt nur noch Feedback für das ENDRESULTAT (Capture, Win/Lose).
-Alle taktischen Entscheidungen (Wege, Positionen, Defense-Tackles) muss er
-durch Trial & Error selbst lernen. Einziger Hint: Flag-Carrier tacklen ist gut.
 ═══════════════════════════════════════════════════════════════════
 """
 
@@ -41,6 +32,18 @@ from gymnasium import spaces
 from pettingzoo import ParallelEnv
 from typing import Dict, Optional, List
 import functools
+
+# FINAL REWARD STRUCTURE
+CAPTURE = 100.0
+WIN = 30.0
+LOSE = -30.0
+
+# Offense-Hilfe
+CARRIER_DISTANCE = 0.1  # pro Grid-Einheit, nur für Carrier
+
+# Defense-Hilfe (kritisch!)
+TACKLE_FLAG_CARRIER = 8.0
+FLAG_RETURN = 5.0
 
 
 class CaptureTheFlagEnv(ParallelEnv):
@@ -371,10 +374,10 @@ class CaptureTheFlagEnv(ParallelEnv):
         for agent, reward in flag_rewards.items():
             rewards[agent] += reward
 
-        # 4. Distance Shaping - ENTFERNT (führt zu Mittel-Bias)
-        # distance_rewards = self._calculate_distance_rewards(prev_dists)
-        # for agent, reward in distance_rewards.items():
-        #     rewards[agent] += reward
+        # 4. Distance Shaping - NUR wenn Agent Flagge trägt (Option B)
+        distance_rewards = self._calculate_distance_rewards(prev_dists)
+        for agent, reward in distance_rewards.items():
+            rewards[agent] += reward
 
         # 5. Team Reward Distribution - ENTFERNT (verzerrt individuelles Lernsignal)
         # rewards = self._distribute_team_rewards(rewards)
@@ -514,9 +517,9 @@ class CaptureTheFlagEnv(ParallelEnv):
         """
         Tackle ausführen.
 
-        REWARD PHILOSOPHY (Ultra-minimalistisch):
-        - Flag Carrier Tackle: 2.0 (einziger "Hint")
-        - Alle anderen Tackles: 0.0 (Agent muss selbst lernen)
+        REWARD PHILOSOPHY:
+        - Flag Carrier Tackle: +TACKLE_FLAG_CARRIER
+        - Alle anderen Tackles: 0.0
         """
         state = self.agent_states[agent]
 
@@ -547,9 +550,9 @@ class CaptureTheFlagEnv(ParallelEnv):
                 enemy_state["is_stunned"] = True
                 enemy_state["stun_timer"] = self.stun_duration
 
-                # EINZIGER REWARD: Flaggenträger tacklen
+                # REWARD: Flaggenträger tacklen
                 if enemy_state["has_flag"]:
-                    reward += 2.0  # Kleiner Hint (50 Tackles = 1 Capture)
+                    reward += TACKLE_FLAG_CARRIER
                     enemy_state["has_flag"] = False
 
                     # Flagge droppen (mit Bounce-Mechanik)
@@ -563,7 +566,7 @@ class CaptureTheFlagEnv(ParallelEnv):
 
                     # Stats
                     self.episode_stats[f"{my_team}_stuns"] += 1
-                # ALLE ANDEREN TACKLES: Kein Reward (nur -0.2 Kosten)
+                # ALLE ANDEREN TACKLES: Kein Reward
                 # Agent muss selbst lernen wann Tackles taktisch sinnvoll sind
 
                 break  # Nur ein Treffer pro Action
@@ -574,11 +577,10 @@ class CaptureTheFlagEnv(ParallelEnv):
         """
         Flaggen-Aufnahme, -Abgabe und -Reset.
 
-        REWARD PHILOSOPHY (Minimalistisch):
-        - Pickup: KEIN Reward (ist nur Mittel zum Zweck)
-        - Capture: 100.0 (DER Nordstern)
-        - Return: KEIN Reward (intrinsisch durch Capture-Regel motiviert)
-        - Failed Capture: KEIN Penalty (Agent merkt es durch fehlenden Capture-Reward)
+        REWARD PHILOSOPHY:
+        - Pickup: KEIN Reward
+        - Capture: +CAPTURE
+        - Return: +FLAG_RETURN
         """
         rewards = {agent: 0.0 for agent in self.possible_agents}
 
@@ -591,7 +593,7 @@ class CaptureTheFlagEnv(ParallelEnv):
             team = state["team"]
             enemy_team = self._get_enemy_team(team)
 
-            # 1. Gegnerische Flagge aufnehmen (KEIN REWARD - nur State-Update)
+            # 1. Gegnerische Flagge aufnehmen (KEIN REWARD)
             enemy_flag = self.flags[enemy_team]
             if not state["has_flag"] and enemy_flag["carried_by"] is None:
                 dist_to_flag = np.linalg.norm(pos - enemy_flag["position"])
@@ -599,7 +601,6 @@ class CaptureTheFlagEnv(ParallelEnv):
                     state["has_flag"] = True
                     enemy_flag["carried_by"] = agent
                     enemy_flag["at_base"] = False
-                    # KEIN REWARD - Pickup ist nur Mittel zum Zweck
                     self.episode_stats[f"{team}_flag_pickups"] += 1
 
             # 2. Flagge in eigene Base bringen = CAPTURE
@@ -610,7 +611,7 @@ class CaptureTheFlagEnv(ParallelEnv):
                 if own_flag["at_base"]:
                     # === CAPTURE ERFOLGREICH! ===
                     self.scores[team] += 1
-                    rewards[agent] += 100.0  # DER NORDSTERN
+                    rewards[agent] += CAPTURE
                     self.episode_stats[f"{team}_captures"] += 1
 
                     # Flagge zurücksetzen
@@ -618,26 +619,67 @@ class CaptureTheFlagEnv(ParallelEnv):
                     self._reset_flag_to_spawn(enemy_team)
                 else:
                     # CAPTURE FEHLGESCHLAGEN - Eigene Flagge ist weg!
-                    # KEIN PENALTY - Agent lernt durch Abwesenheit des 100.0 Rewards
                     self.episode_stats[f"{team}_failed_captures"] += 1
 
-            # 3. Eigene Flagge zurücksetzen (wenn am Boden) - KEIN REWARD
+            # 3. Eigene Flagge zurücksetzen (wenn am Boden)
             own_flag = self.flags[team]
             if not own_flag["at_base"] and own_flag["carried_by"] is None:
                 dist_to_own_flag = np.linalg.norm(pos - own_flag["position"])
                 if dist_to_own_flag < 2.0:  # Return-Radius
                     # Flagge zurück zur Base!
                     self._reset_flag_to_spawn(team)
-                    # KEIN REWARD - Return ist intrinsisch durch Capture-Regel motiviert
+                    rewards[agent] += FLAG_RETURN
 
         return rewards
 
     def _calculate_distance_rewards(self, prev_dists: Dict[str, Dict[str, float]]) -> Dict[str, float]:
         """
-        ENTFERNT: Distance Shaping führt zu Mittel-Bias.
-        Agenten sollen durch Captures lernen, nicht durch "wärmer/kälter".
+        Option B: Distance Shaping NUR für Flaggenträger.
+
+        Gibt dem Agenten Feedback, ob er sich seiner Base nähert oder entfernt,
+        aber NUR wenn er die Flagge trägt. Verhindert Mittel-Bias bei der Offense.
         """
-        return {agent: 0.0 for agent in self.agents}
+        rewards = {}
+
+        for agent in self.agents:
+            state = self.agent_states[agent]
+
+            # NUR für Flaggenträger!
+            if not state["has_flag"]:
+                rewards[agent] = 0.0
+                continue
+
+            # Ziel muss gleich geblieben sein (verhindert falsche Rewards bei Zielwechsel)
+            prev_data = prev_dists[agent]
+            current_target = self._get_agent_target(agent)
+
+            # Check: Hat sich das Ziel geändert? (z.B. Flagge aufgenommen)
+            if not np.allclose(prev_data["target"], current_target, atol=0.5):
+                rewards[agent] = 0.0
+                continue
+
+            # Check: Hat sich der has_flag Status geändert?
+            if prev_data["has_flag"] != state["has_flag"]:
+                rewards[agent] = 0.0
+                continue
+
+            # Distanz vorher vs. jetzt
+            prev_dist = prev_data["distance"]
+            current_dist = np.linalg.norm(state["position"] - current_target)
+
+            # Distance Shaping: +Reward wenn näher, -Reward wenn weiter
+            dist_delta = prev_dist - current_dist
+
+            # Kleine Belohnung/Strafe (deutlich kleiner als Capture = 100.0)
+            # Skalierung: CARRIER_DISTANCE pro Grid-Einheit Fortschritt
+            shaping_reward = dist_delta * CARRIER_DISTANCE
+
+            # Cap bei ±1.0 (verhindert Exploits)
+            shaping_reward = np.clip(shaping_reward, -1.0, 1.0)
+
+            rewards[agent] = shaping_reward
+
+        return rewards
 
     def _distribute_team_rewards(self, rewards: Dict[str, float]) -> Dict[str, float]:
         """Team-Rewards verteilen (Captures zählen für alle)."""
@@ -669,16 +711,16 @@ class CaptureTheFlagEnv(ParallelEnv):
         # Gewinn durch Score
         if self.scores["blue"] >= self.win_score:
             for agent in self.blue_agents:
-                rewards[agent] += 30.0  # WIN
+                rewards[agent] += WIN  # WIN
             for agent in self.red_agents:
-                rewards[agent] -= 30.0  # LOSE
+                rewards[agent] += LOSE  # LOSE
             return True, rewards
 
         elif self.scores["red"] >= self.win_score:
             for agent in self.red_agents:
-                rewards[agent] += 30.0  # WIN
+                rewards[agent] += WIN  # WIN
             for agent in self.blue_agents:
-                rewards[agent] -= 30.0  # LOSE
+                rewards[agent] += LOSE  # LOSE
             return True, rewards
 
         # Zeit abgelaufen - KEIN Bonus für führendes Team
