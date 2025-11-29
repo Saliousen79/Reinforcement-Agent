@@ -36,8 +36,8 @@ class CaptureTheFlagEnv(ParallelEnv):
         grid_size: int = 24,
         max_steps: int = 500,
         win_score: int = 3,
-        stun_duration: int = 40,      # 1.5 Sek bei 20 FPS
-        tackle_cooldown: int = 50,    # 5 Sek
+        stun_duration: int = 20,      # ~1 Sek bei 20 FPS (reduziert von 40)
+        tackle_cooldown: int = 65,    # ~3.25 Sek (erhöht von 50)
         tackle_range: float = 2.0,
         carrier_speed_penalty: float = 0.3,
         render_mode: Optional[str] = None,
@@ -382,29 +382,48 @@ class CaptureTheFlagEnv(ParallelEnv):
     # ========== STEP LOGIC ==========
 
     def _calculate_prev_distances(self) -> Dict[str, Dict[str, float]]:
-        """Berechnet Distanzen zum Ziel VOR der Bewegung (inkl. has_flag Status)."""
+        """Berechnet Distanzen zum Ziel VOR der Bewegung (inkl. has_flag Status und Ziel)."""
         prev_dists = {}
         for agent in self.agents:
             state = self.agent_states[agent]
             target = self._get_agent_target(agent)
             prev_dists[agent] = {
+                "target": target.copy(),  # Ziel speichern (verhindert falsche Rewards bei Zielwechsel)
                 "distance": np.linalg.norm(state["position"] - target),
                 "has_flag": state["has_flag"]  # Status merken
             }
         return prev_dists
 
     def _get_agent_target(self, agent: str) -> np.ndarray:
-        """Gibt das aktuelle Ziel eines Agenten zurück."""
+        """
+        Gibt das aktuelle Ziel eines Agenten zurück - mit Defense-Logik.
+
+        Prioritäten:
+        1. Ich habe die Flagge → zur eigenen Base!
+        2. Meine Flagge wurde gestohlen → Jage den Träger!
+        3. Meine Flagge liegt am Boden → Hole sie zurück!
+        4. Alles sicher → Greife an!
+        """
         state = self.agent_states[agent]
         team = state["team"]
+        own_flag = self.flags[team]
+        enemy_team = self._get_enemy_team(team)
 
+        # 1. Ich habe die Flagge → zur eigenen Base!
         if state["has_flag"]:
-            # Ziel: Eigene Base
             return self._get_base_center(team)
-        else:
-            # Ziel: Gegnerische Flagge
-            enemy_team = self._get_enemy_team(team)
-            return self.flags[enemy_team]["position"]
+
+        # 2. Meine Flagge wurde gestohlen → Jage den Träger!
+        if own_flag["carried_by"] is not None:
+            carrier = own_flag["carried_by"]
+            return self.agent_states[carrier]["position"].copy()
+
+        # 3. Meine Flagge liegt am Boden → Hole sie zurück!
+        if not own_flag["at_base"]:
+            return own_flag["position"].copy()
+
+        # 4. Alles sicher → Greife an!
+        return self.flags[enemy_team]["position"].copy()
 
     def _update_timers(self):
         """Stun-Timer und Cooldowns updaten."""
@@ -468,9 +487,9 @@ class CaptureTheFlagEnv(ParallelEnv):
         """Tackle ausführen mit taktischer Bewertung."""
         state = self.agent_states[agent]
 
-        # Cooldown check
+        # Cooldown check - kleine Strafe für sinnloses Spammen
         if state["tackle_cooldown"] > 0:
-            return 0.0
+            return -0.05  # "Du weißt doch, dass du nicht kannst"
 
         # Basis-Kosten für den Versuch (verhindert Spammen)
         reward = -0.2
@@ -567,6 +586,15 @@ class CaptureTheFlagEnv(ParallelEnv):
                     for enemy in enemy_agents:
                         rewards[enemy] -= 8.0
 
+                    # Chase-Bonus: Belohne Teammates die in der Nähe sind (Defense-Anreiz)
+                    for teammate in self._get_team_agents(enemy_team):
+                        if not self.agent_states[teammate]["has_flag"]:
+                            dist = np.linalg.norm(
+                                self.agent_states[teammate]["position"] - pos
+                            )
+                            if dist < 8.0:  # In Chase-Reichweite
+                                rewards[teammate] += 2.0  # "Du bist dran, jag ihn!"
+
             # 2. Flagge in eigene Base bringen = CAPTURE (nur wenn eigene Flagge at_base!)
             if state["has_flag"] and self._is_in_base(pos, team):
                 own_flag = self.flags[team]
@@ -583,9 +611,9 @@ class CaptureTheFlagEnv(ParallelEnv):
                     self._reset_flag_to_spawn(enemy_team)
                 else:
                     # CAPTURE FEHLGESCHLAGEN - Eigene Flagge ist weg!
-                    # Kleiner negativer Reward (Agent lernt: "Ich muss erst meine Flagge zurückholen")
-                    # Nicht zu groß, damit Agent nicht zu defensiv wird
-                    rewards[agent] -= 0.5
+                    # Deutlicher negativer Reward (Agent lernt: "Das funktioniert nicht!")
+                    # Muss Defense spielen zuerst
+                    rewards[agent] -= 3.0
                     self.episode_stats[f"{team}_failed_captures"] += 1
 
             # 3. Eigene Flagge zurücksetzen (wenn am Boden)
@@ -603,8 +631,9 @@ class CaptureTheFlagEnv(ParallelEnv):
         """
         Berechnet Distance Shaping (Heiß/Kalt Belohnung).
 
-        WICHTIG: Reward wird nur gegeben wenn has_flag Status gleich geblieben ist,
-        um negative Rewards beim Flaggen-Pickup zu vermeiden.
+        WICHTIG:
+        - Reward nur wenn has_flag Status gleich geblieben ist
+        - Verwendet das ALTE Ziel (verhindert falsche Rewards bei Zielwechsel durch andere Agenten)
         """
         rewards = {}
 
@@ -619,8 +648,10 @@ class CaptureTheFlagEnv(ParallelEnv):
                 rewards[agent] = 0.0
                 continue
 
-            target = self._get_agent_target(agent)
-            new_dist = np.linalg.norm(state["position"] - target)
+            # Verwende das ALTE Ziel aus prev_dists (nicht neu berechnen!)
+            # Das verhindert falsche Rewards wenn sich das Ziel durch andere Agenten ändert
+            old_target = prev_dists[agent]["target"]
+            new_dist = np.linalg.norm(state["position"] - old_target)
             prev_dist = prev_dists[agent]["distance"]
 
             # Skalierung: Mehr Belohnung fürs Heimtragen

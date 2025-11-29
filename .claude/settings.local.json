@@ -7,7 +7,11 @@
       "Bash(dir:*)",
       "Bash(python convert_tensorboard_logs.py:*)",
       "Bash(python reconstruct_from_models.py:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(del \"c:\\Users\\Salio\\Documents\\FH\\Github\\Reinforcement Learning\\Reinforcement-Agent\\dashboard\\test.html\")",
+      "Bash(del \"c:\\Users\\Salio\\Documents\\FH\\Github\\Reinforcement Learning\\Reinforcement-Agent\\dashboard\\test_data.html\")",
+      "Bash(rm:*)",
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []

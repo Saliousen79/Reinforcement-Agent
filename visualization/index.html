@@ -21,11 +21,12 @@
 
         .panel {
             position: fixed;
-            background: rgba(15, 15, 30, 0.9);
-            backdrop-filter: blur(10px);
+            background: rgba(15, 15, 30, 0.92);
+            backdrop-filter: blur(12px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             padding: 16px 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         #scoreboard {
@@ -63,6 +64,9 @@
             display: flex;
             gap: 12px;
             align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 90vw;
         }
 
         button {
@@ -79,6 +83,7 @@
         button:hover {
             background: #3a3a6a;
             border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-1px);
         }
 
         button.active {
@@ -104,6 +109,7 @@
             color: white;
             padding: 8px 12px;
             border-radius: 6px;
+            max-width: 220px;
         }
 
         #step-info {
@@ -118,8 +124,8 @@
         }
 
         #legend {
-            bottom: 20px;
-            right: 20px;
+            bottom: 100px;
+            left: 20px;
         }
 
         .legend-item {
@@ -127,18 +133,22 @@
             align-items: center;
             gap: 8px;
             margin: 5px 0;
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .legend-color {
-            width: 14px;
-            height: 14px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
         }
 
         .blue { background: #4dabf7; }
         .red { background: #ff6b6b; }
         .flag { background: #ffd43b; }
+        .stunned { 
+            background: #555555; 
+            position: relative;
+        }
 
         #loading {
             position: fixed;
@@ -146,6 +156,7 @@
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
+            z-index: 100;
         }
 
         .spinner {
@@ -159,25 +170,6 @@
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
-
-        #events {
-            top: 80px;
-            right: 20px;
-            max-width: 250px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .event {
-            padding: 6px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            font-size: 0.85rem;
-        }
-
-        .event:last-child { border-bottom: none; }
-        .event-capture { color: #ffd43b; }
-        .event-stun { color: #ff6b6b; }
-        .event-pickup { color: #69db7c; }
 
         #file-upload-btn {
             background: #69db7c;
@@ -197,7 +189,7 @@
             border-color: #ff922b;
             position: fixed;
             top: 20px;
-            right: 20px;
+            right: 350px;
             padding: 12px 24px;
             font-weight: bold;
             z-index: 1000;
@@ -206,6 +198,199 @@
         #dashboard-btn:hover {
             background: #fd7e14;
             border-color: #fd7e14;
+        }
+
+        /* Flaggenträger Status */
+        #flag-status {
+            top: 80px;
+            left: 20px;
+            min-width: 180px;
+        }
+
+        #flag-status h3 {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .flag-holder {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .flag-holder:last-child {
+            border-bottom: none;
+        }
+
+        .flag-icon {
+            font-size: 1.2rem;
+        }
+
+        .flag-holder .team-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .flag-holder .carrier-name {
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .flag-holder.carried .carrier-name {
+            color: #ffd43b;
+            animation: pulse-text 1.5s ease-in-out infinite;
+        }
+
+        .flag-holder.at-base .carrier-name {
+            color: #666;
+            font-style: italic;
+        }
+
+        @keyframes pulse-text {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* ==================== */
+        /* REPLAY KONTEXT PANEL */
+        /* ==================== */
+        #replay-context {
+            top: 20px;
+            right: 20px;
+            width: 320px;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+        }
+
+        #replay-context h3 {
+            font-size: 1rem;
+            color: #6c63ff;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        #replay-context h3::before {
+            content: '📖';
+        }
+
+        #replay-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 8px;
+        }
+
+        #replay-description {
+            font-size: 0.9rem;
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        #replay-description p {
+            margin-bottom: 10px;
+        }
+
+        #replay-description .highlight {
+            color: #ffd43b;
+            font-weight: 500;
+        }
+
+        #replay-description .blue-text {
+            color: #4dabf7;
+        }
+
+        #replay-description .red-text {
+            color: #ff6b6b;
+        }
+
+        #replay-meta {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        #replay-meta .meta-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 4px 0;
+        }
+
+        #replay-meta .meta-value {
+            color: #888;
+        }
+
+        /* Kein Replay ausgewählt */
+        #no-replay-hint {
+            color: #666;
+            font-style: italic;
+            text-align: center;
+            padding: 20px 0;
+        }
+
+        /* Tags */
+        .replay-tags {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .replay-tag {
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .tag-training { background: #228be6; }
+        .tag-demo { background: #fab005; color: #000; }
+        .tag-interesting { background: #ae3ec9; }
+        .tag-bug { background: #fa5252; }
+        .tag-custom { background: #495057; }
+
+        /* Keyboard hints */
+        #keyboard-hints {
+            position: fixed;
+            bottom: 80px;
+            left: 20px;
+            font-size: 0.75rem;
+            color: #555;
+        }
+
+        #keyboard-hints kbd {
+            background: #2a2a4a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 4px;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.2);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.3);
         }
     </style>
 </head>
@@ -230,6 +415,44 @@
         <span class="red-score">Red: <span id="red-score">0</span></span>
     </div>
 
+    <div class="panel" id="flag-status">
+        <h3>🚩 Flaggen</h3>
+        <div class="flag-holder at-base" id="blue-flag-status">
+            <span class="flag-icon">🔵</span>
+            <span class="team-dot blue"></span>
+            <span class="carrier-name">An der Basis</span>
+        </div>
+        <div class="flag-holder at-base" id="red-flag-status">
+            <span class="flag-icon">🔴</span>
+            <span class="team-dot red"></span>
+            <span class="carrier-name">An der Basis</span>
+        </div>
+    </div>
+
+    <!-- REPLAY KONTEXT PANEL -->
+    <div class="panel" id="replay-context">
+        <h3>Replay Kontext</h3>
+        <div id="replay-title">Kein Replay geladen</div>
+        <div id="replay-description">
+            <p id="no-replay-hint">Wähle ein Replay aus der Liste oder lade eine eigene Datei.</p>
+        </div>
+        <div id="replay-tags" class="replay-tags"></div>
+        <div id="replay-meta" style="display: none;">
+            <div class="meta-item">
+                <span>Frames:</span>
+                <span class="meta-value" id="meta-frames">-</span>
+            </div>
+            <div class="meta-item">
+                <span>Agenten:</span>
+                <span class="meta-value" id="meta-agents">-</span>
+            </div>
+            <div class="meta-item">
+                <span>Map:</span>
+                <span class="meta-value" id="meta-map">-</span>
+            </div>
+        </div>
+    </div>
+
     <div class="panel" id="controls">
         <button id="play-btn" class="active">▶ Play</button>
         <button id="pause-btn">⏸ Pause</button>
@@ -239,11 +462,11 @@
             <input type="range" id="speed" min="0.5" max="3" step="0.5" value="1">
             <span id="speed-val">1x</span>
         </div>
-        <input type="file" id="file-input" accept=".json">
-        <button id="file-upload-btn">📁 Replay laden</button>
         <select id="episode-select">
-            <option value="">Wähle Episode...</option>
+            <option value="">Wähle Replay...</option>
         </select>
+        <input type="file" id="file-input" accept=".json">
+        <button id="file-upload-btn">📁 Eigenes Replay</button>
     </div>
 
     <div class="panel" id="step-info">
@@ -253,15 +476,69 @@
     <div class="panel" id="legend">
         <div class="legend-item"><div class="legend-color blue"></div> Blue Team</div>
         <div class="legend-item"><div class="legend-color red"></div> Red Team</div>
-        <div class="legend-item"><div class="legend-color flag"></div> Flagge</div>
+        <div class="legend-item"><div class="legend-color flag"></div> Flaggenträger</div>
+        <div class="legend-item"><div class="legend-color stunned"></div> Betäubt</div>
     </div>
 
-    <div class="panel" id="events">
-        <strong>Events</strong>
-        <div id="event-list"></div>
+    <div id="keyboard-hints">
+        <kbd>Maus</kbd> Kamera drehen · <kbd>Scroll</kbd> Zoom
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/three@0.152.0/build/three.min.js"></script>
-    <script src="main.js?v=4"></script>
+    
+    <!-- ================================== -->
+    <!-- EMBEDDED REPLAYS KONFIGURATION     -->
+    <!-- Hier kannst du deine Replays mit   -->
+    <!-- Beschreibungen hinzufügen          -->
+    <!-- ================================== -->
+    <script>
+        window.EMBEDDED_REPLAYS = [
+            {
+                id: 'demo_episode',
+                filename: 'demo_episode.json',
+                title: 'Demo: Grundlegendes Gameplay',
+                shortDesc: 'Beispiel für grundlegende CTF-Mechaniken',
+                description: `
+                    <p>Dieses Replay zeigt die <span class="highlight">grundlegenden Spielmechaniken</span> von Capture the Flag:</p>
+                    <p>• <span class="blue-text">Blue Team</span> versucht die rote Flagge zu stehlen<br>
+                    • <span class="red-text">Red Team</span> verteidigt ihre Basis<br>
+                    • Agenten können gegnerische Spieler <span class="highlight">tacklen</span> um sie zu betäuben</p>
+                    <p>Beobachte wie die Agenten zwischen Angriff und Verteidigung wechseln.</p>
+                `,
+                tags: ['demo'],
+            },
+            {
+                id: 'training_early',
+                filename: 'episode_20251127_134405.json',
+                title: 'Training: Frühe Phase',
+                shortDesc: 'Agenten in früher Trainingsphase',
+                description: `
+                    <p>Dieses Replay zeigt Agenten in einer <span class="highlight">frühen Trainingsphase</span>.</p>
+                    <p>Die Agenten haben noch keine klare Strategie entwickelt und bewegen sich oft zufällig. 
+                    Man kann beobachten wie sie langsam lernen:</p>
+                    <p>• Zur gegnerischen Flagge zu navigieren<br>
+                    • Gegner zu vermeiden oder anzugreifen<br>
+                    • Den Weg zurück zur eigenen Basis zu finden</p>
+                `,
+                tags: ['training'],
+            },
+            // =========================================
+            // FÜGE HIER WEITERE REPLAYS HINZU:
+            // =========================================
+            // {
+            //     id: 'unique_id',           // Eindeutige ID
+            //     filename: 'replay.json',   // Dateiname im replays/ Ordner
+            //     title: 'Titel',            // Anzeigename
+            //     shortDesc: 'Kurz...',      // Für Dropdown
+            //     description: `
+            //         <p>Beschreibung mit <span class="highlight">Formatierung</span></p>
+            //         <p><span class="blue-text">Blau</span> vs <span class="red-text">Rot</span></p>
+            //     `,
+            //     tags: ['training', 'interesting', 'demo', 'bug'],
+            // },
+        ];
+    </script>
+    
+    <script src="main.js?v=6"></script>
 </body>
 </html>
