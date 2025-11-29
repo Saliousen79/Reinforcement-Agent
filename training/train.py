@@ -269,17 +269,18 @@ def train(
         model = PPO(
             policy="MlpPolicy",
             env=vec_env,
+            device="cpu",
             learning_rate=learning_rate,
-            n_steps=1024,        # Schritte pro Update pro Env
-            batch_size=256,      # Größere Batch Size für stabilere Gradients
+            n_steps=2048,        # Schritte pro Update pro Env
+            batch_size=512,      # Größere Batch Size für stabilere Gradients
             n_epochs=10,
             gamma=0.99,
             gae_lambda=0.95,
             clip_range=0.2,
-            ent_coef=0.01,       # Exploration erzwingen
+            ent_coef=0.03,       # Exploration erzwingen
             verbose=1,
             tensorboard_log=str(tensorboard_dir),
-            policy_kwargs=dict(net_arch=[256, 256])  # Größeres Netzwerk für komplexere Observations
+            policy_kwargs=dict(net_arch=[512, 512])  # Größeres Netzwerk für komplexere Observations
         )
         reset_timesteps = True
 

@@ -19,8 +19,6 @@ POSITIVE REWARDS:
 
 NEGATIVE REWARDS:
   • LOSE:                 -30.0    (Verlieren tut weh)
-  • TACKLE_COST:          -0.2     (Anti-Spam Mechanik)
-  • TACKLE_ON_COOLDOWN:   -0.05    (Versuch während Cooldown)
 
 EXPLIZIT ENTFERNT (führten zu unerwünschtem Verhalten):
   ✗ Distance Shaping      → Mittel-Bias (Agenten laufen nur durch Mitte)
@@ -518,17 +516,16 @@ class CaptureTheFlagEnv(ParallelEnv):
 
         REWARD PHILOSOPHY (Ultra-minimalistisch):
         - Flag Carrier Tackle: 2.0 (einziger "Hint")
-        - Alle anderen Tackles: 0.0 (nur Kosten -0.2)
-        - Ratio: 50 Tackles = 1 Capture (unfarmbar)
+        - Alle anderen Tackles: 0.0 (Agent muss selbst lernen)
         """
         state = self.agent_states[agent]
 
-        # Cooldown check - kleine Strafe für sinnloses Spammen
+        # Cooldown check - kein Penalty, einfach nichts tun
         if state["tackle_cooldown"] > 0:
-            return -0.05  # "Du weißt doch, dass du nicht kannst"
+            return 0.0
 
-        # Basis-Kosten für den Versuch (verhindert Spammen)
-        reward = -0.2
+        # Kein Basis-Penalty mehr - Agent muss selbst lernen wann Tackles sinnvoll sind
+        reward = 0.0
 
         # Cooldown setzen
         state["tackle_cooldown"] = self.tackle_cooldown
