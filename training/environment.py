@@ -9,20 +9,32 @@ SPIELREGELN (Klassisches CTF):
 4. Verteidige deine Flagge und bringe sie zurück wenn gestohlen
 
 ═══════════════════════════════════════════════════════════════════
-FINAL REWARD STRUCTURE
+REWARD EXPERIMENT: 3 VERSCHIEDENE PROFILE
 ═══════════════════════════════════════════════════════════════════
 
-PRIMÄR:
-  • CAPTURE:              +100.0   (Hauptziel)
-  • WIN:                  +30.0    (Sieg)
-  • LOSE:                 -30.0    (Niederlage)
+MICROMANAGER (Heavy Shaping):
+  • CAPTURE:              +50.0
+  • WIN/LOSE:             ±20.0
+  • FLAG_PICKUP:          +10.0    (Jede Aufnahme)
+  • DISTANCE_TO_FLAG:     +0.2     (Alle Agenten)
+  • CARRIER_DISTANCE:     +0.3     (Richtung Base)
+  • TACKLE_ANY:           +3.0     (Jeder Tackle)
+  • TACKLE_FLAG_CARRIER:  +8.0
+  • FLAG_RETURN:          +5.0
+  • DISTANCE_TO_CARRIER:  +0.15    (Flaggenträger jagen)
+  • STEP_PENALTY:         -0.01    (Anti-Idle)
 
-OFFENSE-HILFE:
-  • CARRIER_DISTANCE:     +0.1 pro Grid (NUR für Carrier)
+SPARSE (Minimalist):
+  • CAPTURE:              +100.0
+  • WIN/LOSE:             ±50.0
+  • Sonst: NICHTS
 
-DEFENSE-HILFE (kritisch!):
-  • TACKLE_FLAG_CARRIER:  +8.0     (Flaggenträger tackeln)
-  • FLAG_RETURN:          +5.0     (Eigene Flagge zurückbringen)
+BALANCED (Current Best):
+  • CAPTURE:              +100.0
+  • WIN/LOSE:             ±30.0
+  • CARRIER_DISTANCE:     +0.1     (Nur Carrier)
+  • TACKLE_FLAG_CARRIER:  +8.0
+  • FLAG_RETURN:          +5.0
 
 ═══════════════════════════════════════════════════════════════════
 """
@@ -33,17 +45,50 @@ from pettingzoo import ParallelEnv
 from typing import Dict, Optional, List
 import functools
 
-# FINAL REWARD STRUCTURE
-CAPTURE = 100.0
-WIN = 30.0
-LOSE = -30.0
 
-# Offense-Hilfe
-CARRIER_DISTANCE = 0.1  # pro Grid-Einheit, nur für Carrier
+# ========== REWARD PROFILES ==========
 
-# Defense-Hilfe (kritisch!)
-TACKLE_FLAG_CARRIER = 8.0
-FLAG_RETURN = 5.0
+REWARD_PROFILES = {
+    "micromanager": {
+        "CAPTURE": 50.0,
+        "WIN": 20.0,
+        "LOSE": -20.0,
+        "FLAG_PICKUP": 10.0,
+        "DISTANCE_TO_FLAG": 0.2,
+        "CARRIER_DISTANCE": 0.3,
+        "TACKLE_ANY": 3.0,
+        "TACKLE_FLAG_CARRIER": 8.0,
+        "FLAG_RETURN": 5.0,
+        "DISTANCE_TO_CARRIER": 0.15,
+        "STEP_PENALTY": -0.01,
+    },
+    "sparse": {
+        "CAPTURE": 100.0,
+        "WIN": 50.0,
+        "LOSE": -50.0,
+        "FLAG_PICKUP": 0.0,
+        "DISTANCE_TO_FLAG": 0.0,
+        "CARRIER_DISTANCE": 0.0,
+        "TACKLE_ANY": 0.0,
+        "TACKLE_FLAG_CARRIER": 0.0,
+        "FLAG_RETURN": 0.0,
+        "DISTANCE_TO_CARRIER": 0.0,
+        "STEP_PENALTY": 0.0,
+    },
+    "balanced": {
+        "CAPTURE": 100.0,
+        "WIN": 30.0,
+        "LOSE": -30.0,
+        "FLAG_PICKUP": 0.0,
+        "DISTANCE_TO_FLAG": 0.0,
+        "CARRIER_DISTANCE": 0.1,
+        "TACKLE_ANY": 0.0,
+        "TACKLE_FLAG_CARRIER": 8.0,
+        "FLAG_RETURN": 5.0,
+        "DISTANCE_TO_CARRIER": 0.0,
+        "STEP_PENALTY": 0.0,
+    },
+}
 
 
 class CaptureTheFlagEnv(ParallelEnv):
@@ -71,6 +116,7 @@ class CaptureTheFlagEnv(ParallelEnv):
         tackle_range: float = 2.0,
         carrier_speed_penalty: float = 0.3,
         render_mode: Optional[str] = None,
+        reward_profile: str = "balanced",  # NEW: "micromanager", "sparse", or "balanced"
     ):
         super().__init__()
 
@@ -82,6 +128,12 @@ class CaptureTheFlagEnv(ParallelEnv):
         self.tackle_range = tackle_range
         self.carrier_speed_penalty = carrier_speed_penalty
         self.render_mode = render_mode
+
+        # Reward Profile laden
+        if reward_profile not in REWARD_PROFILES:
+            raise ValueError(f"Unknown reward profile: {reward_profile}. Choose from: {list(REWARD_PROFILES.keys())}")
+        self.reward_profile = REWARD_PROFILES[reward_profile]
+        self.reward_profile_name = reward_profile
 
         # Statische Wände (Rechtecke) blockieren direkte Wege
         # Layout: "Die Arena" - Taktische Map mit Deckung und Flanken-Möglichkeiten
@@ -382,9 +434,9 @@ class CaptureTheFlagEnv(ParallelEnv):
         # 5. Team Reward Distribution - ENTFERNT (verzerrt individuelles Lernsignal)
         # rewards = self._distribute_team_rewards(rewards)
 
-        # 6. Zeitstrafe - ENTFERNT (unnötige Verzerrung, Episode endet sowieso)
-        # for agent in self.agents:
-        #     rewards[agent] -= 0.01
+        # 6. Step Penalty (profile-dependent, z.B. für "micromanager" anti-idle)
+        for agent in self.agents:
+            rewards[agent] += self.reward_profile["STEP_PENALTY"]
 
         # 7. Gewinn-Check
         game_over, win_rewards = self._check_game_end()
@@ -518,8 +570,8 @@ class CaptureTheFlagEnv(ParallelEnv):
         Tackle ausführen.
 
         REWARD PHILOSOPHY:
-        - Flag Carrier Tackle: +TACKLE_FLAG_CARRIER
-        - Alle anderen Tackles: 0.0
+        - Flag Carrier Tackle: +TACKLE_FLAG_CARRIER (profile-dependent)
+        - Alle anderen Tackles: +TACKLE_ANY (profile-dependent, z.B. für micromanager)
         """
         state = self.agent_states[agent]
 
@@ -550,9 +602,9 @@ class CaptureTheFlagEnv(ParallelEnv):
                 enemy_state["is_stunned"] = True
                 enemy_state["stun_timer"] = self.stun_duration
 
-                # REWARD: Flaggenträger tacklen
+                # REWARD: Flaggenträger tacklen (höher) oder normaler Tackle
                 if enemy_state["has_flag"]:
-                    reward += TACKLE_FLAG_CARRIER
+                    reward += self.reward_profile["TACKLE_FLAG_CARRIER"]
                     enemy_state["has_flag"] = False
 
                     # Flagge droppen (mit Bounce-Mechanik)
@@ -566,8 +618,9 @@ class CaptureTheFlagEnv(ParallelEnv):
 
                     # Stats
                     self.episode_stats[f"{my_team}_stuns"] += 1
-                # ALLE ANDEREN TACKLES: Kein Reward
-                # Agent muss selbst lernen wann Tackles taktisch sinnvoll sind
+                else:
+                    # Normaler Tackle (z.B. für "micromanager" profile)
+                    reward += self.reward_profile["TACKLE_ANY"]
 
                 break  # Nur ein Treffer pro Action
 
@@ -578,9 +631,9 @@ class CaptureTheFlagEnv(ParallelEnv):
         Flaggen-Aufnahme, -Abgabe und -Reset.
 
         REWARD PHILOSOPHY:
-        - Pickup: KEIN Reward
-        - Capture: +CAPTURE
-        - Return: +FLAG_RETURN
+        - Pickup: +FLAG_PICKUP (profile-dependent)
+        - Capture: +CAPTURE (profile-dependent)
+        - Return: +FLAG_RETURN (profile-dependent)
         """
         rewards = {agent: 0.0 for agent in self.possible_agents}
 
@@ -593,7 +646,7 @@ class CaptureTheFlagEnv(ParallelEnv):
             team = state["team"]
             enemy_team = self._get_enemy_team(team)
 
-            # 1. Gegnerische Flagge aufnehmen (KEIN REWARD)
+            # 1. Gegnerische Flagge aufnehmen
             enemy_flag = self.flags[enemy_team]
             if not state["has_flag"] and enemy_flag["carried_by"] is None:
                 dist_to_flag = np.linalg.norm(pos - enemy_flag["position"])
@@ -602,6 +655,8 @@ class CaptureTheFlagEnv(ParallelEnv):
                     enemy_flag["carried_by"] = agent
                     enemy_flag["at_base"] = False
                     self.episode_stats[f"{team}_flag_pickups"] += 1
+                    # REWARD für Pickup (z.B. für "micromanager")
+                    rewards[agent] += self.reward_profile["FLAG_PICKUP"]
 
             # 2. Flagge in eigene Base bringen = CAPTURE
             if state["has_flag"] and self._is_in_base(pos, team):
@@ -611,7 +666,7 @@ class CaptureTheFlagEnv(ParallelEnv):
                 if own_flag["at_base"]:
                     # === CAPTURE ERFOLGREICH! ===
                     self.scores[team] += 1
-                    rewards[agent] += CAPTURE
+                    rewards[agent] += self.reward_profile["CAPTURE"]
                     self.episode_stats[f"{team}_captures"] += 1
 
                     # Flagge zurücksetzen
@@ -628,26 +683,25 @@ class CaptureTheFlagEnv(ParallelEnv):
                 if dist_to_own_flag < 2.0:  # Return-Radius
                     # Flagge zurück zur Base!
                     self._reset_flag_to_spawn(team)
-                    rewards[agent] += FLAG_RETURN
+                    rewards[agent] += self.reward_profile["FLAG_RETURN"]
 
         return rewards
 
     def _calculate_distance_rewards(self, prev_dists: Dict[str, Dict[str, float]]) -> Dict[str, float]:
         """
-        Option B: Distance Shaping NUR für Flaggenträger.
+        Distance Shaping basierend auf Reward Profile.
 
-        Gibt dem Agenten Feedback, ob er sich seiner Base nähert oder entfernt,
-        aber NUR wenn er die Flagge trägt. Verhindert Mittel-Bias bei der Offense.
+        BALANCED/SPARSE: Nur Flaggenträger bekommen Feedback (CARRIER_DISTANCE)
+        MICROMANAGER: ALLE Agenten bekommen Distance Rewards basierend auf ihrer Rolle:
+          - Hat Flagge → CARRIER_DISTANCE zur Base
+          - Eigene Flagge gestohlen → DISTANCE_TO_CARRIER zum Gegner jagen
+          - Alles sicher → DISTANCE_TO_FLAG zur gegnerischen Flagge
         """
         rewards = {}
 
         for agent in self.agents:
             state = self.agent_states[agent]
-
-            # NUR für Flaggenträger!
-            if not state["has_flag"]:
-                rewards[agent] = 0.0
-                continue
+            team = state["team"]
 
             # Ziel muss gleich geblieben sein (verhindert falsche Rewards bei Zielwechsel)
             prev_data = prev_dists[agent]
@@ -666,17 +720,21 @@ class CaptureTheFlagEnv(ParallelEnv):
             # Distanz vorher vs. jetzt
             prev_dist = prev_data["distance"]
             current_dist = np.linalg.norm(state["position"] - current_target)
-
-            # Distance Shaping: +Reward wenn näher, -Reward wenn weiter
             dist_delta = prev_dist - current_dist
 
-            # Kleine Belohnung/Strafe (deutlich kleiner als Capture = 100.0)
-            # Skalierung: CARRIER_DISTANCE pro Grid-Einheit Fortschritt
-            shaping_reward = dist_delta * CARRIER_DISTANCE
+            # Welche Reward Rate verwenden?
+            if state["has_flag"]:
+                # Flaggenträger → zur Base
+                rate = self.reward_profile["CARRIER_DISTANCE"]
+            elif self.flags[team]["carried_by"] is not None:
+                # Eigene Flagge gestohlen → Carrier jagen
+                rate = self.reward_profile["DISTANCE_TO_CARRIER"]
+            else:
+                # Offense → zur gegnerischen Flagge
+                rate = self.reward_profile["DISTANCE_TO_FLAG"]
 
-            # Cap bei ±1.0 (verhindert Exploits)
+            shaping_reward = dist_delta * rate
             shaping_reward = np.clip(shaping_reward, -1.0, 1.0)
-
             rewards[agent] = shaping_reward
 
         return rewards
@@ -701,9 +759,9 @@ class CaptureTheFlagEnv(ParallelEnv):
         """
         Prüft ob das Spiel vorbei ist.
 
-        REWARD PHILOSOPHY:
-        - WIN: +30 (Teamwork-Signal)
-        - LOSE: -30 (Verlieren tut weh)
+        REWARD PHILOSOPHY (profile-dependent):
+        - WIN: +WIN (Teamwork-Signal)
+        - LOSE: +LOSE (Verlieren tut weh, negative Zahl)
         - Leading bei Timeout: KEIN Bonus (wird durch Captures bereits reflektiert)
         """
         rewards = {agent: 0.0 for agent in self.possible_agents}
@@ -711,16 +769,16 @@ class CaptureTheFlagEnv(ParallelEnv):
         # Gewinn durch Score
         if self.scores["blue"] >= self.win_score:
             for agent in self.blue_agents:
-                rewards[agent] += WIN  # WIN
+                rewards[agent] += self.reward_profile["WIN"]
             for agent in self.red_agents:
-                rewards[agent] += LOSE  # LOSE
+                rewards[agent] += self.reward_profile["LOSE"]
             return True, rewards
 
         elif self.scores["red"] >= self.win_score:
             for agent in self.red_agents:
-                rewards[agent] += WIN  # WIN
+                rewards[agent] += self.reward_profile["WIN"]
             for agent in self.blue_agents:
-                rewards[agent] += LOSE  # LOSE
+                rewards[agent] += self.reward_profile["LOSE"]
             return True, rewards
 
         # Zeit abgelaufen - KEIN Bonus für führendes Team

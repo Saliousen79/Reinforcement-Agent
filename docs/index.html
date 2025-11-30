@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📖 Dokumentation - Capture the Flag RL</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Navigation Bar */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 15, 26, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px 0;
+            z-index: 1000;
+        }
+
+        nav .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 0 20px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #aaa;
+            padding: 10px 24px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            border: 1px solid transparent;
+        }
+
+        nav a:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        nav a.active {
+            background: rgba(108, 99, 255, 0.2);
+            color: #6c63ff;
+            border-color: #6c63ff;
+        }
+
+        /* Main Container */
+        .container {
+            max-width: 1000px;
+            margin: 100px auto 40px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #4dabf7, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #888;
+            font-weight: 300;
+        }
+
+        /* Game Overview Section */
+        .game-overview {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+        }
+
+        .game-overview h2 {
+            font-size: 2rem;
+            margin-bottom: 24px;
+            color: #6c63ff;
+        }
+
+        .game-overview p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #ccc;
+            margin-bottom: 20px;
+        }
+
+        /* Game Mechanics Grid */
+        .mechanics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin: 40px 0;
+        }
+
+        .mechanic-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s;
+        }
+
+        .mechanic-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .mechanic-icon {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .mechanic-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 12px;
+            color: #4dabf7;
+        }
+
+        .mechanic-card p {
+            color: #aaa;
+            line-height: 1.6;
+        }
+
+        /* Visual Game Board */
+        .game-board-visual {
+            background: rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 40px 0;
+            text-align: center;
+        }
+
+        .board-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 20px;
+            align-items: center;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .base-visual {
+            padding: 30px;
+            border-radius: 12px;
+            border: 3px solid;
+            text-align: center;
+        }
+
+        .base-visual.blue {
+            border-color: #4dabf7;
+            background: rgba(77, 171, 247, 0.1);
+        }
+
+        .base-visual.red {
+            border-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+        }
+
+        .base-visual h4 {
+            font-size: 1.2rem;
+            margin-bottom: 12px;
+        }
+
+        .flag-emoji {
+            font-size: 3rem;
+            display: block;
+            margin: 10px 0;
+        }
+
+        .field-visual {
+            padding: 40px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            position: relative;
+        }
+
+        .field-visual::before {
+            content: '⚔️';
+            font-size: 4rem;
+            opacity: 0.3;
+        }
+
+        /* Model Cards */
+        .models-section {
+            margin: 60px 0;
+        }
+
+        .models-section h2 {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 40px;
+            background: linear-gradient(135deg, #ffd43b, #ff6b6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .model-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .model-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 32px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .model-btn:hover {
+            transform: translateY(-8px);
+            border-color: #6c63ff;
+            background: rgba(108, 99, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(108, 99, 255, 0.3);
+        }
+
+        .model-btn.active {
+            border-color: #6c63ff;
+            background: rgba(108, 99, 255, 0.15);
+        }
+
+        .model-btn h3 {
+            font-size: 1.8rem;
+            margin-bottom: 8px;
+            color: #6c63ff;
+        }
+
+        .model-badge {
+            display: inline-block;
+            background: rgba(108, 99, 255, 0.2);
+            color: #6c63ff;
+            padding: 6px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            margin: 8px 4px;
+        }
+
+        .model-stats {
+            margin-top: 16px;
+            display: flex;
+            justify-content: space-around;
+            gap: 16px;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #4dabf7;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #888;
+            margin-top: 4px;
+        }
+
+        /* Model Details Panel */
+        .model-details {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            margin-top: 30px;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .model-details.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .model-details h3 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: #ffd43b;
+        }
+
+        .model-details p {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #ccc;
+            margin-bottom: 16px;
+        }
+
+        .model-details ul {
+            list-style: none;
+            margin: 20px 0;
+        }
+
+        .model-details li {
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: #aaa;
+        }
+
+        .model-details li:last-child {
+            border-bottom: none;
+        }
+
+        .model-details li strong {
+            color: #4dabf7;
+        }
+
+        /* Video Embed Section */
+        .video-section {
+            margin: 30px 0;
+        }
+
+        .video-placeholder {
+            background: rgba(0, 0, 0, 0.4);
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 60px;
+            text-align: center;
+            color: #666;
+        }
+
+        .video-placeholder::before {
+            content: '🎬';
+            font-size: 4rem;
+            display: block;
+            margin-bottom: 16px;
+        }
+
+        /* Embedded Video */
+        .video-embed {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 */
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+            background: #000;
+        }
+
+        .video-embed iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            margin-top: 24px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 14px 28px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            border: 2px solid;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #6c63ff;
+            border-color: #6c63ff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a52d5;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border-color: rgba(255, 255, 255, 0.3);
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Info Boxes */
+        .info-box {
+            background: rgba(77, 171, 247, 0.1);
+            border-left: 4px solid #4dabf7;
+            padding: 20px 24px;
+            margin: 24px 0;
+            border-radius: 8px;
+        }
+
+        .info-box.warning {
+            background: rgba(255, 212, 59, 0.1);
+            border-left-color: #ffd43b;
+        }
+
+        .info-box h4 {
+            color: #4dabf7;
+            margin-bottom: 8px;
+        }
+
+        .info-box.warning h4 {
+            color: #ffd43b;
+        }
+
+        .info-box p {
+            color: #ccc;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="nav-container">
+            <a href="../index.html">🏠 Home</a>
+            <a href="../docs/index.html" class="active">📖 Dokumentation</a>
+            <a href="../visualization/index.html">🎮 Visualisierung</a>
+            <a href="../dashboard/index.html">📊 Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header>
+            <h1>📖 Dokumentation</h1>
+            <p class="subtitle">Capture the Flag - Multi-Agent Reinforcement Learning</p>
+        </header>
+
+        <!-- Game Overview -->
+        <section class="game-overview">
+            <h2>🎮 Das Spiel</h2>
+            <p>
+                Capture the Flag ist ein klassisches 2v2 Teamspiel, bei dem zwei Teams gegeneinander antreten.
+                Jedes Team versucht, die gegnerische Flagge zu erobern und zur eigenen Basis zurückzubringen,
+                während es gleichzeitig seine eigene Flagge verteidigt.
+            </p>
+            <p>
+                In diesem Projekt werden <strong>Reinforcement Learning Agenten</strong> trainiert, die lernen,
+                kooperativ zu spielen und komplexe Strategien zu entwickeln. Die Agenten nutzen PPO (Proximal Policy Optimization)
+                und wurden über mehrere Millionen Zeitschritte trainiert.
+            </p>
+
+            <!-- Visual Game Board -->
+            <div class="game-board-visual">
+                <h3 style="color: #ffd43b; margin-bottom: 20px;">Spielfeld-Übersicht</h3>
+                <div class="board-grid">
+                    <div class="base-visual blue">
+                        <h4 style="color: #4dabf7;">🔵 Blue Base</h4>
+                        <span class="flag-emoji">🏴</span>
+                        <p style="color: #888; font-size: 0.9rem;">Safe Zone</p>
+                    </div>
+
+                    <div class="field-visual">
+                        <p style="color: #888;">24x24 Grid</p>
+                    </div>
+
+                    <div class="base-visual red">
+                        <h4 style="color: #ff6b6b;">🔴 Red Base</h4>
+                        <span class="flag-emoji">🚩</span>
+                        <p style="color: #888; font-size: 0.9rem;">Safe Zone</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Game Mechanics -->
+        <section>
+            <h2 style="font-size: 2.5rem; text-align: center; margin: 60px 0 40px; color: #4dabf7;">
+                ⚙️ Spielmechaniken
+            </h2>
+
+            <div class="mechanics-grid">
+                <div class="mechanic-card">
+                    <span class="mechanic-icon">🚩</span>
+                    <h3>Flagge Erobern</h3>
+                    <p>
+                        Betrete die gegnerische Basis und nimm die Flagge auf.
+                        Bringe sie zurück zu deiner Basis für einen Punkt.
+                    </p>
+                </div>
+
+                <div class="mechanic-card">
+                    <span class="mechanic-icon">🐌</span>
+                    <h3>Geschwindigkeits-Penalty</h3>
+                    <p>
+                        Flaggenträger sind <strong>20% langsamer</strong>,
+                        was sie verwundbar macht und Teamwork erfordert.
+                    </p>
+                </div>
+
+                <div class="mechanic-card">
+                    <span class="mechanic-icon">⚡</span>
+                    <h3>Tackle Mechanik</h3>
+                    <p>
+                        Betäube Gegner für 1.5 Sekunden mit einem Tackle.
+                        Cooldown: 5 Sekunden. Besonders wertvoll gegen Flaggenträger!
+                    </p>
+                </div>
+
+                <div class="mechanic-card">
+                    <span class="mechanic-icon">🛡️</span>
+                    <h3>Safe Zone</h3>
+                    <p>
+                        Die eigene Basis ist eine sichere Zone.
+                        Hier können Flaggenträger nicht getackelt werden.
+                    </p>
+                </div>
+
+                <div class="mechanic-card">
+                    <span class="mechanic-icon">🎯</span>
+                    <h3>Siegbedingung</h3>
+                    <p>
+                        Gewinne durch 3 erfolgreiche Captures oder
+                        den höchsten Score nach 500 Zeitschritten.
+                    </p>
+                </div>
+
+                <div class="mechanic-card">
+                    <span class="mechanic-icon">🤝</span>
+                    <h3>Team Kooperation</h3>
+                    <p>
+                        Erfolg erfordert Teamwork: Ein Agent greift an,
+                        während der andere verteidigt oder unterstützt.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reward Structure Info -->
+        <div class="info-box">
+            <h4>💰 Reward-Struktur</h4>
+            <p>
+                Die Agenten lernen durch ein Belohnungssystem: Capture (+50), Gegner betäuben (+3),
+                Flaggenträger betäuben (+13), Spiel gewinnen (+100). Jeder Zeitschritt kostet -0.01,
+                um ineffizientes Verhalten zu vermeiden.
+            </p>
+        </div>
+
+        <!-- Models Section -->
+        <section class="models-section">
+            <h2>🤖 Trainierte Modelle</h2>
+            <p style="text-align: center; color: #888; margin-bottom: 40px; font-size: 1.1rem;">
+                Wähle ein Modell aus, um mehr zu erfahren
+            </p>
+
+            <div class="model-buttons">
+                <div class="model-btn" onclick="showModel('night1')">
+                    <h3>🌙 Night_1</h3>
+                    <div class="model-badge">Baseline</div>
+                    <div class="model-stats">
+                        <div class="stat">
+                            <div class="stat-value">~50M</div>
+                            <div class="stat-label">Steps</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">Early</div>
+                            <div class="stat-label">Stage</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="model-btn" onclick="showModel('night200')">
+                    <h3>🌃 Night_200M</h3>
+                    <div class="model-badge">Advanced</div>
+                    <div class="model-stats">
+                        <div class="stat">
+                            <div class="stat-value">200M</div>
+                            <div class="stat-label">Steps</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">Strong</div>
+                            <div class="stat-label">Performance</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="model-btn" onclick="showModel('algernon')">
+                    <h3>🧠 Algernon_250M</h3>
+                    <div class="model-badge">Best</div>
+                    <div class="model-stats">
+                        <div class="stat">
+                            <div class="stat-value">250M</div>
+                            <div class="stat-label">Steps</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">Elite</div>
+                            <div class="stat-label">Strategy</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Night_1 Details -->
+            <div id="model-night1" class="model-details">
+                <h3>🌙 Night_1 - Baseline Modell</h3>
+                <p>
+                    Das erste erfolgreich trainierte Modell, das grundlegende CTF-Strategien gelernt hat.
+                    Es zeigt solides Defensivverhalten und kann einfache Captures durchführen.
+                </p>
+
+                <ul>
+                    <li><strong>Training:</strong> ~50 Millionen Zeitschritte</li>
+                    <li><strong>Strategie:</strong> Konservativ, fokussiert auf Verteidigung</li>
+                    <li><strong>Stärken:</strong> Stabile Performance, gutes Flaggen-Tracking</li>
+                    <li><strong>Schwächen:</strong> Weniger aggressive Angriffstaktiken</li>
+                </ul>
+
+                <div class="info-box warning">
+                    <h4>📊 Beobachtungen</h4>
+                    <p>
+                        Dieses Modell eignet sich gut als Baseline für Vergleiche. Es zeigt, wie viel
+                        bereits mit moderatem Training erreicht werden kann.
+                    </p>
+                </div>
+
+                <div class="video-section">
+                    <h4 style="color: #ffd43b; margin-bottom: 16px;">🎬 Replay Video</h4>
+                    <!-- Platzhalter für Video - Ersetze mit echtem Video-Link -->
+                    <div class="video-placeholder">
+                        <p>Video Embed für Night_1 kann hier eingefügt werden</p>
+                        <p style="font-size: 0.9rem; margin-top: 8px;">
+                            YouTube/Vimeo Embed oder lokales Video
+                        </p>
+                    </div>
+                    <!-- Beispiel für YouTube Embed (auskommentiert):
+                    <div class="video-embed">
+                        <iframe src="https://www.youtube.com/embed/VIDEO_ID" allowfullscreen></iframe>
+                    </div>
+                    -->
+                </div>
+
+                <div class="action-buttons">
+                    <a href="../visualization/index.html" class="btn btn-primary">
+                        🎮 Im Viewer ansehen
+                    </a>
+                    <a href="../training/models/Night_1.zip" class="btn btn-secondary">
+                        💾 Modell herunterladen
+                    </a>
+                </div>
+            </div>
+
+            <!-- Night_200M Details -->
+            <div id="model-night200" class="model-details">
+                <h3>🌃 Night_200M - Advanced Modell</h3>
+                <p>
+                    Mit 200 Millionen Trainingsschritten zeigt dieses Modell deutlich verbesserte Strategien.
+                    Es balanciert Angriff und Verteidigung besser und nutzt Tackle-Mechaniken effektiver.
+                </p>
+
+                <ul>
+                    <li><strong>Training:</strong> 200 Millionen Zeitschritte</li>
+                    <li><strong>Strategie:</strong> Ausgewogen, adaptive Taktiken</li>
+                    <li><strong>Stärken:</strong> Gutes Timing, effektive Team-Koordination</li>
+                    <li><strong>Schwächen:</strong> Gelegentlich zu risikofreudig</li>
+                </ul>
+
+                <div class="info-box">
+                    <h4>🎯 Performance Highlights</h4>
+                    <p>
+                        Dieses Modell zeigt signifikante Verbesserungen in der Entscheidungsfindung und
+                        entwickelt kreativere Angriffsmuster. Ideal für spannende Matches!
+                    </p>
+                </div>
+
+                <div class="video-section">
+                    <h4 style="color: #ffd43b; margin-bottom: 16px;">🎬 Replay Video</h4>
+                    <div class="video-placeholder">
+                        <p>Video Embed für Night_200M kann hier eingefügt werden</p>
+                        <p style="font-size: 0.9rem; margin-top: 8px;">
+                            YouTube/Vimeo Embed oder lokales Video
+                        </p>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <a href="../visualization/index.html" class="btn btn-primary">
+                        🎮 Im Viewer ansehen
+                    </a>
+                    <a href="../training/models/Night_200M.zip" class="btn btn-secondary">
+                        💾 Modell herunterladen
+                    </a>
+                </div>
+            </div>
+
+            <!-- Algernon_250M Details -->
+            <div id="model-algernon" class="model-details">
+                <h3>🧠 Algernon_250M - Elite Modell</h3>
+                <p>
+                    Das fortschrittlichste Modell mit 250 Millionen Trainingsschritten. Benannt nach der
+                    intelligenten Maus aus "Flowers for Algernon", zeigt es hochentwickelte Strategien
+                    und exzellente Team-Koordination.
+                </p>
+
+                <ul>
+                    <li><strong>Training:</strong> 250 Millionen Zeitschritte</li>
+                    <li><strong>Strategie:</strong> Hochentwickelt, situationsangepasst</li>
+                    <li><strong>Stärken:</strong> Präzises Timing, optimale Positionierung, kreative Taktiken</li>
+                    <li><strong>Schwächen:</strong> Keine signifikanten Schwächen in der aktuellen Version</li>
+                </ul>
+
+                <div class="info-box">
+                    <h4>⭐ Besondere Fähigkeiten</h4>
+                    <p>
+                        Algernon zeigt emergente Verhaltensweisen wie koordinierte Angriffe, strategische
+                        Positionierung und adaptives Verhalten basierend auf dem Spielstand.
+                        Es ist das beste verfügbare Modell für kompetitive Matches.
+                    </p>
+                </div>
+
+                <div class="video-section">
+                    <h4 style="color: #ffd43b; margin-bottom: 16px;">🎬 Replay Video</h4>
+                    <div class="video-placeholder">
+                        <p>Video Embed für Algernon_250M kann hier eingefügt werden</p>
+                        <p style="font-size: 0.9rem; margin-top: 8px;">
+                            YouTube/Vimeo Embed oder lokales Video
+                        </p>
+                    </div>
+                    <!-- Beispiel: Lokales Video
+                    <video controls style="width: 100%; border-radius: 12px;">
+                        <source src="../videos/algernon_demo.mp4" type="video/mp4">
+                        Dein Browser unterstützt kein Video-Tag.
+                    </video>
+                    -->
+                </div>
+
+                <div class="action-buttons">
+                    <a href="../visualization/index.html" class="btn btn-primary">
+                        🎮 Im Viewer ansehen
+                    </a>
+                    <a href="../training/models/Algernon_250M.zip" class="btn btn-secondary">
+                        💾 Modell herunterladen
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Technical Details -->
+        <section style="margin-top: 80px;">
+            <h2 style="font-size: 2.5rem; text-align: center; margin-bottom: 40px; color: #6c63ff;">
+                🔬 Technische Details
+            </h2>
+
+            <div class="mechanics-grid">
+                <div class="mechanic-card">
+                    <span class="mechanic-icon">🧮</span>
+                    <h3>Observation Space</h3>
+                    <p>
+                        22 Werte pro Agent: Position, Status, Team-Info, Gegner-Positionen,
+                        Flaggen-Status und Spielstand.
+                    </p>
+                </div>
+
+                <div class="mechanic-card">
+                    <span class="mechanic-icon">🎮</span>
+                    <h3>Action Space</h3>
+                    <p>
+                        6 Aktionen: Hoch, Runter, Links, Rechts, Nichts tun, Tackle.
+                        Diskrete Aktionen für klare Entscheidungen.
+                    </p>
+                </div>
+
+                <div class="mechanic-card">
+                    <span class="mechanic-icon">🤖</span>
+                    <h3>Algorithmus</h3>
+                    <p>
+                        PPO (Proximal Policy Optimization) mit MLP Policy.
+                        Bewährt für Multi-Agent Environments.
+                    </p>
+                </div>
+
+                <div class="mechanic-card">
+                    <span class="mechanic-icon">📊</span>
+                    <h3>Framework</h3>
+                    <p>
+                        PettingZoo für Multi-Agent Environment, Stable-Baselines3 für Training,
+                        Three.js für 3D Visualisierung.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <div style="text-align: center; margin: 60px 0 40px;">
+            <a href="../index.html" class="btn btn-secondary">← Zurück zur Startseite</a>
+        </div>
+    </div>
+
+    <script>
+        function showModel(modelId) {
+            // Hide all model details
+            document.querySelectorAll('.model-details').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Remove active state from all buttons
+            document.querySelectorAll('.model-btn').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Show selected model
+            const selectedModel = document.getElementById('model-' + modelId);
+            if (selectedModel) {
+                selectedModel.classList.add('active');
+
+                // Add active state to clicked button
+                event.currentTarget.classList.add('active');
+
+                // Smooth scroll to model details
+                selectedModel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+    </script>
+</body>
+</html>

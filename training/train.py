@@ -143,16 +143,17 @@ class BestGameCallback(BaseCallback):
         return True
 
 
-def make_env():
+def make_env(reward_profile: str = "balanced"):
     """Environment Factory."""
     return CaptureTheFlagEnv(
         grid_size=24,
         max_steps=500,
         win_score=3,
+        reward_profile=reward_profile,
     )
 
 
-def create_replay(model_path: str, output_dir: str | Path = None, seed: int = 42):
+def create_replay(model_path: str, output_dir: str | Path = None, seed: int = 42, reward_profile: str = "balanced"):
     """Replay mit trainiertem Modell erstellen."""
     from datetime import datetime
 
@@ -160,7 +161,7 @@ def create_replay(model_path: str, output_dir: str | Path = None, seed: int = 42
     output_path = Path(output_dir) if output_dir else DEFAULT_REPLAY_DIR
     output_path.mkdir(parents=True, exist_ok=True)
 
-    env = CaptureTheFlagEnv()
+    env = CaptureTheFlagEnv(reward_profile=reward_profile)
     model = PPO.load(str(model_path))
 
     obs, info = env.reset(seed=seed)
@@ -196,15 +197,16 @@ def create_replay(model_path: str, output_dir: str | Path = None, seed: int = 42
 
 
 def train(
-    total_timesteps: int = 5_000_000,  # Erhöht von 500k auf 5M
-    n_envs: int = 8,                   # Mehr parallele Envs für schnelleres Training
+    total_timesteps: int = 100_000_000,  # 100M für Portfolio-Experimente
+    n_envs: int = 8,                     # Mehr parallele Envs für schnelleres Training
     learning_rate: float = 3e-4,
-    save_freq: int = 200_000,
+    save_freq: int = 10_000_000,         # Checkpoint alle 10M Steps (→ 10M, 20M, ..., 100M)
     log_dir: str | Path = DEFAULT_LOG_DIR,
     model_dir: str | Path = DEFAULT_MODEL_DIR,
     load_path: str = None,
     run_name: str = None,
-    cleanup_checkpoints: bool = True,
+    cleanup_checkpoints: bool = False,   # NICHT löschen - wir brauchen alle für Replays
+    reward_profile: str = "balanced",    # "micromanager", "sparse", or "balanced"
 ):
     """Training starten."""
     log_dir = Path(log_dir)
@@ -221,11 +223,13 @@ def train(
 
     print("=" * 50)
     print(f"🚩 Capture the Flag Training: '{run_name}'")
+    print(f"📊 Reward Profile: {reward_profile.upper()}")
     print("=" * 50)
     print(f"Timesteps: {total_timesteps:,} | Parallel Envs: {n_envs}")
+    print(f"Checkpoints: Every {save_freq:,} steps (cleanup={cleanup_checkpoints})")
 
     # Environment
-    env = make_env()
+    env = make_env(reward_profile=reward_profile)
     vec_env = pettingzoo_env_to_vec_env_v1(env)
 
     # Multiprocessing aktiviert: Jedes Environment bekommt einen eigenen CPU-Kern
@@ -344,10 +348,12 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--timesteps", type=int, default=5_000_000)
-    parser.add_argument("--envs", type=int, default=8)
+    parser.add_argument("--timesteps", type=int, default=100_000_000, help="Total timesteps (default: 100M)")
+    parser.add_argument("--envs", type=int, default=8, help="Parallel environments")
     parser.add_argument("--load", type=str, default=None, help="Pfad zum Laden (.zip)")
-    parser.add_argument("--name", type=str, default=None, help="Name des Agenten (z.B. 'Alpha')")
+    parser.add_argument("--name", type=str, default=None, help="Name des Agenten (z.B. 'Micromanager')")
+    parser.add_argument("--profile", type=str, default="balanced", choices=["micromanager", "sparse", "balanced"],
+                        help="Reward profile: micromanager (heavy shaping), sparse (minimal), balanced (current)")
     args = parser.parse_args()
 
     train(
@@ -355,4 +361,5 @@ if __name__ == "__main__":
         n_envs=args.envs,
         load_path=args.load,
         run_name=args.name,
+        reward_profile=args.profile,
     )

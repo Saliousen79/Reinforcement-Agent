@@ -4,6 +4,7 @@ __pycache__/
 *$py.class
 *.so
 .Python
+.claude
 
 # Virtual environments
 venv/
@@ -21,9 +22,19 @@ ENV/
 .ipynb_checkpoints/
 
 # Training artifacts
-#training/logs/
-#training/models/
-#*.zip
+training/logs/
+training/models/*.zip
+!training/models/Night_1.zip
+!training/models/Night_200M.zip
+!training/models/Algernon_250M.zip
+
+# Replays (außer finale)
+visualization/replays/*.json
+!visualization/replays/Algernon_250M.json
+
+# Temporary files
+training/*.pyc
+training/__pycache__/
 
 # OS
 .DS_Store
@@ -31,3 +42,4 @@ Thumbs.db
 
 # Tensorboard
 training/tensorboard/
+

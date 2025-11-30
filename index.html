@@ -12,10 +12,61 @@
             background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
             color: #fff;
             min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Navigation Bar */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 15, 26, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 16px 0;
+            z-index: 1000;
+        }
+
+        nav .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            padding: 0 20px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #aaa;
+            padding: 10px 24px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            border: 1px solid transparent;
+        }
+
+        nav a:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        nav a.active {
+            background: rgba(108, 99, 255, 0.2);
+            color: #6c63ff;
+            border-color: #6c63ff;
+        }
+
+        /* Main Container */
+        main {
+            padding-top: 80px;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            min-height: calc(100vh - 80px);
         }
 
         .container {
@@ -124,6 +175,16 @@
     </style>
 </head>
 <body>
+    <nav>
+        <div class="nav-container">
+            <a href="index.html" class="active">🏠 Home</a>
+            <a href="docs/index.html">📖 Dokumentation</a>
+            <a href="visualization/index.html">🎮 Visualisierung</a>
+            <a href="dashboard/index.html">📊 Dashboard</a>
+        </div>
+    </nav>
+
+    <main>
     <div class="container">
         <header>
             <h1>🚩 Capture the Flag</h1>
@@ -177,5 +238,6 @@
             <p>Multi-Agent RL · Stable-Baselines3 · Three.js</p>
         </footer>
     </div>
+    </main>
 </body>
 </html>

@@ -392,12 +392,64 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(255,255,255,0.3);
         }
+
+        /* Navigation Bar */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 15, 26, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 0;
+            z-index: 2000;
+        }
+
+        nav .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 0 20px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #aaa;
+            padding: 8px 20px;
+            border-radius: 8px;
+            transition: all 0.2s;
+            font-size: 0.9rem;
+            border: 1px solid transparent;
+        }
+
+        nav a:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #fff;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        nav a.active {
+            background: rgba(108, 99, 255, 0.2);
+            color: #6c63ff;
+            border-color: #6c63ff;
+        }
     </style>
 </head>
 <body>
-    <div id="canvas-container"></div>
+    <nav>
+        <div class="nav-container">
+            <a href="../index.html">🏠 Home</a>
+            <a href="../docs/index.html">📖 Dokumentation</a>
+            <a href="../visualization/index.html" class="active">🎮 Visualisierung</a>
+            <a href="../dashboard/index.html">📊 Dashboard</a>
+        </div>
+    </nav>
 
-    <button id="dashboard-btn" onclick="window.location.href='../dashboard/index.html'">📊 Dashboard</button>
+    <div id="canvas-container"></div>
 
     <div id="loading">
         <div class="spinner"></div>
