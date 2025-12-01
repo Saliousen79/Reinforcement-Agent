@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dokumentation - Multi-Agent RL</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #16161f;
+            --bg-elevated: #1c1c28;
+            --bg-code: #1a1a24;
+            --border: #2a2a3a;
+            --border-light: #3a3a4a;
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b0;
+            --text-muted: #606070;
+            --accent: #6c63ff;
+            --accent-hover: #7d75ff;
+            --blue: #4dabf7;
+            --red: #ff6b6b;
+            --yellow: #ffd43b;
+            --green: #69db7c;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+            z-index: 1000;
+        }
+
+        nav .nav-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 32px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        nav a:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border-color: var(--border);
+        }
+
+        nav a.active {
+            background: rgba(108, 99, 255, 0.15);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* Header */
+        .page-header {
+            padding: 140px 0 60px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .page-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Content */
+        .content {
+            padding: 80px 0;
+        }
+
+        .doc-section {
+            margin-bottom: 80px;
+        }
+
+        .doc-section h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .doc-section h3 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin: 32px 0 16px;
+            color: var(--accent);
+        }
+
+        .doc-section p {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            line-height: 1.8;
+        }
+
+        .doc-section ul, .doc-section ol {
+            color: var(--text-secondary);
+            padding-left: 24px;
+            margin-bottom: 16px;
+        }
+
+        .doc-section li {
+            margin-bottom: 8px;
+            line-height: 1.7;
+        }
+
+        /* Video Embeds */
+        .video-embed {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 32px 0;
+        }
+
+        .video-embed .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            background: #000;
+        }
+
+        .video-embed iframe,
+        .video-embed video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .video-embed .video-placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .video-embed .video-placeholder svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        .video-embed .video-caption {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+        }
+
+        .video-embed .video-caption h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .video-embed .video-caption p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0;
+        }
+
+        /* Inline Video (smaller) */
+        .video-inline {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin: 32px 0;
+        }
+
+        .video-inline .video-embed {
+            margin: 0;
+        }
+
+        /* Code blocks */
+        .code-block {
+            background: var(--bg-code);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            color: var(--text-primary);
+            white-space: pre;
+        }
+
+        .inline-code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            background: var(--bg-code);
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: var(--accent);
+        }
+
+        /* Tables */
+        .table-wrapper {
+            overflow-x: auto;
+            margin: 20px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--bg-elevated);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        td {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Info boxes */
+        .info-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 24px 0;
+        }
+
+        .info-box.warning {
+            border-left-color: var(--yellow);
+        }
+
+        .info-box.success {
+            border-left-color: var(--green);
+        }
+
+        .info-box h4 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .info-box p {
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+
+        /* TOC */
+        .toc {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 48px;
+        }
+
+        .toc h3 {
+            font-size: 1rem;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .toc ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .toc li {
+            margin-bottom: 8px;
+        }
+
+        .toc a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .toc a:hover {
+            color: var(--accent);
+        }
+
+        /* Footer */
+        footer {
+            padding: 48px 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .page-header h1 { font-size: 2rem; }
+            nav .nav-container { gap: 4px; }
+            nav a { padding: 8px 12px; font-size: 0.8rem; }
+            .video-inline { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html">Home</a>
+            <a href="dokumentation.html" class="active">Dokumentation</a>
+            <a href="visualization/index.html">Visualisierung</a>
+            <a href="kennzahlen.html">Kennzahlen</a>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="page-header">
+        <div class="container">
+            <h1>Dokumentation</h1>
+            <p>Sample Text: Technische Details zur Architektur, zum Training und zu den Hyperparametern.</p>
+        </div>
+    </header>
+
+    <!-- Content -->
+    <main class="content">
+        <div class="container">
+
+            <!-- Table of Contents -->
+            <div class="toc">
+                <h3>Inhaltsverzeichnis</h3>
+                <ul>
+                    <li><a href="#architektur">1. Architektur</a></li>
+                    <li><a href="#training">2. Training</a></li>
+                    <li><a href="#hyperparameter">3. Hyperparameter</a></li>
+                    <li><a href="#rewards">4. Reward-System</a></li>
+                    <li><a href="#observation">5. Observation Space</a></li>
+                    <li><a href="#action">6. Action Space</a></li>
+                </ul>
+            </div>
+
+            <!-- Architektur -->
+            <section class="doc-section" id="architektur">
+                <h2>1. Architektur</h2>
+                <p>Sample Text: Beschreibung der Netzwerkarchitektur und des Gesamtaufbaus des Systems. Hier kannst du ausführlich erklären, wie das System aufgebaut ist.</p>
+
+                <!-- Video Embed -->
+                <div class="video-embed">
+                    <div class="video-wrapper">
+                        <!-- Video hier einbetten: <iframe src="..." allowfullscreen></iframe> -->
+                        <div class="video-placeholder">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p>Video Platzhalter</p>
+                        </div>
+                    </div>
+                    <div class="video-caption">
+                        <h4>Sample: Architektur-Übersicht</h4>
+                        <p>Sample Text: Kurze Beschreibung des Videos und was darin erklärt wird.</p>
+                    </div>
+                </div>
+
+                <h3>Netzwerkstruktur</h3>
+                <p>Sample Text: Das neuronale Netzwerk besteht aus mehreren Schichten. Hier werden die Details der Architektur beschrieben.</p>
+
+                <div class="code-block">
+                    <code># Sample Code: Netzwerkarchitektur
+policy_net = nn.Sequential(
+    nn.Linear(obs_size, 256),
+    nn.ReLU(),
+    nn.Linear(256, 256),
+    nn.ReLU(),
+    nn.Linear(256, action_size)
+)</code>
+                </div>
+
+                <div class="info-box">
+                    <h4>Hinweis</h4>
+                    <p>Sample Text: Wichtige Information zur Architektur oder ein besonderer Hinweis für den Leser.</p>
+                </div>
+            </section>
+
+            <!-- Training -->
+            <section class="doc-section" id="training">
+                <h2>2. Training</h2>
+                <p>Sample Text: Details zum Trainingsprozess, zur verwendeten Hardware und zur Trainingsdauer.</p>
+
+                <!-- Two Videos Side by Side -->
+                <div class="video-inline">
+                    <div class="video-embed">
+                        <div class="video-wrapper">
+                            <div class="video-placeholder">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p>Video</p>
+                            </div>
+                        </div>
+                        <div class="video-caption">
+                            <h4>Training Start</h4>
+                            <p>Sample Text: Frühes Trainingsverhalten</p>
+                        </div>
+                    </div>
+                    <div class="video-embed">
+                        <div class="video-wrapper">
+                            <div class="video-placeholder">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <p>Video</p>
+                            </div>
+                        </div>
+                        <div class="video-caption">
+                            <h4>Training Ende</h4>
+                            <p>Sample Text: Finales Verhalten nach 100M Steps</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>Trainingssetup</h3>
+                <p>Sample Text: Beschreibung des Trainingssetups, der verwendeten Hardware und der Umgebungskonfiguration.</p>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Wert</th>
+                                <th>Beschreibung</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Training Steps</td>
+                                <td><span class="inline-code">100M</span></td>
+                                <td>Sample Text: Gesamtanzahl der Trainingsschritte</td>
+                            </tr>
+                            <tr>
+                                <td>Parallel Environments</td>
+                                <td><span class="inline-code">16</span></td>
+                                <td>Sample Text: Anzahl paralleler Umgebungen</td>
+                            </tr>
+                            <tr>
+                                <td>Trainingsdauer</td>
+                                <td><span class="inline-code">~24h</span></td>
+                                <td>Sample Text: Ungefähre Trainingsdauer</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Hyperparameter -->
+            <section class="doc-section" id="hyperparameter">
+                <h2>3. Hyperparameter</h2>
+                <p>Sample Text: Alle verwendeten Hyperparameter und deren Werte.</p>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Hyperparameter</th>
+                                <th>Wert</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Learning Rate</td>
+                                <td><span class="inline-code">3e-4</span></td>
+                            </tr>
+                            <tr>
+                                <td>Batch Size</td>
+                                <td><span class="inline-code">2048</span></td>
+                            </tr>
+                            <tr>
+                                <td>Gamma (Discount)</td>
+                                <td><span class="inline-code">0.99</span></td>
+                            </tr>
+                            <tr>
+                                <td>GAE Lambda</td>
+                                <td><span class="inline-code">0.95</span></td>
+                            </tr>
+                            <tr>
+                                <td>Clip Range</td>
+                                <td><span class="inline-code">0.2</span></td>
+                            </tr>
+                            <tr>
+                                <td>Entropy Coefficient</td>
+                                <td><span class="inline-code">0.01</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Rewards -->
+            <section class="doc-section" id="rewards">
+                <h2>4. Reward-System</h2>
+                <p>Sample Text: Das Belohnungssystem und wie verschiedene Aktionen bewertet werden.</p>
+
+                <!-- Video für Reward-System -->
+                <div class="video-embed">
+                    <div class="video-wrapper">
+                        <div class="video-placeholder">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p>Video Platzhalter</p>
+                        </div>
+                    </div>
+                    <div class="video-caption">
+                        <h4>Reward Shaping Erklärung</h4>
+                        <p>Sample Text: Visualisierung wie verschiedene Rewards das Verhalten beeinflussen.</p>
+                    </div>
+                </div>
+
+                <h3>Reward-Komponenten</h3>
+                <ul>
+                    <li><strong>Flagge erobern:</strong> Sample Text: +X Punkte</li>
+                    <li><strong>Flagge zurückbringen:</strong> Sample Text: +X Punkte</li>
+                    <li><strong>Gegner tacklen:</strong> Sample Text: +X Punkte</li>
+                    <li><strong>Getackled werden:</strong> Sample Text: -X Punkte</li>
+                    <li><strong>Zeitstrafe:</strong> Sample Text: -X pro Step</li>
+                </ul>
+
+                <div class="info-box warning">
+                    <h4>Reward Shaping</h4>
+                    <p>Sample Text: Hinweis zum Reward Shaping und möglichen Auswirkungen auf das Verhalten der Agenten.</p>
+                </div>
+            </section>
+
+            <!-- Observation Space -->
+            <section class="doc-section" id="observation">
+                <h2>5. Observation Space</h2>
+                <p>Sample Text: Was die Agenten als Input erhalten und wie die Beobachtungen strukturiert sind.</p>
+
+                <h3>Beobachtungsvektor</h3>
+                <p>Sample Text: Beschreibung der einzelnen Komponenten des Beobachtungsvektors.</p>
+
+                <ul>
+                    <li>Eigene Position (x, y)</li>
+                    <li>Positionen der Teammitglieder</li>
+                    <li>Positionen der Gegner</li>
+                    <li>Flaggenpositionen</li>
+                    <li>Stun-Status aller Agenten</li>
+                </ul>
+
+                <div class="video-embed">
+                    <div class="video-wrapper">
+                        <div class="video-placeholder">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p>Video Platzhalter</p>
+                        </div>
+                    </div>
+                    <div class="video-caption">
+                        <h4>Observation Space Visualisierung</h4>
+                        <p>Sample Text: Was der Agent "sieht" und wie die Inputs strukturiert sind.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Action Space -->
+            <section class="doc-section" id="action">
+                <h2>6. Action Space</h2>
+                <p>Sample Text: Die möglichen Aktionen der Agenten.</p>
+
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Aktion</th>
+                                <th>Beschreibung</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="inline-code">0</span></td>
+                                <td>Sample Text: Keine Bewegung / Stehen bleiben</td>
+                            </tr>
+                            <tr>
+                                <td><span class="inline-code">1-4</span></td>
+                                <td>Sample Text: Bewegung in vier Richtungen</td>
+                            </tr>
+                            <tr>
+                                <td><span class="inline-code">5-8</span></td>
+                                <td>Sample Text: Diagonale Bewegung</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-box success">
+                    <h4>Diskreter Action Space</h4>
+                    <p>Sample Text: Der Action Space ist diskret, was die Komplexität reduziert und das Training stabilisiert.</p>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>Multi-Agent Reinforcement Learning Project</p>
+        </div>
+    </footer>
+
+</body>
+</html>

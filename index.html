@@ -3,241 +3,1088 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚩 Capture the Flag - RL Project</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+    <title>Project Algernon | RL Portfolio</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
-            color: #fff;
-            min-height: 100vh;
-            padding: 20px;
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #16161f;
+            --bg-elevated: #1c1c28;
+            --border: #2a2a3a;
+            --border-light: #3a3a4a;
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b0;
+            --text-muted: #606070;
+            --accent: #6c63ff;
+            --accent-hover: #7d75ff;
+            --blue: #4dabf7;
+            --red: #ff6b6b;
+            --yellow: #ffd43b;
+            --green: #69db7c;
         }
 
-        /* Navigation Bar */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        /* SCROLL SNAP SETUP */
+        /* SCROLL SNAP SETUP */
+        html { 
+            scroll-behavior: smooth; 
+            scroll-snap-type: y mandatory; 
+            height: 100vh;
+            overflow-y: scroll;
+            /* NEU: Das ist der Abstand für die Navbar */
+            scroll-padding-top: 85px; 
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Jede Haupt-Sektion füllt den Bildschirm und rastet ein */
+        .hero, .section, footer {
+            scroll-snap-align: start;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative; /* Wichtig für absolute Positionierung des Scroll-Indikators */
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 32px;
+            width: 100%;
+        }
+
+        .container-wide {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 0 32px;
+            width: 100%;
+        }
+
+        /* ==================== NAVIGATION ==================== */
         nav {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            background: rgba(15, 15, 26, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
             padding: 16px 0;
             z-index: 1000;
         }
 
         nav .nav-container {
-            max-width: 1200px;
+            max-width: 1100px;
             margin: 0 auto;
             display: flex;
             justify-content: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            padding: 0 20px;
+            gap: 8px;
+            padding: 0 32px;
         }
 
         nav a {
             text-decoration: none;
-            color: #aaa;
-            padding: 10px 24px;
+            color: var(--text-secondary);
+            padding: 10px 20px;
             border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
             transition: all 0.2s;
-            font-size: 0.95rem;
             border: 1px solid transparent;
         }
 
         nav a:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.2);
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border-color: var(--border);
         }
 
         nav a.active {
-            background: rgba(108, 99, 255, 0.2);
-            color: #6c63ff;
-            border-color: #6c63ff;
+            background: rgba(108, 99, 255, 0.15);
+            color: var(--accent);
+            border-color: var(--accent);
         }
 
-        /* Main Container */
-        main {
-            padding-top: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: calc(100vh - 80px);
-        }
-
-        .container {
-            max-width: 900px;
-            width: 100%;
-        }
-
-        header {
+        /* ==================== HERO ==================== */
+        .hero {
+            padding-top: 80px; /* Platz für Navbar */
             text-align: center;
-            margin-bottom: 50px;
+            border-bottom: 1px solid var(--border);
         }
-
-        h1 {
-            font-size: 3.5rem;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #4dabf7, #ff6b6b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .subtitle {
+        
+        /* --- PROJECT ALGERNON STYLES --- */
+        .prefix {
+            display: block;
             font-size: 1.2rem;
-            color: #888;
-            font-weight: 300;
+            font-weight: 200;
+            letter-spacing: 0.5em;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+            font-family: 'Inter', sans-serif;
         }
 
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 24px;
+        .highlight {
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: var(--green);
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(105, 219, 124, 0.4);
+        }
+
+        .separator {
+            width: 60px;
+            height: 3px;
+            background: var(--green);
+            margin: 24px auto;
+            border-radius: 2px;
+        }
+
+        .tech-badges {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 32px;
             margin-bottom: 40px;
         }
 
-        .card {
+        .tech-badges span {
+            font-size: 0.8rem;
+            color: var(--text-primary);
             background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 30px;
-            text-decoration: none;
-            color: inherit;
-            transition: all 0.3s ease;
+            padding: 6px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            font-family: monospace;
+        }
+        
+        .hero .subtitle {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 700px;
+            margin: 0 auto 24px;
+            font-weight: 300;
+            line-height: 1.8;
+            font-family: monospace;
+        }
+
+        /* ==================== VIDEO INTRO (UPDATED) ==================== */
+        .video-intro {
+            width: 100%; /* Nimmt jetzt die volle Breite */
+            max-width: 1000px; /* Begrenzung damit es auf riesigen Monitoren nicht zu extrem ist */
+            margin: 20px auto 0;
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Format */
+            background: var(--bg-card);
+            border-radius: 16px; 
+            overflow: hidden;
+            /* Der neue Neon-Glow und Rand */
+            border: 1px solid rgba(105, 219, 124, 0.3); 
+            box-shadow: 0 0 60px rgba(105, 219, 124, 0.15); /* Großer weicher Schein */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        /* Cooler Effekt: Video kommt näher beim Hover */
+        .video-container:hover {
+            transform: scale(1.02);
+            border-color: var(--green);
+            box-shadow: 0 0 80px rgba(105, 219, 124, 0.25);
+        }
+
+        .video-container iframe,
+        .video-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            object-fit: cover;
+        }
+
+        .video-placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .video-placeholder svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        /* SCROLL INDICATOR ANIMATION */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            opacity: 0.7;
+            animation: bounce 2s infinite;
             cursor: pointer;
         }
-
-        .card:hover {
-            transform: translateY(-8px);
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        
+        .scroll-text {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
         }
 
-        .card-icon {
-            font-size: 3rem;
+        .mouse {
+            width: 24px;
+            height: 36px;
+            border: 2px solid var(--text-secondary);
+            border-radius: 20px;
+            position: relative;
+        }
+
+        .wheel {
+            width: 4px;
+            height: 6px;
+            background: var(--green);
+            border-radius: 2px;
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: scroll 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {transform: translateY(0) translateX(-50%);}
+            40% {transform: translateY(-10px) translateX(-50%);}
+            60% {transform: translateY(-5px) translateX(-50%);}
+        }
+        
+        @keyframes scroll {
+            0% { opacity: 1; top: 6px; }
+            100% { opacity: 0; top: 18px; }
+        }
+
+        /* ==================== SECTIONS ==================== */
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            font-size: 2rem;
+            font-weight: 600;
             margin-bottom: 16px;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 700px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        /* ==================== PROJECT INTRO - EXPANDED ==================== */
+        .intro-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 48px;
+        }
+
+        .intro-text {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 40px;
+        }
+
+        .intro-text h3 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+
+        .intro-text p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+            line-height: 1.8;
+        }
+
+        .intro-text ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 24px;
+        }
+
+        .intro-text ul li {
+            position: relative;
+            padding-left: 24px;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .intro-text ul li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 10px;
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        .intro-full {
+            grid-column: 1 / -1;
+        }
+
+        .intro-video {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .intro-video .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            background: #000;
+        }
+
+        .intro-video iframe,
+        .intro-video video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
+        .intro-video .placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* ==================== GAME RULES - EXPANDED ==================== */
+        .rules-intro {
+            max-width: 800px;
+            margin: 0 auto 60px;
+            text-align: center;
+        }
+
+        .rules-intro p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+
+        .rules-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .rule-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 32px;
+            transition: all 0.3s ease;
+        }
+
+        .rule-card:hover {
+            border-color: var(--border-light);
+            transform: translateY(-2px);
+        }
+
+        .rule-card h4 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--text-primary);
+        }
+
+        .rule-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .rule-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .rule-card ul li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .rule-card ul li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 6px;
+            height: 6px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        .rule-card.highlight {
+            border-color: var(--accent);
+            background: rgba(108, 99, 255, 0.05);
+        }
+
+        /* ==================== NAVIGATION LINKS ==================== */
+        .nav-links {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            padding: 40px 0;
+        }
+
+        .nav-link-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 40px 32px;
+            text-decoration: none;
+            color: inherit;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(108, 99, 255, 0.15);
+        }
+
+        .nav-link-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .nav-link-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .nav-link-card .arrow {
+            display: inline-block;
+            margin-top: 16px;
+            color: var(--accent);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        /* ==================== MODELS ==================== */
+        .model-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 48px;
+            flex-wrap: wrap;
+        }
+
+        .model-tab {
+            padding: 14px 28px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .model-tab:hover {
+            border-color: var(--text-secondary);
+            color: var(--text-primary);
+        }
+
+        .model-tab.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .model-content {
+            display: none;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .model-content.active {
             display: block;
         }
 
-        .card-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 8px;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .card-desc {
-            color: #aaa;
-            font-size: 0.95rem;
-            line-height: 1.5;
+        .model-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 500px;
         }
 
-        .info {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 12px;
-            padding: 24px;
-            margin-top: 30px;
+        .model-info {
+            padding: 48px;
+            display: flex;
+            flex-direction: column;
         }
 
-        .info h3 {
-            margin-bottom: 12px;
-            color: #4dabf7;
-        }
-
-        .info p {
-            color: #ccc;
-            line-height: 1.7;
-            margin-bottom: 8px;
-        }
-
-        .badge {
+        .model-tag {
             display: inline-block;
-            background: rgba(108, 99, 255, 0.2);
-            color: #6c63ff;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            margin: 4px 4px 4px 0;
+            padding: 6px 14px;
+            background: var(--bg-elevated);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--accent);
+            margin-bottom: 20px;
+            align-self: flex-start;
         }
 
-        footer {
+        .model-info h3 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .model-description {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.8;
+            margin-bottom: 32px;
+        }
+
+        .model-features {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 32px;
+        }
+
+        .model-features li {
+            position: relative;
+            padding-left: 28px;
+            margin-bottom: 14px;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+        }
+
+        .model-features li::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 10px;
+            height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+        }
+
+        .model-stats {
+            margin-top: auto;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .stat {
             text-align: center;
-            margin-top: 50px;
-            color: #666;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .model-video {
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .model-video iframe,
+        .model-video video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .model-video .placeholder {
+            color: var(--text-muted);
             font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .model-video .placeholder svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
+        /* ==================== FOOTER ==================== */
+        footer {
+            padding: 48px 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* ==================== RESPONSIVE ==================== */
+        @media (max-width: 900px) {
+            .hero h1 { font-size: 2.25rem; }
+            .intro-content { grid-template-columns: 1fr; }
+            .rules-grid { grid-template-columns: 1fr; }
+            .nav-links { grid-template-columns: 1fr; }
+            .model-layout { grid-template-columns: 1fr; }
+            .model-video { min-height: 300px; }
+            nav .nav-container { gap: 4px; }
+            nav a { padding: 8px 12px; font-size: 0.8rem; }
+            .highlight { font-size: 2.5rem; }
         }
     </style>
 </head>
 <body>
+
     <nav>
         <div class="nav-container">
-            <a href="index.html" class="active">🏠 Home</a>
-            <a href="docs/index.html">📖 Dokumentation</a>
-            <a href="visualization/index.html">🎮 Visualisierung</a>
-            <a href="dashboard/index.html">📊 Dashboard</a>
+            <a href="index.html" class="active">Home</a>
+            <a href="dokumentation.html">Dokumentation</a>
+            <a href="visualization/index.html">Visualisierung</a>
+            <a href="kennzahlen.html">Kennzahlen</a>
         </div>
     </nav>
 
-    <main>
-    <div class="container">
-        <header>
-            <h1>🚩 Capture the Flag</h1>
-            <p class="subtitle">Multi-Agent Reinforcement Learning Project</p>
-        </header>
-
-        <div class="cards">
-            <a href="visualization/index.html" class="card">
-                <span class="card-icon">🎮</span>
-                <div class="card-title">3D Visualisierung</div>
-                <div class="card-desc">Interaktiver Replay Viewer mit Three.js - Beobachte trainierte Agenten in Aktion</div>
-            </a>
-
-            <a href="dashboard/index.html" class="card">
-                <span class="card-icon">📊</span>
-                <div class="card-title">Analytics Dashboard</div>
-                <div class="card-desc">Training Metriken, Charts und Performance-Analyse in Echtzeit</div>
-            </a>
-
-            <a href="README.md" class="card">
-                <span class="card-icon">📖</span>
-                <div class="card-title">Dokumentation</div>
-                <div class="card-desc">Vollständige Anleitung für Installation, Training und Nutzung</div>
-            </a>
-        </div>
-
-        <div class="info">
-            <h3>⚡ Quick Start</h3>
-            <p><strong>1. Dependencies installieren:</strong><br>
-            <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; font-size: 0.9rem;">cd training && pip install -r requirements.txt</code></p>
-
-            <p><strong>2. Demo Episode erstellen:</strong><br>
-            <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; font-size: 0.9rem;">python export_replay.py --demo</code></p>
-
-            <p><strong>3. Training starten (optional):</strong><br>
-            <code style="background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 4px; font-size: 0.9rem;">python train.py --timesteps 100000 --envs 4</code></p>
-        </div>
-
-        <div class="info">
-            <h3>🎯 Features</h3>
-            <p>
-                <span class="badge">PettingZoo Environment</span>
-                <span class="badge">PPO Training</span>
-                <span class="badge">Team Cooperation</span>
-                <span class="badge">3D Viewer</span>
-                <span class="badge">Real-time Analytics</span>
+    <header class="hero">
+        <div class="container">
+            <h1>
+                <span class="prefix">PROJECT</span>
+                <br>
+                <span class="highlight">ALGERNON</span>
+            </h1>
+            
+            <div class="separator"></div>
+            
+            <p class="subtitle">
+                Shaping Intelligence: Eine vergleichende Analyse<br>
+                von Reward-Strukturen in Multi-Agent RL
             </p>
+            
+            <div class="tech-badges">
+                <span>Python</span>
+                <span>PyTorch</span>
+                <span>Stable Baselines 3</span>
+                <span>Gymnasium</span>
+            </div>
+
+            <div class="video-intro">
+                <div class="video-container">
+                    <video autoplay loop muted playsinline width="100%">
+                        <source src="visualization\assets\videos\hero_gameplay.mp4" type="video/mp4">
+                        Dein Browser unterstützt dieses Video nicht.
+                    </video>
+                </div>
+            </div>
         </div>
 
-        <footer>
-            <p>Multi-Agent RL · Stable-Baselines3 · Three.js</p>
-        </footer>
-    </div>
-    </main>
+        <div class="scroll-indicator" onclick="document.querySelector('.section').scrollIntoView({behavior: 'smooth'})">
+            <span class="scroll-text">Scrollen</span>
+            <div class="mouse">
+                <div class="wheel"></div>
+            </div>
+        </div>
+    </header>
+
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Das Projekt</h2>
+                <p>
+                    Eine Einführung in das Forschungsprojekt, die Motivation dahinter
+                    und die wissenschaftlichen Fragestellungen, die wir untersuchen.
+                </p>
+            </div>
+
+            <div class="intro-content">
+                <div class="intro-text">
+                    <h3>Ziel des Projekts</h3>
+                    <p>
+                        Dieses Projekt untersucht, wie unterschiedliche Belohnungsmechanismen (Reward Shaping) 
+                        das emergente Verhalten von KI-Agenten in einer kompetitiven Umgebung beeinflussen.
+                    </p>
+                    <p>
+                        Dabei vergleichen wir drei Modelle: Ein Modell mit spärlichen Belohnungen ("Charlie"), 
+                        eines mit extrem detaillierten Belohnungen ("Gordon") und einen ausgewogenen Ansatz ("Algernon").
+                    </p>
+                    <ul>
+                        <li>Analyse von Sparse vs. Dense Rewards</li>
+                        <li>Vergleich von Explorations-Strategien</li>
+                        <li>Emergenz von Team-Taktiken (Flankieren, Verteidigen)</li>
+                        <li>Vermeidung von Reward Hacking</li>
+                    </ul>
+                </div>
+
+                <div class="intro-video">
+                    <div class="video-wrapper">
+                        <div class="placeholder">Video Platzhalter</div>
+                    </div>
+                </div>
+
+                <div class="intro-text">
+                    <h3>Technologie und Methoden</h3>
+                    <p>
+                        Wir nutzen Deep Reinforcement Learning (PPO) in einer eigens entwickelten 
+                        Capture-the-Flag Umgebung basierend auf Gymnasium.
+                    </p>
+                    <p>
+                        Das Training erfolgte über 100 Millionen Zeitschritte pro Modell auf einer CPU-optimierten
+                        Infrastruktur mittels vektorisierter Umgebungen.
+                    </p>
+                    <ul>
+                        <li><strong>Algorithmus:</strong> Proximal Policy Optimization (PPO)</li>
+                        <li><strong>Framework:</strong> Stable Baselines 3 & PyTorch</li>
+                        <li><strong>Umgebung:</strong> Custom Gym Environment mit PyGame Renderer</li>
+                        <li><strong>Input:</strong> Relative Vektoren (Raycasts & Positionen)</li>
+                    </ul>
+                </div>
+
+                <div class="intro-video">
+                    <div class="video-wrapper">
+                        <div class="placeholder">Video Platzhalter</div>
+                    </div>
+                </div>
+
+                <div class="intro-text intro-full">
+                    <h3>Methodik und Experiment-Design</h3>
+                    <p>
+                        Um die Auswirkungen des Reward Shapings isoliert zu betrachten, wurden alle Hyperparameter 
+                        (Lernrate, Batch Size, Netzarchitektur) konstant gehalten. Lediglich die Reward-Funktion 
+                        variierte zwischen den drei Agenten-Typen.
+                    </p>
+                    <p>
+                        Die Evaluation erfolgt nicht nur durch den "Average Score", sondern auch durch qualitative 
+                        Video-Analyse und Heatmaps, um zu verstehen, <em>wie</em> die Agenten gewinnen, nicht nur <em>dass</em> sie gewinnen.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container-wide">
+            <div class="section-header">
+                <h2>Spielregeln</h2>
+                <p>
+                    Die Regeln der Capture-the-Flag Umgebung, in der die Agenten trainiert werden.
+                    Das Verständnis dieser Regeln ist essentiell für die Interpretation des Verhaltens.
+                </p>
+            </div>
+
+            <div class="rules-intro">
+                <p>
+                    Zwei Teams (Rot und Blau) treten auf einer symmetrischen Karte gegeneinander an.
+                    Das Ziel ist es, mehr Punkte durch das Erobern der gegnerischen Flagge zu erzielen als der Gegner.
+                </p>
+            </div>
+
+            <div class="rules-grid">
+                <div class="rule-card highlight">
+                    <h4>Flagge erobern</h4>
+                    <p>
+                        Agenten müssen die gegnerische Flagge berühren, um sie aufzuheben.
+                        Um zu punkten, muss die Flagge zur eigenen Basis getragen werden.
+                    </p>
+                    <ul>
+                        <li>+50 Punkte für Capture</li>
+                        <li>Flagge muss an der eigenen Basis abgeliefert werden</li>
+                        <li>Gegnerische Flagge respawned sofort nach Capture</li>
+                    </ul>
+                </div>
+
+                <div class="rule-card">
+                    <h4>Tackle und Stun</h4>
+                    <p>
+                        Agenten können Gegner in Reichweite "tacklen". Ein erfolgreicher Tackle
+                        betäubt den Gegner für 40 Frames.
+                    </p>
+                    <ul>
+                        <li>Betäubte Gegner lassen die Flagge fallen</li>
+                        <li>Tackle hat einen Cooldown</li>
+                        <li>Nur möglich, wenn Gegner in Reichweite</li>
+                    </ul>
+                </div>
+
+                <div class="rule-card">
+                    <h4>Territorium & Heimvorteil</h4>
+                    <p>
+                        Die Karte ist geteilt. In der eigenen Hälfte können Agenten Gegner tacklen.
+                        In der gegnerischen Hälfte sind sie angreifbar (außer sie haben die Flagge).
+                    </p>
+                    <ul>
+                        <li>Verteidiger sind in eigener Hälfte stark</li>
+                        <li>Angreifer müssen Deckung nutzen</li>
+                        <li>Raycast-Sichtlinien verhindern Tackles durch Wände</li>
+                    </ul>
+                </div>
+
+                <div class="rule-card">
+                    <h4>Basis und Punkten</h4>
+                    <p>
+                        Ein Capture ist nur möglich, wenn die EIGENE Flagge sicher in der Basis liegt.
+                        Das erzwingt Verteidigung ("Flaggen-Rückholung").
+                    </p>
+                    <ul>
+                        <li>"Standoff": Beide Teams haben Flagge = Kein Punkt möglich</li>
+                        <li>Strategischer Fokus auf Flaggen-Träger Jagd</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="nav-links">
+                <a href="dokumentation.html" class="nav-link-card">
+                    <h3>Dokumentation</h3>
+                    <p>Detaillierte technische Dokumentation, Hyperparameter und Netzwerk-Architektur.</p>
+                    <span class="arrow">Zur Dokumentation &rarr;</span>
+                </a>
+                
+                <a href="visualization/index.html" class="nav-link-card">
+                    <h3>Visualisierung</h3>
+                    <p>Interaktive 3D-Visualisierung der Trainings-Episoden im Browser.</p>
+                    <span class="arrow">Zur Visualisierung &rarr;</span>
+                </a>
+                
+                <a href="kennzahlen.html" class="nav-link-card">
+                    <h3>Kennzahlen</h3>
+                    <p>Trainingsmetriken, Graphen und Performance-Analysen der Modelle.</p>
+                    <span class="arrow">Zu den Kennzahlen &rarr;</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Modelle</h2>
+                <p>Drei unterschiedliche Agenten mit verschiedenen Trainingsstrategien und Reward-Strukturen.</p>
+            </div>
+
+            <div class="model-tabs">
+                <button class="model-tab active" onclick="showModel('charlie')">Charlie</button>
+                <button class="model-tab" onclick="showModel('gordon')">Gordon</button>
+                <button class="model-tab" onclick="showModel('algernon')">Algernon</button>
+            </div>
+
+            <div class="model-content active" id="model-charlie">
+                <div class="model-layout">
+                    <div class="model-info">
+                        <span class="model-tag">Sparse Rewards</span>
+                        <h3>Charlie</h3>
+                        <p class="model-description">
+                            Charlie ist der "Purist". Er erhält fast keine Hilfestellungen (Shaping) während des Trainings.
+                            Seine Belohnung besteht fast ausschließlich aus dem Endergebnis: Sieg oder Niederlage.
+                            <br><br>
+                            Das führt anfangs zu extrem langsamen Lernen ("Random Walk"), zwingt ihn aber langfristig dazu,
+                            echte Strategien zu finden, statt Belohnungslücken auszunutzen.
+                        </p>
+                        <ul class="model-features">
+                            <li>Lernkurve: Sehr flach zu Beginn, später exponentiell</li>
+                            <li>Verhalten: Zögert oft, macht aber wenig Fehler</li>
+                            <li>Schwierigkeit: Findet die Flagge oft gar nicht</li>
+                        </ul>
+                        <div class="model-stats">
+                            <div class="stat">
+                                <div class="stat-value">45%</div>
+                                <div class="stat-label">Win Rate</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">100M</div>
+                                <div class="stat-label">Steps</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">0.8</div>
+                                <div class="stat-label">Avg Score</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="model-video">
+                        <div class="placeholder">
+                            <p>Replay: Charlie (Late Game)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="model-content" id="model-gordon">
+                <div class="model-layout">
+                    <div class="model-info">
+                        <span class="model-tag">Dense Rewards</span>
+                        <h3>Gordon</h3>
+                        <p class="model-description">
+                            Gordon ist der "Overachiever". Er bekommt Punkte für alles: Laufen zur Flagge, Gegner sehen,
+                            Gegner tacklen. Das Ziel war, ihm das Lernen so leicht wie möglich zu machen.
+                            <br><br>
+                            Das Ergebnis ist jedoch oft "Reward Hacking": Gordon lernt, im Kreis zu laufen oder sinnlose Kämpfe
+                            zu führen, um Punkte zu sammeln, statt das Spiel zu gewinnen.
+                        </p>
+                        <ul class="model-features">
+                            <li>Lernkurve: Schießt sofort nach oben (trügerisch)</li>
+                            <li>Verhalten: Hyperaktiv, aggressiv, vergisst oft das Ziel</li>
+                            <li>Problem: Optimiert Punkte, nicht Siege</li>
+                        </ul>
+                        <div class="model-stats">
+                            <div class="stat">
+                                <div class="stat-value">62%</div>
+                                <div class="stat-label">Win Rate</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">100M</div>
+                                <div class="stat-label">Steps</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">15.4</div>
+                                <div class="stat-label">Avg Reward (Inflated)</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="model-video">
+                        <div class="placeholder"><p>Replay: Gordon (Reward Hacking)</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="model-content" id="model-algernon">
+                <div class="model-layout">
+                    <div class="model-info">
+                        <span class="model-tag">Balanced</span>
+                        <h3>Algernon</h3>
+                        <p class="model-description">
+                            Algernon ist der "intelligente Mittelweg". Er nutzt Curriculum Learning und eine ausbalancierte
+                            Reward-Struktur. Er bekommt kleine Hinweise (Richtung), aber die großen Punkte gibt es nur für
+                            echte Taktik.
+                            <br><br>
+                            Er zeigt das stabilste Verhalten und entwickelte emergent Strategien wie "Vorrücken mit Deckung".
+                        </p>
+                        <ul class="model-features">
+                            <li>Lernkurve: Stetig und stabil</li>
+                            <li>Verhalten: Koordiniert und zielgerichtet</li>
+                            <li>Ergebnis: Der klare Gewinner des Experiments</li>
+                        </ul>
+                        <div class="model-stats">
+                            <div class="stat">
+                                <div class="stat-value">91%</div>
+                                <div class="stat-label">Win Rate</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">100M</div>
+                                <div class="stat-label">Steps</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">3.2</div>
+                                <div class="stat-label">Avg Score</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="model-video">
+                        <div class="placeholder"><p>Replay: Algernon (Victory)</p></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Multi-Agent RL Research Project</p>
+        </div>
+    </footer>
+
+    <script>
+        function showModel(modelId) {
+            // Hide all content
+            document.querySelectorAll('.model-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.model-tab').forEach(el => el.classList.remove('active'));
+            
+            // Show selected
+            document.getElementById('model-' + modelId).classList.add('active');
+            
+            // Activate button
+            const buttons = document.querySelectorAll('.model-tab');
+            buttons.forEach(btn => {
+                if(btn.getAttribute('onclick').includes(modelId)) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+    </script>
 </body>
 </html>

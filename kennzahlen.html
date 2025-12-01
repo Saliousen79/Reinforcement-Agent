@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kennzahlen - Multi-Agent RL</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --bg-card: #16161f;
+            --bg-elevated: #1c1c28;
+            --border: #2a2a3a;
+            --border-light: #3a3a4a;
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b0;
+            --text-muted: #606070;
+            --accent: #6c63ff;
+            --accent-hover: #7d75ff;
+            --blue: #4dabf7;
+            --red: #ff6b6b;
+            --yellow: #ffd43b;
+            --green: #69db7c;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 32px;
+        }
+
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 15, 0.9);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+            z-index: 1000;
+        }
+
+        nav .nav-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 32px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: var(--text-secondary);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        nav a:hover {
+            background: var(--bg-elevated);
+            color: var(--text-primary);
+            border-color: var(--border);
+        }
+
+        nav a.active {
+            background: rgba(108, 99, 255, 0.15);
+            color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        /* Header */
+        .page-header {
+            padding: 140px 0 60px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .page-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+        }
+
+        .page-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Stats Overview */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            padding: 60px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 28px;
+            text-align: center;
+        }
+
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .stat-card .label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Charts Section */
+        .charts-section {
+            padding: 80px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .section-header h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .chart-card.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .chart-card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .chart-card .description {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+        }
+
+        .chart-placeholder {
+            background: var(--bg-elevated);
+            border: 1px dashed var(--border);
+            border-radius: 8px;
+            height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .chart-placeholder svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        /* Model Comparison */
+        .comparison-section {
+            padding: 80px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .comparison-table-wrapper {
+            overflow-x: auto;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 18px 24px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comparison-table th {
+            background: var(--bg-elevated);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+        }
+
+        .comparison-table td {
+            font-size: 0.95rem;
+        }
+
+        .comparison-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .comparison-table .model-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .comparison-table .highlight {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        .comparison-table .positive {
+            color: var(--green);
+        }
+
+        .comparison-table .negative {
+            color: var(--red);
+        }
+
+        /* Progress bars */
+        .progress-bar {
+            background: var(--bg-elevated);
+            border-radius: 4px;
+            height: 8px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-bar .fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .progress-bar .fill.blue { background: var(--blue); }
+        .progress-bar .fill.accent { background: var(--accent); }
+        .progress-bar .fill.green { background: var(--green); }
+        .progress-bar .fill.red { background: var(--red); }
+
+        /* Footer */
+        footer {
+            padding: 48px 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .stats-overview { grid-template-columns: repeat(2, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+            .page-header h1 { font-size: 2rem; }
+            nav .nav-container { gap: 4px; }
+            nav a { padding: 8px 12px; font-size: 0.8rem; }
+        }
+
+        @media (max-width: 500px) {
+            .stats-overview { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-container">
+            <a href="index.html">Home</a>
+            <a href="dokumentation.html">Dokumentation</a>
+            <a href="visualization/index.html">Visualisierung</a>
+            <a href="kennzahlen.html" class="active">Kennzahlen</a>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="page-header">
+        <div class="container">
+            <h1>Kennzahlen</h1>
+            <p>Sample Text: Trainingsmetriken, Performance-Analysen und Vergleiche der verschiedenen Modelle.</p>
+        </div>
+    </header>
+
+    <!-- Stats Overview -->
+    <section class="stats-overview">
+        <div class="container" style="display: contents;">
+            <div class="stat-card">
+                <div class="value">100M</div>
+                <div class="label">Training Steps</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">3</div>
+                <div class="label">Modelle</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">85%</div>
+                <div class="label">Beste Win Rate</div>
+            </div>
+            <div class="stat-card">
+                <div class="value">24h</div>
+                <div class="label">Trainingszeit</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Charts -->
+    <section class="charts-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Trainingsmetriken</h2>
+                <p>Sample Text: Visualisierung des Trainingsverlaufs und der wichtigsten Metriken.</p>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>Reward over Time</h3>
+                    <p class="description">Sample Text: Entwicklung der durchschnittlichen Belohnung.</p>
+                    <div class="chart-placeholder">
+                        <div style="text-align: center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                            </svg>
+                            <p>Chart Platzhalter</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Win Rate</h3>
+                    <p class="description">Sample Text: Gewinnrate über den Trainingsverlauf.</p>
+                    <div class="chart-placeholder">
+                        <div style="text-align: center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            <p>Chart Platzhalter</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Episode Length</h3>
+                    <p class="description">Sample Text: Durchschnittliche Episodenlänge.</p>
+                    <div class="chart-placeholder">
+                        <div style="text-align: center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                            <p>Chart Platzhalter</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-card">
+                    <h3>Policy Loss</h3>
+                    <p class="description">Sample Text: Entwicklung des Policy Loss.</p>
+                    <div class="chart-placeholder">
+                        <div style="text-align: center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                            </svg>
+                            <p>Chart Platzhalter</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-card full-width">
+                    <h3>Modellvergleich über Zeit</h3>
+                    <p class="description">Sample Text: Vergleich der Performance aller Modelle während des Trainings.</p>
+                    <div class="chart-placeholder" style="height: 350px;">
+                        <div style="text-align: center;">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                            </svg>
+                            <p>Chart Platzhalter</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Model Comparison -->
+    <section class="comparison-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>Modellvergleich</h2>
+                <p>Sample Text: Direkter Vergleich der Kennzahlen aller trainierten Modelle.</p>
+            </div>
+
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th>Modell</th>
+                            <th>Win Rate</th>
+                            <th>Avg. Score</th>
+                            <th>Avg. Tackles</th>
+                            <th>Avg. Deaths</th>
+                            <th>Training Steps</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="model-name">Charlie</td>
+                            <td class="highlight">85%</td>
+                            <td>2.4</td>
+                            <td>1.2</td>
+                            <td class="positive">0.8</td>
+                            <td>100M</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Gordon</td>
+                            <td>72%</td>
+                            <td>2.1</td>
+                            <td class="highlight">3.1</td>
+                            <td class="negative">1.8</td>
+                            <td>100M</td>
+                        </tr>
+                        <tr>
+                            <td class="model-name">Algernon</td>
+                            <td>65%</td>
+                            <td>1.9</td>
+                            <td>1.5</td>
+                            <td>1.4</td>
+                            <td>100M</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="margin-top: 48px;">
+                <h3 style="margin-bottom: 24px;">Win Rate Vergleich</h3>
+
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Charlie</span>
+                        <span class="highlight">85%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="fill accent" style="width: 85%;"></div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Gordon</span>
+                        <span>72%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="fill blue" style="width: 72%;"></div>
+                    </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                        <span>Algernon</span>
+                        <span>65%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="fill green" style="width: 65%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>Multi-Agent Reinforcement Learning Project</p>
+        </div>
+    </footer>
+
+</body>
+</html>

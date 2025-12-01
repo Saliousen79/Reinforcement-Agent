@@ -22,15 +22,15 @@ ENV/
 .ipynb_checkpoints/
 
 # Training artifacts
-training/logs/
-training/models/*.zip
-!training/models/Night_1.zip
-!training/models/Night_200M.zip
-!training/models/Algernon_250M.zip
+# training/logs/
+# training/models/*.zip
+# !training/models/Night_1.zip
+# !training/models/Night_200M.zip
+# !training/models/Algernon_250M.zip
 
 # Replays (außer finale)
-visualization/replays/*.json
-!visualization/replays/Algernon_250M.json
+# visualization/replays/*.json
+# !visualization/replays/Algernon_250M.json
 
 # Temporary files
 training/*.pyc
@@ -41,5 +41,5 @@ training/__pycache__/
 Thumbs.db
 
 # Tensorboard
-training/tensorboard/
+# training/tensorboard/
 
