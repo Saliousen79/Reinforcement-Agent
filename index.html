@@ -7,19 +7,22 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
     <style>
         :root {
             --bg-primary: #0a0a0f;
             --bg-secondary: #12121a;
-            --bg-card: #16161f;
-            --bg-elevated: #1c1c28;
+            --bg-card: rgba(22, 22, 31, 0.85); /* Transparenter für Karten */
+            --bg-elevated: rgba(30, 30, 45, 0.85); /* Transparenter für Karten */
             --border: #2a2a3a;
             --border-light: #3a3a4a;
-            --text-primary: #f0f0f5;
-            --text-secondary: #a0a0b0;
-            --text-muted: #606070;
+            --text-primary: #ffffff; 
+            --text-secondary: #b0b0c0;
+            --text-muted: #707080;
             --accent: #6c63ff;
             --accent-hover: #7d75ff;
             --blue: #4dabf7;
@@ -31,32 +34,42 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         /* SCROLL SNAP SETUP */
-        /* SCROLL SNAP SETUP */
         html { 
             scroll-behavior: smooth; 
             scroll-snap-type: y mandatory; 
             height: 100vh;
             overflow-y: scroll;
-            /* NEU: Das ist der Abstand für die Navbar */
             scroll-padding-top: 85px; 
         }
 
         body {
             font-family: 'Inter', -apple-system, sans-serif;
-            background: var(--bg-primary);
+            background: var(--bg-primary) url('image_0.png') no-repeat center center fixed; /* Taktischer Hintergrund */
+            background-size: cover;
             color: var(--text-primary);
-            line-height: 1.7;
+            line-height: 1.65; 
             -webkit-font-smoothing: antialiased;
         }
+        
+        /* Abdunklung für bessere Lesbarkeit */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(10, 10, 15, 0.85); /* Starke Abdunklung */
+            z-index: -1;
+        }
 
+        /* SCROLL SNAP LOGIC */
         /* Jede Haupt-Sektion füllt den Bildschirm und rastet ein */
-        .hero, .section, footer {
+        .hero, .section, .rules-view {
             scroll-snap-align: start;
+            scroll-snap-stop: always; /* WICHTIG: Zwingt den Browser anzuhalten! */
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            position: relative; /* Wichtig für absolute Positionierung des Scroll-Indikators */
+            position: relative;
         }
 
         .container {
@@ -67,9 +80,9 @@
         }
 
         .container-wide {
-            max-width: 1300px;
+            max-width: 1450px;
             margin: 0 auto;
-            padding: 0 32px;
+            padding: 0 40px;
             width: 100%;
         }
 
@@ -79,28 +92,25 @@
             top: 0;
             left: 0;
             right: 0;
-            background: rgba(10, 10, 15, 0.9);
+            background: rgba(10, 10, 15, 0.95);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border);
-            padding: 16px 0;
+            padding: 18px 0;
             z-index: 1000;
         }
 
         nav .nav-container {
-            max-width: 1100px;
-            margin: 0 auto;
             display: flex;
             justify-content: center;
-            gap: 8px;
-            padding: 0 32px;
+            gap: 10px;
         }
 
         nav a {
             text-decoration: none;
             color: var(--text-secondary);
-            padding: 10px 20px;
+            padding: 10px 22px;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: 500;
             transition: all 0.2s;
             border: 1px solid transparent;
@@ -109,7 +119,6 @@
         nav a:hover {
             background: var(--bg-elevated);
             color: var(--text-primary);
-            border-color: var(--border);
         }
 
         nav a.active {
@@ -120,90 +129,83 @@
 
         /* ==================== HERO ==================== */
         .hero {
-            padding-top: 80px; /* Platz für Navbar */
+            padding-top: 110px; /* Titel weiter oben */
             text-align: center;
             border-bottom: 1px solid var(--border);
         }
         
-        /* --- PROJECT ALGERNON STYLES --- */
         .prefix {
             display: block;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             font-weight: 200;
             letter-spacing: 0.5em;
             color: var(--text-secondary);
-            margin-bottom: 5px;
-            font-family: 'Inter', sans-serif;
+            margin-bottom: 8px;
         }
 
         .highlight {
-            font-size: 3.5rem;
+            font-size: 4rem; 
             font-weight: 800;
             color: var(--green);
             text-transform: uppercase;
-            text-shadow: 0 0 20px rgba(105, 219, 124, 0.4);
+            text-shadow: 0 0 25px rgba(105, 219, 124, 0.3);
         }
 
         .separator {
-            width: 60px;
-            height: 3px;
+            width: 70px;
+            height: 4px;
             background: var(--green);
-            margin: 24px auto;
+            margin: 28px auto;
             border-radius: 2px;
         }
 
         .tech-badges {
             display: flex;
             justify-content: center;
-            gap: 12px;
-            margin-top: 32px;
-            margin-bottom: 40px;
+            gap: 14px;
+            margin-top: 36px;
+            margin-bottom: 36px;
         }
 
         .tech-badges span {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: var(--text-primary);
-            background: rgba(255, 255, 255, 0.05);
-            padding: 6px 16px;
-            border-radius: 20px;
-            border: 1px solid var(--border);
+            background: rgba(255, 255, 255, 0.08);
+            padding: 7px 18px;
+            border-radius: 30px;
+            border: 1px solid var(--border-light);
             font-family: monospace;
         }
         
         .hero .subtitle {
-            font-size: 1.25rem;
+            font-size: 1.3rem;
             color: var(--text-secondary);
-            max-width: 700px;
-            margin: 0 auto 24px;
+            max-width: 750px;
+            margin: 0 auto 28px;
             font-weight: 300;
-            line-height: 1.8;
-            font-family: monospace;
+            line-height: 1.7;
         }
 
-        /* ==================== VIDEO INTRO (UPDATED) ==================== */
         .video-intro {
-            width: 100%; /* Nimmt jetzt die volle Breite */
-            max-width: 1000px; /* Begrenzung damit es auf riesigen Monitoren nicht zu extrem ist */
-            margin: 20px auto 0;
+            width: 100%;
+            max-width: 1050px;
+            margin: 24px auto 0;
         }
 
         .video-container {
             position: relative;
-            padding-bottom: 56.25%; /* 16:9 Format */
+            padding-bottom: 56.25%;
             background: var(--bg-card);
-            border-radius: 16px; 
+            border-radius: 18px; 
             overflow: hidden;
-            /* Der neue Neon-Glow und Rand */
             border: 1px solid rgba(105, 219, 124, 0.3); 
-            box-shadow: 0 0 60px rgba(105, 219, 124, 0.15); /* Großer weicher Schein */
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 0 70px rgba(105, 219, 124, 0.15);
+            transition: transform 0.3s ease;
         }
         
-        /* Cooler Effekt: Video kommt näher beim Hover */
         .video-container:hover {
-            transform: scale(1.02);
+            transform: scale(1.015);
             border-color: var(--green);
-            box-shadow: 0 0 80px rgba(105, 219, 124, 0.25);
         }
 
         .video-container iframe,
@@ -217,39 +219,21 @@
             object-fit: cover;
         }
 
-        .video-placeholder {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            text-align: center;
-        }
-
-        .video-placeholder svg {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 12px;
-            opacity: 0.5;
-        }
-
-        /* SCROLL INDICATOR ANIMATION */
         .scroll-indicator {
             position: absolute;
-            bottom: 30px;
+            bottom: 35px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             flex-direction: column;
             align-items: center;
-            opacity: 0.7;
+            opacity: 0.65;
             animation: bounce 2s infinite;
             cursor: pointer;
         }
         
         .scroll-text {
-            font-size: 0.7rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.2em;
             margin-bottom: 8px;
@@ -290,271 +274,557 @@
         /* ==================== SECTIONS ==================== */
         .section-header {
             text-align: center;
-            margin-bottom: 60px;
+            margin-bottom: 45px;
         }
-
+        /* Das zentrale Spielfeld (Vergrößert) */
+        .board-center {
+            width: 70vw; /* War vorher 55vw - Jetzt deutlich breiter */
+            max-width: 1400px;
+            aspect-ratio: 16/9;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5); /* Stärkerer Schatten für Tiefe */
+            z-index: 5;
+            
+            /* Grid Pattern */
+            background-image: 
+                linear-gradient(var(--border-light) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border-light) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
         .section-header h2 {
-            font-size: 2rem;
-            font-weight: 600;
-            margin-bottom: 16px;
+            font-size: 2.3rem; 
+            font-weight: 700;
+            margin-bottom: 14px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
 
         .section-header p {
             color: var(--text-secondary);
-            font-size: 1.05rem;
-            max-width: 700px;
+            font-size: 1.15rem;
+            max-width: 750px;
             margin: 0 auto;
-            line-height: 1.8;
+            line-height: 1.7;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
-
-        /* ==================== PROJECT INTRO - EXPANDED ==================== */
-        .intro-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 40px;
-            margin-bottom: 48px;
-        }
-
-        .intro-text {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 40px;
-        }
-
-        .intro-text h3 {
-            font-size: 1.35rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: var(--text-primary);
-        }
-
-        .intro-text p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            margin-bottom: 20px;
-            line-height: 1.8;
-        }
-
-        .intro-text ul {
-            list-style: none;
-            padding: 0;
-            margin-top: 24px;
-        }
-
-        .intro-text ul li {
+        /* ==================== GAME RULES (ONE PAGE LAYOUT) ==================== */
+        /* Dieser Container erzwingt, dass alles auf eine Seite passt */
+        .rules-view {
+            height: 100vh;
+            width: 100%;
             position: relative;
-            padding-left: 24px;
-            margin-bottom: 12px;
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; /* Kein Scrollen innerhalb der Sektion */
+            padding-top: 60px; /* Ausgleich für Navbar */
         }
 
-        .intro-text ul li::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 10px;
-            width: 8px;
-            height: 8px;
-            background: var(--accent);
-            border-radius: 50%;
+        .rules-header-compact {
+            text-align: center;
+            margin-bottom: 2vh; /* Relative Abstände für Responsivität */
+            z-index: 10;
         }
 
-        .intro-full {
-            grid-column: 1 / -1;
+        .rules-header-compact h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
         }
 
-        .intro-video {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .intro-video .video-wrapper {
+        .rules-grid-area {
             position: relative;
-            padding-bottom: 56.25%;
-            background: #000;
-        }
-
-        .intro-video iframe,
-        .intro-video video {
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
-            border: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .intro-video .placeholder {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: var(--text-muted);
-            font-size: 0.85rem;
-        }
-
-        /* ==================== GAME RULES - EXPANDED ==================== */
-        .rules-intro {
-            max-width: 800px;
-            margin: 0 auto 60px;
-            text-align: center;
-        }
-
-        .rules-intro p {
-            color: var(--text-secondary);
-            font-size: 1rem;
-            line-height: 1.8;
-        }
-
-        .rules-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 24px;
-        }
-
-        .rule-card {
+        /* Das zentrale Spielfeld */
+        .board-center {
+            width: 50vw;
+            max-width: 600px;
+            aspect-ratio: 1/1;
             background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            position: relative;
+            box-shadow: 0 0 60px rgba(0,0,0,0.4);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .board-center img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 14px;
+        }
+
+        /* Fallback wenn kein Bild vorhanden */
+        .board-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(var(--border-light) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border-light) 1px, transparent 1px);
+            background-size: 40px 40px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .board-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .board-placeholder span {
+            display: block;
+            margin-top: 8px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        /* Dekoration auf dem Board */
+        .base-c {
+            position: absolute; width: 80px; height: 80px; top: 50%;
+            transform: translateY(-50%); border-radius: 50%; opacity: 0.3; filter: blur(15px);
+            pointer-events: none;
+        }
+        .b-blue { left: 8%; background: var(--blue); }
+        .b-red { right: 8%; background: var(--red); }
+
+        /* Die 4 Regel-Boxen in den Ecken */
+        .rule-box-floating {
+            position: absolute;
+            width: 20vw; /* Breite relativ zum Bildschirm */
+            min-width: 280px;
+            background: rgba(22, 22, 31, 0.95);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 32px;
-            transition: all 0.3s ease;
+            padding: 24px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease;
+            z-index: 20;
         }
 
-        .rule-card:hover {
-            border-color: var(--border-light);
+        .rule-box-floating:hover {
+            transform: scale(1.05);
+            z-index: 25;
+        }
+
+        .rule-box-floating h4 {
+            font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+        }
+        .rule-box-floating p {
+            font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;
+        }
+        .rule-box-floating ul {
+            list-style: none; padding: 0; margin: 0;
+        }
+        .rule-box-floating ul li {
+            font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; padding-left: 12px; position: relative;
+        }
+        .rule-box-floating ul li::before {
+            content: "•"; position: absolute; left: 0; color: inherit;
+        }
+
+        /* Positionierung & Farben */
+        /* Oben Links (Blau) */
+        .pos-top-left { 
+            top: 10%; left: 5%; 
+            border-top: 3px solid var(--blue);
+        }
+        .pos-top-left h4 { color: var(--blue); }
+
+        /* Oben Rechts (Rot) */
+        .pos-top-right { 
+            top: 10%; right: 5%; 
+            border-top: 3px solid var(--red);
+        }
+        .pos-top-right h4 { color: var(--red); }
+
+        /* Unten Links (Lila/Accent) */
+        .pos-bottom-left { 
+            bottom: 15%; left: 5%; 
+            border-bottom: 3px solid var(--accent);
+        }
+        .pos-bottom-left h4 { color: var(--accent); }
+
+        /* Unten Rechts (Grün) */
+        .pos-bottom-right { 
+            bottom: 15%; right: 5%; 
+            border-bottom: 3px solid var(--green);
+        }
+        .pos-bottom-right h4 { color: var(--green); }
+
+        /* Mobile Fallback: Wenn der Bildschirm zu klein ist, stapeln */
+        @media (max-width: 1200px) {
+            .rules-view { height: auto; padding: 100px 0; overflow: visible; }
+            .rules-grid-area { flex-direction: column; gap: 40px; }
+            .board-center { width: 90%; margin-bottom: 20px; }
+            .rule-box-floating { position: static; width: 90%; transform: none; }
+            .pos-top-left, .pos-top-right, .pos-bottom-left, .pos-bottom-right { border: 1px solid var(--border); border-left: 4px solid; }
+            .pos-top-left { border-left-color: var(--blue); }
+            .pos-top-right { border-left-color: var(--red); }
+            .pos-bottom-left { border-left-color: var(--accent); }
+            .pos-bottom-right { border-left-color: var(--green); }
+        }
+        /* ==================== GRID LAYOUT (TUNED) ==================== */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1.5fr 1fr 1fr; 
+            gap: 28px; 
+            align-items: stretch;
+        }
+
+        .info-card {
+            background: var(--bg-elevated); 
+            border: 1px solid var(--border-light);
+            border-radius: 18px;
+            padding: 34px; 
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(5px); /* Leichter Blur-Effekt */
+        }
+
+        .info-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.3);
+            background: rgba(35, 35, 51, 0.9);
+        }
+
+        .card-01 { border-top: 5px solid var(--accent); }
+        .card-02 { border-top: 5px solid var(--blue); }
+        .card-03 { border-top: 5px solid var(--green); }
+
+        .step-number {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 3.5rem; 
+            font-weight: 700;
+            line-height: 1;
+            opacity: 0.09;
+            position: absolute;
+            top: 18px;
+            right: 25px;
+            pointer-events: none;
+        }
+        
+        .card-01 .step-number { color: var(--accent); }
+        .card-02 .step-number { color: var(--blue); }
+        .card-03 .step-number { color: var(--green); }
+
+        .info-card h3 {
+            font-size: 1.45rem; 
+            margin-bottom: 20px;
+            padding-right: 50px;
+            line-height: 1.3;
+            color: #fff;
+        }
+
+        .info-card p {
+            color: var(--text-secondary);
+            font-size: 1rem; 
+            margin-bottom: 18px;
+            line-height: 1.65;
+        }
+
+        /* --- Box 1: Highlighted Comparisions --- */
+        .insight-box {
+            background: rgba(108, 99, 255, 0.1);
+            border-left: 4px solid var(--accent);
+            padding: 16px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 20px 0;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        .comparison-container {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .comparison-item {
+            background: rgba(0, 0, 0, 0.2); 
+            border: 1px solid var(--border);
+            padding: 18px;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        /* NEU: Bessere Labels für Sparse/Dense */
+        .comp-label {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 8px;
+        }
+
+        .comp-label.text-danger {
+            color: #ff8787; /* Helles Rot */
+            background: rgba(255, 107, 107, 0.15);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+        }
+
+        .comp-label.text-warning {
+            color: #ffe066; /* Helles Gelb */
+            background: rgba(255, 212, 59, 0.15);
+            border: 1px solid rgba(255, 212, 59, 0.3);
+        }
+        
+        .consequence-box {
+            margin-top: auto;
+            background: linear-gradient(145deg, #2a2a3a, #1f1f2e);
+            border: 1px solid var(--border-light);
+            border-left: 5px solid var(--green);
+            padding: 20px;
+            border-radius: 9px;
+            font-size: 0.95rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .agent-name {
+            display: inline-block;
+            background: rgba(108, 99, 255, 0.15);
+            color: var(--accent);
+            padding: 0 6px;
+            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 0.9em;
+            border: 1px solid rgba(108, 99, 255, 0.3);
+        }
+
+        /* --- Box 2 & 3: Schöne Buttons & Bessere Listen --- */
+        
+        .tech-badges-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        /* Schönerer Tech Button Style */
+        .tech-tag {
+            display: inline-flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            cursor: default;
+        }
+
+        .tech-tag:hover {
+            border-color: var(--blue);
+            color: #fff;
+            background: rgba(77, 171, 247, 0.1);
             transform: translateY(-2px);
         }
 
-        .rule-card h4 {
-            font-size: 1.15rem;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: var(--text-primary);
-        }
-
-        .rule-card p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            line-height: 1.7;
-            margin-bottom: 16px;
-        }
-
-        .rule-card ul {
-            list-style: none;
+        /* Neue Listen-Struktur (Kein Fließtext mehr) */
+        .feature-list {
+            margin-top: 24px;
             padding: 0;
+            list-style: none;
         }
 
-        .rule-card ul li {
-            position: relative;
-            padding-left: 20px;
-            margin-bottom: 8px;
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        /* Icon Circle für die Liste */
+        .feature-icon {
+            flex-shrink: 0;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.05);
+            font-size: 1rem;
+        }
+
+        .card-02 .feature-icon { color: var(--blue); background: rgba(77, 171, 247, 0.1); }
+        .card-03 .feature-icon { color: var(--green); background: rgba(105, 219, 124, 0.1); }
+
+        .feature-content {
+            flex: 1;
+        }
+
+        .feature-content strong {
+            display: block;
+            color: #fff;
+            font-size: 0.95rem;
+            margin-bottom: 2px;
+        }
+
+        .feature-content span {
+            display: block;
             color: var(--text-secondary);
             font-size: 0.9rem;
+            line-height: 1.5;
         }
 
-        .rule-card ul li::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 8px;
-            width: 6px;
-            height: 6px;
-            background: var(--accent);
-            border-radius: 50%;
-        }
-
-        .rule-card.highlight {
-            border-color: var(--accent);
-            background: rgba(108, 99, 255, 0.05);
-        }
-
+      
         /* ==================== NAVIGATION LINKS ==================== */
         .nav-links {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 24px;
-            padding: 40px 0;
+            gap: 28px;
+            padding: 30px 0;
         }
 
         .nav-link-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 40px 32px;
-            text-decoration: none;
-            color: inherit;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-light);
+            border-radius: 14px;
+            padding: 36px 28px;
+            backdrop-filter: blur(5px);
+        }
+
+        /* ==================== MODELS SECTION ==================== */
+        .models-section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 80px 0;
+        }
+
+        .models-header {
             text-align: center;
-            transition: all 0.3s ease;
+            margin-bottom: 40px;
         }
 
-        .nav-link-card:hover {
-            border-color: var(--accent);
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(108, 99, 255, 0.15);
-        }
-
-        .nav-link-card h3 {
-            font-size: 1.25rem;
-            font-weight: 600;
+        .models-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
             margin-bottom: 12px;
         }
 
-        .nav-link-card p {
+        .models-header p {
             color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto;
         }
 
-        .nav-link-card .arrow {
-            display: inline-block;
-            margin-top: 16px;
-            color: var(--accent);
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-
-        /* ==================== MODELS ==================== */
+        /* Model Tabs/Buttons */
         .model-tabs {
             display: flex;
             justify-content: center;
-            gap: 12px;
-            margin-bottom: 48px;
+            gap: 16px;
+            margin-bottom: 32px;
             flex-wrap: wrap;
         }
 
         .model-tab {
-            padding: 14px 28px;
-            background: transparent;
-            border: 1px solid var(--border);
-            border-radius: 100px;
-            font-size: 0.95rem;
-            font-weight: 500;
+            padding: 16px 32px;
+            font-size: 1rem;
+            font-weight: 600;
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: 12px;
             color: var(--text-secondary);
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            min-width: 160px;
         }
 
         .model-tab:hover {
-            border-color: var(--text-secondary);
+            background: var(--bg-elevated);
+            border-color: var(--border-light);
             color: var(--text-primary);
+            transform: translateY(-3px);
         }
 
         .model-tab.active {
-            background: var(--accent);
             border-color: var(--accent);
-            color: white;
+            background: rgba(108, 99, 255, 0.15);
+            color: var(--accent);
+            box-shadow: 0 0 20px rgba(108, 99, 255, 0.2);
         }
 
+        .model-tab.tab-charlie.active {
+            border-color: var(--yellow);
+            background: rgba(255, 212, 59, 0.1);
+            color: var(--yellow);
+            box-shadow: 0 0 20px rgba(255, 212, 59, 0.2);
+        }
+
+        .model-tab.tab-gordon.active {
+            border-color: var(--red);
+            background: rgba(255, 107, 107, 0.1);
+            color: var(--red);
+            box-shadow: 0 0 20px rgba(255, 107, 107, 0.2);
+        }
+
+        .model-tab.tab-algernon.active {
+            border-color: var(--green);
+            background: rgba(105, 219, 124, 0.1);
+            color: var(--green);
+            box-shadow: 0 0 20px rgba(105, 219, 124, 0.2);
+        }
+
+        .model-tab .tab-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            opacity: 0.7;
+        }
+
+        .model-tab .tab-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        /* Model Content Cards */
         .model-content {
             display: none;
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 16px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
             overflow: hidden;
+            backdrop-filter: blur(5px);
             animation: fadeIn 0.4s ease;
         }
 
@@ -563,14 +833,14 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(16px); }
+            from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .model-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            min-height: 500px;
+            gap: 0;
         }
 
         .model-info {
@@ -582,129 +852,183 @@
         .model-tag {
             display: inline-block;
             padding: 6px 14px;
-            background: var(--bg-elevated);
-            border-radius: 6px;
-            font-size: 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
             font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.08em;
-            color: var(--accent);
-            margin-bottom: 20px;
-            align-self: flex-start;
+            letter-spacing: 0.05em;
+            margin-bottom: 16px;
+            width: fit-content;
         }
 
+        .model-tag.sparse { background: rgba(255, 212, 59, 0.15); color: var(--yellow); border: 1px solid rgba(255, 212, 59, 0.3); }
+        .model-tag.dense { background: rgba(255, 107, 107, 0.15); color: var(--red); border: 1px solid rgba(255, 107, 107, 0.3); }
+        .model-tag.balanced { background: rgba(105, 219, 124, 0.15); color: var(--green); border: 1px solid rgba(105, 219, 124, 0.3); }
+
         .model-info h3 {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: 700;
             margin-bottom: 20px;
         }
 
         .model-description {
+            font-size: 1.05rem;
+            line-height: 1.75;
             color: var(--text-secondary);
-            font-size: 1rem;
-            line-height: 1.8;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
         }
 
         .model-features {
             list-style: none;
             padding: 0;
-            margin-bottom: 32px;
+            margin: 0 0 28px 0;
         }
 
         .model-features li {
-            position: relative;
-            padding-left: 28px;
-            margin-bottom: 14px;
-            color: var(--text-secondary);
             font-size: 0.95rem;
+            color: var(--text-secondary);
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        .model-features li::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 8px;
-            width: 10px;
-            height: 10px;
-            background: var(--accent);
-            border-radius: 50%;
+        .model-features li:last-child {
+            border-bottom: none;
+        }
+
+        .model-features li i {
+            font-size: 1rem;
+            opacity: 0.7;
         }
 
         .model-stats {
+            display: flex;
+            gap: 24px;
             margin-top: auto;
             padding-top: 24px;
             border-top: 1px solid var(--border);
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px;
         }
 
         .stat {
             text-align: center;
+            flex: 1;
         }
 
         .stat-value {
-            font-size: 1.5rem;
+            font-size: 2rem;
             font-weight: 700;
-            color: var(--accent);
-            margin-bottom: 4px;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .stat-label {
             font-size: 0.75rem;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.05em;
+            letter-spacing: 0.1em;
+            margin-top: 4px;
         }
 
+        /* Reward Details Box */
+        .reward-details {
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .reward-details h5 {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .reward-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            padding: 6px 0;
+            border-bottom: 1px dashed var(--border);
+        }
+
+        .reward-item:last-child {
+            border-bottom: none;
+        }
+
+        .reward-item .label {
+            color: var(--text-secondary);
+        }
+
+        .reward-item .value {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+        }
+
+        .reward-item .value.positive { color: var(--green); }
+        .reward-item .value.negative { color: var(--red); }
+
+        /* Model Video/Placeholder */
         .model-video {
-            background: #000;
+            background: var(--bg-primary);
             display: flex;
             align-items: center;
             justify-content: center;
+            min-height: 400px;
+            border-left: 1px solid var(--border);
         }
 
-        .model-video iframe,
         .model-video video {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .model-video .placeholder {
+        .placeholder {
+            text-align: center;
             color: var(--text-muted);
+            padding: 40px;
+        }
+
+        .placeholder i {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.3;
+        }
+
+        .placeholder p {
             font-size: 0.9rem;
-            text-align: center;
         }
 
-        .model-video .placeholder svg {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 12px;
-            opacity: 0.5;
-        }
-
-        /* ==================== FOOTER ==================== */
-        footer {
-            padding: 48px 0;
-            text-align: center;
-            border-top: 1px solid var(--border);
-            color: var(--text-muted);
-            font-size: 0.85rem;
+        @media (max-width: 1024px) {
+            .model-layout {
+                grid-template-columns: 1fr;
+            }
+            .model-video {
+                border-left: none;
+                border-top: 1px solid var(--border);
+                min-height: 300px;
+            }
+            .model-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+            .model-tab {
+                width: 100%;
+                max-width: 300px;
+            }
         }
 
         /* ==================== RESPONSIVE ==================== */
-        @media (max-width: 900px) {
-            .hero h1 { font-size: 2.25rem; }
-            .intro-content { grid-template-columns: 1fr; }
-            .rules-grid { grid-template-columns: 1fr; }
-            .nav-links { grid-template-columns: 1fr; }
-            .model-layout { grid-template-columns: 1fr; }
-            .model-video { min-height: 300px; }
-            nav .nav-container { gap: 4px; }
-            nav a { padding: 8px 12px; font-size: 0.8rem; }
-            .highlight { font-size: 2.5rem; }
+        @media (max-width: 1024px) {
+            .hero h1 { font-size: 2.8rem; }
+            .grid-layout { grid-template-columns: 1fr; } 
+            .rules-layout { grid-template-columns: 1fr; }
+            .rules-grid-compact { grid-template-columns: 1fr; }
+            html { scroll-snap-type: none; }
+            .section { padding: 60px 0; height: auto; min-height: auto; }
         }
     </style>
 </head>
@@ -760,7 +1084,7 @@
     </header>
 
     <section class="section">
-        <div class="container">
+        <div class="container-wide">
             <div class="section-header">
                 <h2>Das Projekt</h2>
                 <p>
@@ -769,200 +1093,275 @@
                 </p>
             </div>
 
-            <div class="intro-content">
-                <div class="intro-text">
-                    <h3>Ziel des Projekts</h3>
+            <div class="grid-layout">
+                
+                <!-- BOX 1 -->
+                <div class="info-card card-01">
+                    <span class="step-number">01</span>
+                    <h3>Die Evolution:<br>Vom Spiel zur Studie</h3>
+                    
                     <p>
-                        Dieses Projekt untersucht, wie unterschiedliche Belohnungsmechanismen (Reward Shaping) 
-                        das emergente Verhalten von KI-Agenten in einer kompetitiven Umgebung beeinflussen.
+                        Ursprünglich war das Ziel simpel: Einen Agenten zu bauen, der eine Runde eines selbstdesignten Spiels überlebt. 
+                        Doch nach unzähligen Iterationen in <em>Capture the Flag</em> musste ich lernen: 
+                        Man kann nicht einfach "einen guten Agenten" bauen.
                     </p>
-                    <p>
-                        Dabei vergleichen wir drei Modelle: Ein Modell mit spärlichen Belohnungen ("Charlie"), 
-                        eines mit extrem detaillierten Belohnungen ("Gordon") und einen ausgewogenen Ansatz ("Algernon").
-                    </p>
-                    <ul>
-                        <li>Analyse von Sparse vs. Dense Rewards</li>
-                        <li>Vergleich von Explorations-Strategien</li>
-                        <li>Emergenz von Team-Taktiken (Flankieren, Verteidigen)</li>
-                        <li>Vermeidung von Reward Hacking</li>
-                    </ul>
-                </div>
 
-                <div class="intro-video">
-                    <div class="video-wrapper">
-                        <div class="placeholder">Video Platzhalter</div>
+                    <div class="insight-box">
+                        <strong>Zentrale Erkenntnis:</strong><br>
+                        Es gibt keine perfekte Reward-Struktur. Es ist immer ein Trade-off zwischen <em>Lern-Effizienz</em> und <em>Kreativität</em>.
+                    </div>
+
+                    <div class="comparison-container">
+                        <div class="comparison-item">
+                            <span class="comp-label text-danger">Sparse Rewards</span>
+                            Zu wenig Feedback führt dazu, dass der Agent selbst nach tagelangem Training kaum Intelligenz zeigt.
+                        </div>
+                        <div class="comparison-item">
+                            <span class="comp-label text-warning">Dense Rewards</span>
+                            Zu viele Hilfen machen das Verhalten effizient, aber vorhersehbar und anfällig für Reward Hacking.
+                        </div>
+                    </div>
+
+                    <div class="consequence-box">
+                        <p style="margin-bottom: 8px; font-weight:600; color: #fff;">Die Konsequenz:</p>
+                        <p style="margin-bottom: 0;">
+                            Statt einer "perfekten" Lösung entwickelte ich drei spezialisierte Modelle — 
+                            <span class="agent-name">Charlie</span>, 
+                            <span class="agent-name">Gordon</span> und 
+                            <span class="agent-name">Algernon</span> — 
+                            um genau diese Unterschiede sichtbar zu machen.
+                        </p>
                     </div>
                 </div>
 
-                <div class="intro-text">
-                    <h3>Technologie und Methoden</h3>
+                <!-- BOX 2 -->
+                <div class="info-card card-02">
+                    <span class="step-number">02</span>
+                    <h3>Technologie<br>Stack</h3>
+                    
                     <p>
-                        Wir nutzen Deep Reinforcement Learning (PPO) in einer eigens entwickelten 
-                        Capture-the-Flag Umgebung basierend auf Gymnasium.
+                        Statt das Rad neu zu erfinden, nutzt dieses Projekt Industriestandards für maximale Reproduzierbarkeit.
                     </p>
-                    <p>
-                        Das Training erfolgte über 100 Millionen Zeitschritte pro Modell auf einer CPU-optimierten
-                        Infrastruktur mittels vektorisierter Umgebungen.
-                    </p>
-                    <ul>
-                        <li><strong>Algorithmus:</strong> Proximal Policy Optimization (PPO)</li>
-                        <li><strong>Framework:</strong> Stable Baselines 3 & PyTorch</li>
-                        <li><strong>Umgebung:</strong> Custom Gym Environment mit PyGame Renderer</li>
-                        <li><strong>Input:</strong> Relative Vektoren (Raycasts & Positionen)</li>
+
+                    <div class="tech-badges-container">
+                        <span class="tech-tag">Stable Baselines 3</span>
+                        <span class="tech-tag">PyTorch</span>
+                        <span class="tech-tag">Gymnasium</span>
+                        <span class="tech-tag">TensorBoard</span>
+                        <span class="tech-tag">PettingZoo</span>
+                    </div>
+
+                    <ul class="feature-list">
+                        <li>
+                            <div class="feature-icon"><i class="bi bi-cpu"></i></div>
+                            <div class="feature-content">
+                                <strong>Core AI</strong>
+                                <span>PPO (Proximal Policy Optimization) als robuster On-Policy Algorithmus.</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="feature-icon"><i class="bi bi-controller"></i></div>
+                            <div class="feature-content">
+                                <strong>Custom Env</strong>
+                                <span>Eigens entwickelte Gymnasium-Umgebung mit Box2D-Physik.</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="feature-icon"><i class="bi bi-lightning-charge"></i></div>
+                            <div class="feature-content">
+                                <strong>Vectorization</strong>
+                                <span>SubprocVecEnv für echtes Multiprocessing auf 16 CPU-Kernen.</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="feature-icon"><i class="bi bi-graph-up"></i></div>
+                            <div class="feature-content">
+                                <strong>Evaluation</strong>
+                                <span>Automatisierte Log-Verarbeitung und JSON-Export für das Web-Dashboard.</span>
+                            </div>
+                        </li>
                     </ul>
                 </div>
 
-                <div class="intro-video">
-                    <div class="video-wrapper">
-                        <div class="placeholder">Video Platzhalter</div>
-                    </div>
+                <!-- BOX 3 -->
+                <div class="info-card card-03">
+                    <span class="step-number">03</span>
+                    <h3>Methodik &<br>Experiment</h3>
+                    
+                    <p>
+                        Ein streng wissenschaftlicher Ansatz, um Zufall auszuschließen und reines Verhalten zu isolieren.
+                    </p>
+
+                    <ul class="feature-list">
+                        <li>
+                            <div class="feature-icon"><i class="bi bi-sliders"></i></div>
+                            <div class="feature-content">
+                                <strong>Ceteris Paribus</strong>
+                                <span>Identische Hyperparameter (LR 3e-4, Netzgröße) für alle Agenten.</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="feature-icon"><i class="bi bi-hourglass-split"></i></div>
+                            <div class="feature-content">
+                                <strong>Sample Efficiency</strong>
+                                <span>Jedes Modell wurde über exakt 100 Millionen Zeitschritte trainiert.</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="feature-icon"><i class="bi bi-search"></i></div>
+                            <div class="feature-content">
+                                <strong>Qualitative Analyse</strong>
+                                <span>Fokus auf emergentem Verhalten (z.B. Deckung) statt nur Score.</span>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
+                            <div class="feature-content">
+                                <strong>Blind Tests</strong>
+                                <span>Evaluation gegen unbekannte Checkpoints gegen Overfitting.</span>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
 
-                <div class="intro-text intro-full">
-                    <h3>Methodik und Experiment-Design</h3>
-                    <p>
-                        Um die Auswirkungen des Reward Shapings isoliert zu betrachten, wurden alle Hyperparameter 
-                        (Lernrate, Batch Size, Netzarchitektur) konstant gehalten. Lediglich die Reward-Funktion 
-                        variierte zwischen den drei Agenten-Typen.
-                    </p>
-                    <p>
-                        Die Evaluation erfolgt nicht nur durch den "Average Score", sondern auch durch qualitative 
-                        Video-Analyse und Heatmaps, um zu verstehen, <em>wie</em> die Agenten gewinnen, nicht nur <em>dass</em> sie gewinnen.
-                    </p>
-                </div>
             </div>
         </div>
     </section>
 
-    <section class="section">
+    <!-- SECTION: SPIELREGELN NEU GESTALTET -->
+   <div class="rules-view">
+                
+                <div class="rules-header-compact">
+                    <h2>Spielregeln & Umgebung</h2>
+                    <p style="color: var(--text-secondary);">Ein symmetrisches Schlachtfeld für kompetitive Agenten.</p>
+                </div>
+
+                <div class="rules-grid-area">
+                    
+                    <div class="rule-box-floating pos-top-left">
+                        <h4><i class="bi bi-flag-fill"></i> Flagge erobern</h4>
+                        <p>Das Kernziel: Gegnerische Flagge stehlen und zur eigenen Basis bringen.</p>
+                        <ul>
+                            <li>+100 Punkte pro erfolgreichen Capture</li>
+                            <li>Eigene Flagge muss in der Basis sein</li>
+                            <li>3 Captures = Sieg</li>
+                            <li>Träger ist 30% langsamer</li>
+                        </ul>
+                    </div>
+
+                    <div class="rule-box-floating pos-top-right">
+                        <h4><i class="bi bi-lightning-fill"></i> Tackle & Stun</h4>
+                        <p>Nahkampf-Angriff betäubt Gegner für ~1 Sekunde.</p>
+                        <ul>
+                            <li>Cooldown: 3.25 Sekunden</li>
+                            <li>Betäubte lassen Flagge fallen</li>
+                            <li>+8 Punkte für Tackle auf Flaggenträger</li>
+                        </ul>
+                    </div>
+
+                    <div class="board-center">
+                        <!-- Spielfeld-Grafik: Ersetze src mit deinem eigenen Bild -->
+                        <img src="visualization/assets/videos/Spielfeld.png" alt="Capture the Flag Spielfeld - 24x24 Grid"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <div class="board-placeholder" style="display: none;">
+                            <i class="bi bi-image"></i>
+                            <p>Spielfeld-Grafik hier einfügen</p>
+                            <span>Empfohlen: 600x600px PNG</span>
+                        </div>
+                    </div>
+
+                    <div class="rule-box-floating pos-bottom-left">
+                        <h4><i class="bi bi-shield-fill"></i> Territorium</h4>
+                        <p>Die Spielfeldhälfte bestimmt die Rolle des Agenten.</p>
+                        <ul>
+                            <li>Eigene Hälfte: Verteidiger-Status</li>
+                            <li>Gegnerseite: Angreifer (verwundbar)</li>
+                            <li>Flaggenträger immer angreifbar</li>
+                            <li>Safe Zone in der Basis</li>
+                        </ul>
+                    </div>
+
+                    <div class="rule-box-floating pos-bottom-right">
+                        <h4><i class="bi bi-eye-fill"></i> Observation Space</h4>
+                        <p>Jeder Agent erhält 31 kontinuierliche Werte pro Frame.</p>
+                        <ul>
+                            <li>Position, Flaggen-Status, Stun-Timer</li>
+                            <li>Vektoren zu Basen & Flaggen</li>
+                            <li>Positionen von Team & Gegnern</li>
+                            <li>Wände blockieren keine Sicht</li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+
+    <!-- ==================== MODELS SECTION ==================== -->
+    <section class="section models-section" id="models">
         <div class="container-wide">
-            <div class="section-header">
-                <h2>Spielregeln</h2>
+            <div class="models-header">
+                <h2>Die drei <span style="color: var(--accent);">Agenten</span></h2>
                 <p>
-                    Die Regeln der Capture-the-Flag Umgebung, in der die Agenten trainiert werden.
-                    Das Verständnis dieser Regeln ist essentiell für die Interpretation des Verhaltens.
+                    Jedes Modell wurde mit einer anderen Reward-Strategie trainiert.
+                    Wähle einen Agenten, um seine spezifischen Eigenschaften zu erkunden.
                 </p>
             </div>
 
-            <div class="rules-intro">
-                <p>
-                    Zwei Teams (Rot und Blau) treten auf einer symmetrischen Karte gegeneinander an.
-                    Das Ziel ist es, mehr Punkte durch das Erobern der gegnerischen Flagge zu erzielen als der Gegner.
-                </p>
-            </div>
-
-            <div class="rules-grid">
-                <div class="rule-card highlight">
-                    <h4>Flagge erobern</h4>
-                    <p>
-                        Agenten müssen die gegnerische Flagge berühren, um sie aufzuheben.
-                        Um zu punkten, muss die Flagge zur eigenen Basis getragen werden.
-                    </p>
-                    <ul>
-                        <li>+50 Punkte für Capture</li>
-                        <li>Flagge muss an der eigenen Basis abgeliefert werden</li>
-                        <li>Gegnerische Flagge respawned sofort nach Capture</li>
-                    </ul>
-                </div>
-
-                <div class="rule-card">
-                    <h4>Tackle und Stun</h4>
-                    <p>
-                        Agenten können Gegner in Reichweite "tacklen". Ein erfolgreicher Tackle
-                        betäubt den Gegner für 40 Frames.
-                    </p>
-                    <ul>
-                        <li>Betäubte Gegner lassen die Flagge fallen</li>
-                        <li>Tackle hat einen Cooldown</li>
-                        <li>Nur möglich, wenn Gegner in Reichweite</li>
-                    </ul>
-                </div>
-
-                <div class="rule-card">
-                    <h4>Territorium & Heimvorteil</h4>
-                    <p>
-                        Die Karte ist geteilt. In der eigenen Hälfte können Agenten Gegner tacklen.
-                        In der gegnerischen Hälfte sind sie angreifbar (außer sie haben die Flagge).
-                    </p>
-                    <ul>
-                        <li>Verteidiger sind in eigener Hälfte stark</li>
-                        <li>Angreifer müssen Deckung nutzen</li>
-                        <li>Raycast-Sichtlinien verhindern Tackles durch Wände</li>
-                    </ul>
-                </div>
-
-                <div class="rule-card">
-                    <h4>Basis und Punkten</h4>
-                    <p>
-                        Ein Capture ist nur möglich, wenn die EIGENE Flagge sicher in der Basis liegt.
-                        Das erzwingt Verteidigung ("Flaggen-Rückholung").
-                    </p>
-                    <ul>
-                        <li>"Standoff": Beide Teams haben Flagge = Kein Punkt möglich</li>
-                        <li>Strategischer Fokus auf Flaggen-Träger Jagd</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <section class="section">
-        <div class="container">
-            <div class="nav-links">
-                <a href="dokumentation.html" class="nav-link-card">
-                    <h3>Dokumentation</h3>
-                    <p>Detaillierte technische Dokumentation, Hyperparameter und Netzwerk-Architektur.</p>
-                    <span class="arrow">Zur Dokumentation &rarr;</span>
-                </a>
-                
-                <a href="visualization/index.html" class="nav-link-card">
-                    <h3>Visualisierung</h3>
-                    <p>Interaktive 3D-Visualisierung der Trainings-Episoden im Browser.</p>
-                    <span class="arrow">Zur Visualisierung &rarr;</span>
-                </a>
-                
-                <a href="kennzahlen.html" class="nav-link-card">
-                    <h3>Kennzahlen</h3>
-                    <p>Trainingsmetriken, Graphen und Performance-Analysen der Modelle.</p>
-                    <span class="arrow">Zu den Kennzahlen &rarr;</span>
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <section class="section">
-        <div class="container">
-            <div class="section-header">
-                <h2>Modelle</h2>
-                <p>Drei unterschiedliche Agenten mit verschiedenen Trainingsstrategien und Reward-Strukturen.</p>
-            </div>
-
+            <!-- Model Selection Buttons -->
             <div class="model-tabs">
-                <button class="model-tab active" onclick="showModel('charlie')">Charlie</button>
-                <button class="model-tab" onclick="showModel('gordon')">Gordon</button>
-                <button class="model-tab" onclick="showModel('algernon')">Algernon</button>
+                <button class="model-tab tab-charlie" onclick="showModel('charlie')">
+                    <span class="tab-label">Sparse</span>
+                    <span class="tab-name">Charlie</span>
+                </button>
+                <button class="model-tab tab-gordon" onclick="showModel('gordon')">
+                    <span class="tab-label">Dense</span>
+                    <span class="tab-name">Gordon</span>
+                </button>
+                <button class="model-tab tab-algernon active" onclick="showModel('algernon')">
+                    <span class="tab-label">Balanced</span>
+                    <span class="tab-name">Algernon</span>
+                </button>
             </div>
 
-            <div class="model-content active" id="model-charlie">
+            <!-- CHARLIE - Sparse Rewards -->
+            <div class="model-content" id="model-charlie">
                 <div class="model-layout">
                     <div class="model-info">
-                        <span class="model-tag">Sparse Rewards</span>
+                        <span class="model-tag sparse">Sparse Rewards</span>
                         <h3>Charlie</h3>
                         <p class="model-description">
-                            Charlie ist der "Purist". Er erhält fast keine Hilfestellungen (Shaping) während des Trainings.
-                            Seine Belohnung besteht fast ausschließlich aus dem Endergebnis: Sieg oder Niederlage.
-                            <br><br>
-                            Das führt anfangs zu extrem langsamen Lernen ("Random Walk"), zwingt ihn aber langfristig dazu,
-                            echte Strategien zu finden, statt Belohnungslücken auszunutzen.
+                            Charlie ist der "Purist". Er erhält nur Feedback für das absolute Endergebnis:
+                            Capture und Sieg/Niederlage. Kein Lob für Zwischenschritte, keine Hilfe beim Lernen.
+                            Das Ergebnis? Langsames Lernen, aber potenziell kreativere Strategien.
                         </p>
                         <ul class="model-features">
-                            <li>Lernkurve: Sehr flach zu Beginn, später exponentiell</li>
-                            <li>Verhalten: Zögert oft, macht aber wenig Fehler</li>
-                            <li>Schwierigkeit: Findet die Flagge oft gar nicht</li>
+                            <li><i class="bi bi-hourglass-split"></i> Lernkurve: Extrem langsam, aber kontinuierlich</li>
+                            <li><i class="bi bi-lightbulb"></i> Verhalten: Entwickelt eigene, unvorhersehbare Taktiken</li>
+                            <li><i class="bi bi-shield-check"></i> Vorteil: Kein Risiko für Reward Hacking</li>
                         </ul>
+
+                        <div class="reward-details">
+                            <h5><i class="bi bi-trophy"></i> Reward-Struktur</h5>
+                            <div class="reward-item">
+                                <span class="label">Capture (Flagge erobern)</span>
+                                <span class="value positive">+100.0</span>
+                            </div>
+                            <div class="reward-item">
+                                <span class="label">Sieg</span>
+                                <span class="value positive">+50.0</span>
+                            </div>
+                            <div class="reward-item">
+                                <span class="label">Niederlage</span>
+                                <span class="value negative">-50.0</span>
+                            </div>
+                            <div class="reward-item">
+                                <span class="label">Alles andere</span>
+                                <span class="value">0.0</span>
+                            </div>
+                        </div>
+
                         <div class="model-stats">
                             <div class="stat">
-                                <div class="stat-value">45%</div>
+                                <div class="stat-value" style="color: var(--yellow);">45%</div>
                                 <div class="stat-label">Win Rate</div>
                             </div>
                             <div class="stat">
@@ -970,39 +1369,68 @@
                                 <div class="stat-label">Steps</div>
                             </div>
                             <div class="stat">
-                                <div class="stat-value">0.8</div>
+                                <div class="stat-value">1.8</div>
                                 <div class="stat-label">Avg Score</div>
                             </div>
                         </div>
                     </div>
                     <div class="model-video">
                         <div class="placeholder">
-                            <p>Replay: Charlie (Late Game)</p>
+                            <i class="bi bi-play-circle"></i>
+                            <p>Replay: Charlie (Sparse Explorer)</p>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <!-- GORDON - Dense Rewards -->
             <div class="model-content" id="model-gordon">
                 <div class="model-layout">
                     <div class="model-info">
-                        <span class="model-tag">Dense Rewards</span>
+                        <span class="model-tag dense">Dense Rewards</span>
                         <h3>Gordon</h3>
                         <p class="model-description">
-                            Gordon ist der "Overachiever". Er bekommt Punkte für alles: Laufen zur Flagge, Gegner sehen,
-                            Gegner tacklen. Das Ziel war, ihm das Lernen so leicht wie möglich zu machen.
-                            <br><br>
-                            Das Ergebnis ist jedoch oft "Reward Hacking": Gordon lernt, im Kreis zu laufen oder sinnlose Kämpfe
-                            zu führen, um Punkte zu sammeln, statt das Spiel zu gewinnen.
+                            Gordon ist der "Overachiever". Er bekommt Punkte für alles: Bewegung zur Flagge,
+                            Tackles, Distanzverkleinerung, sogar für das bloße Sehen von Gegnern.
+                            Das Ergebnis? Schnelles Lernen, aber anfällig für Reward Hacking.
                         </p>
                         <ul class="model-features">
-                            <li>Lernkurve: Schießt sofort nach oben (trügerisch)</li>
-                            <li>Verhalten: Hyperaktiv, aggressiv, vergisst oft das Ziel</li>
-                            <li>Problem: Optimiert Punkte, nicht Siege</li>
+                            <li><i class="bi bi-graph-up-arrow"></i> Lernkurve: Schießt sofort nach oben (trügerisch)</li>
+                            <li><i class="bi bi-lightning-charge"></i> Verhalten: Hyperaktiv, aggressiv, oft ziellos</li>
+                            <li><i class="bi bi-exclamation-triangle"></i> Problem: Optimiert Punkte, nicht Siege</li>
                         </ul>
+
+                        <div class="reward-details">
+                            <h5><i class="bi bi-list-check"></i> Reward-Struktur (Auszug)</h5>
+                            <div class="reward-item">
+                                <span class="label">Capture</span>
+                                <span class="value positive">+50.0</span>
+                            </div>
+                            <div class="reward-item">
+                                <span class="label">Sieg / Niederlage</span>
+                                <span class="value">±20.0</span>
+                            </div>
+                            <div class="reward-item">
+                                <span class="label">Flagge aufheben</span>
+                                <span class="value positive">+10.0</span>
+                            </div>
+                            <div class="reward-item">
+                                <span class="label">Tackle (allgemein)</span>
+                                <span class="value positive">+3.0</span>
+                            </div>
+                            <div class="reward-item">
+                                <span class="label">Distanz zur Flagge</span>
+                                <span class="value positive">+0.2/step</span>
+                            </div>
+                            <div class="reward-item">
+                                <span class="label">Step-Penalty</span>
+                                <span class="value negative">-0.01</span>
+                            </div>
+                        </div>
+
                         <div class="model-stats">
                             <div class="stat">
-                                <div class="stat-value">62%</div>
+                                <div class="stat-value" style="color: var(--red);">62%</div>
                                 <div class="stat-label">Win Rate</div>
                             </div>
                             <div class="stat">
@@ -1011,40 +1439,67 @@
                             </div>
                             <div class="stat">
                                 <div class="stat-value">15.4</div>
-                                <div class="stat-label">Avg Reward (Inflated)</div>
+                                <div class="stat-label">Avg Reward</div>
                             </div>
                         </div>
                     </div>
                     <div class="model-video">
-                        <div class="placeholder"><p>Replay: Gordon (Reward Hacking)</p></div>
+                        <div class="placeholder">
+                            <i class="bi bi-play-circle"></i>
+                            <p>Replay: Gordon (Reward Hacking)</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="model-content" id="model-algernon">
+            <!-- ALGERNON - Balanced Rewards -->
+            <div class="model-content active" id="model-algernon">
                 <div class="model-layout">
                     <div class="model-info">
-                        <span class="model-tag">Balanced</span>
+                        <span class="model-tag balanced">Balanced Rewards</span>
                         <h3>Algernon</h3>
                         <p class="model-description">
-                            Algernon ist der "intelligente Mittelweg". Er nutzt Curriculum Learning und eine ausbalancierte
-                            Reward-Struktur. Er bekommt kleine Hinweise (Richtung), aber die großen Punkte gibt es nur für
-                            echte Taktik.
-                            <br><br>
-                            Er zeigt das stabilste Verhalten und entwickelte emergent Strategien wie "Vorrücken mit Deckung".
+                            Algernon ist der "Goldene Mittelweg". Er erhält große Belohnungen nur für kritische
+                            Momente: Captures, Flaggenträger tacklen, Flagge zurückbringen. Kleine Hinweise
+                            helfen beim Lernen, ohne das Ziel aus den Augen zu verlieren.
                         </p>
                         <ul class="model-features">
-                            <li>Lernkurve: Stetig und stabil</li>
-                            <li>Verhalten: Koordiniert und zielgerichtet</li>
-                            <li>Ergebnis: Der klare Gewinner des Experiments</li>
+                            <li><i class="bi bi-graph-up"></i> Lernkurve: Stetig und stabil</li>
+                            <li><i class="bi bi-bullseye"></i> Verhalten: Koordiniert, zielgerichtet, taktisch</li>
+                            <li><i class="bi bi-trophy-fill"></i> Ergebnis: Klarer Gewinner des Experiments</li>
                         </ul>
+
+                        <div class="reward-details">
+                            <h5><i class="bi bi-stars"></i> Reward-Struktur (Empfohlen)</h5>
+                            <div class="reward-item">
+                                <span class="label">Capture</span>
+                                <span class="value positive">+100.0</span>
+                            </div>
+                            <div class="reward-item">
+                                <span class="label">Sieg / Niederlage</span>
+                                <span class="value">±30.0</span>
+                            </div>
+                            <div class="reward-item">
+                                <span class="label">Tackle Flaggenträger</span>
+                                <span class="value positive">+8.0</span>
+                            </div>
+                            <div class="reward-item">
+                                <span class="label">Flagge zurückbringen</span>
+                                <span class="value positive">+5.0</span>
+                            </div>
+                            <div class="reward-item">
+                                <span class="label">Distanz (nur Träger)</span>
+                                <span class="value positive">+0.1/step</span>
+                            </div>
+                        </div>
+
                         <div class="model-stats">
                             <div class="stat">
-                                <div class="stat-value">91%</div>
+                                <div class="stat-value" style="color: var(--green);">91%</div>
                                 <div class="stat-label">Win Rate</div>
                             </div>
                             <div class="stat">
-                                <div class="stat-value">100M</div>
+                                <div class="stat-value">250M</div>
                                 <div class="stat-label">Steps</div>
                             </div>
                             <div class="stat">
@@ -1054,7 +1509,10 @@
                         </div>
                     </div>
                     <div class="model-video">
-                        <div class="placeholder"><p>Replay: Algernon (Victory)</p></div>
+                        <div class="placeholder">
+                            <i class="bi bi-play-circle"></i>
+                            <p>Replay: Algernon (Victory)</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1062,29 +1520,68 @@
         </div>
     </section>
 
-    <footer>
-        <div class="container">
-            <p>&copy; 2025 Multi-Agent RL Research Project</p>
-        </div>
-    </footer>
 
     <script>
         function showModel(modelId) {
-            // Hide all content
+            // Remove active class from all content and tabs
             document.querySelectorAll('.model-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.model-tab').forEach(el => el.classList.remove('active'));
-            
-            // Show selected
-            document.getElementById('model-' + modelId).classList.add('active');
-            
-            // Activate button
-            const buttons = document.querySelectorAll('.model-tab');
-            buttons.forEach(btn => {
-                if(btn.getAttribute('onclick').includes(modelId)) {
-                    btn.classList.add('active');
-                }
-            });
+
+            // Add active class to selected content
+            const content = document.getElementById('model-' + modelId);
+            if (content) {
+                content.classList.add('active');
+            }
+
+            // Add active class to corresponding tab button
+            const tab = document.querySelector('.tab-' + modelId);
+            if (tab) {
+                tab.classList.add('active');
+            }
         }
+
+        // Initialize with Algernon selected
+        document.addEventListener('DOMContentLoaded', function() {
+            showModel('algernon');
+        });
     </script>
+    <section class="section">
+        <div class="container">
+            <div class="hero" style="min-height: auto; border: none; padding: 0;">
+                <h1>
+                    <span class="prefix">EXPLORE</span>
+                    <br>
+                    <span class="highlight" style="font-size: 2.5rem;">THE DATA</span>
+                </h1>
+                
+                <div class="separator"></div>
+
+                <p class="subtitle" style="margin-bottom: 60px;">
+                    Detaillierte Analysen, technische Dokumentation und <br>
+                    Live-Visualisierungen der Trainingsdaten.
+                </p>
+
+                <div class="nav-links">
+                    <a href="dokumentation.html" class="nav-link-card">
+                        <h3>Dokumentation</h3>
+                        <p>Technische Details & Architektur</p>
+                        <span class="arrow">&rarr;</span>
+                    </a>
+                    
+                    <a href="visualization/index.html" class="nav-link-card" style="border-color: var(--accent);">
+                        <h3 style="color: var(--accent);">Visualisierung</h3>
+                        <p>3D Replays im Browser</p>
+                        <span class="arrow">&rarr;</span>
+                    </a>
+                    
+                    <a href="kennzahlen.html" class="nav-link-card">
+                        <h3>Kennzahlen</h3>
+                        <p>Metriken & Graphen</p>
+                        <span class="arrow">&rarr;</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
 </body>
 </html>
