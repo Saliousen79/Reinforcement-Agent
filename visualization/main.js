@@ -246,26 +246,55 @@ let currentReplayInfo = null;
 
 async function loadAvailableEpisodes() {
     const select = document.getElementById('episode-select');
-    
+    const replayList = document.getElementById('replay-list');
+
     // Embedded Replays aus der Konfiguration laden
     const embeddedReplays = window.EMBEDDED_REPLAYS || [];
-    
+
     let loaded = false;
 
     for (const replay of embeddedReplays) {
         try {
             const res = await fetch(`replays/${replay.filename}`, { method: 'HEAD' });
             if (res.ok) {
+                // Dropdown-Option
                 const option = document.createElement('option');
                 option.value = replay.id;
                 option.textContent = replay.title;
                 option.dataset.filename = replay.filename;
                 select.appendChild(option);
 
+                // Sidebar-Listen-Item erstellen
+                const listItem = document.createElement('div');
+                listItem.className = 'replay-list-item';
+                listItem.dataset.replayId = replay.id;
+                const primaryTag = replay.tags && replay.tags.length > 0 ? replay.tags[0] : '';
+                listItem.innerHTML = `
+                    <div class="replay-name">${replay.title}</div>
+                    <div class="replay-desc">${replay.shortDesc || ''}</div>
+                    ${primaryTag ? `<div class="replay-badge badge-${primaryTag}">${primaryTag}</div>` : ''}
+                `;
+
+                // Click Event
+                listItem.addEventListener('click', async () => {
+                    // Alle anderen deaktivieren
+                    document.querySelectorAll('.replay-list-item').forEach(item => {
+                        item.classList.remove('active');
+                    });
+                    listItem.classList.add('active');
+
+                    // Replay laden
+                    await loadEpisodeById(replay.id);
+                    select.value = replay.id;
+                });
+
+                replayList.appendChild(listItem);
+
                 // Lade das erste verfügbare Replay
                 if (!loaded) {
                     await loadEpisodeById(replay.id);
                     select.value = replay.id;
+                    listItem.classList.add('active');
                     loaded = true;
                 }
             }

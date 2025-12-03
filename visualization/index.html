@@ -30,31 +30,21 @@
         }
 
         #scoreboard {
-            top: 20px;
+            top: 80px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             gap: 30px;
             font-size: 1.5rem;
             font-weight: bold;
+            z-index: 1500;
         }
 
         .blue-score { color: #4dabf7; }
         .red-score { color: #ff6b6b; }
 
         #title {
-            top: 20px;
-            left: 20px;
-        }
-
-        #title h1 {
-            font-size: 1.3rem;
-            margin-bottom: 4px;
-        }
-
-        #title .subtitle {
-            font-size: 0.85rem;
-            color: #888;
+            display: none;
         }
 
         #controls {
@@ -124,7 +114,7 @@
         }
 
         #legend {
-            bottom: 100px;
+            top: 500px;
             left: 20px;
         }
 
@@ -202,8 +192,9 @@
 
         /* Flaggenträger Status */
         #flag-status {
-            top: 80px;
-            left: 20px;
+            top: 140px;
+            left: 50%;
+            transform: translateX(-50%);
             min-width: 180px;
         }
 
@@ -259,14 +250,117 @@
         }
 
         /* ==================== */
+        /* REPLAY LISTE SIDEBAR */
+        /* ==================== */
+        #replay-sidebar {
+            position: fixed;
+            top: 80px;
+            left: 20px;
+            width: 320px;
+            max-height: calc(100vh - 100px);
+            background: rgba(15, 15, 30, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            overflow-y: auto;
+            z-index: 1500;
+        }
+
+        #replay-sidebar h3 {
+            font-size: 1.1rem;
+            color: #6c63ff;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .replay-list-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .replay-list-item:hover {
+            background: rgba(108, 99, 255, 0.1);
+            border-color: rgba(108, 99, 255, 0.3);
+            transform: translateX(4px);
+        }
+
+        .replay-list-item.active {
+            background: rgba(108, 99, 255, 0.2);
+            border-color: #6c63ff;
+        }
+
+        .replay-list-item .replay-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+
+        .replay-list-item .replay-desc {
+            font-size: 0.8rem;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        .replay-list-item .replay-badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        /* Farbige Badges je nach Tag */
+        .replay-list-item .badge-sparse {
+            background: #ffd43b;
+            color: #000;
+        }
+
+        .replay-list-item .badge-dense {
+            background: #ff6b6b;
+            color: #fff;
+        }
+
+        .replay-list-item .badge-balanced {
+            background: #69db7c;
+            color: #000;
+        }
+
+        .replay-list-item .badge-training,
+        .replay-list-item .badge-best {
+            background: rgba(108, 99, 255, 0.3);
+            color: #a29bff;
+        }
+
+        /* ==================== */
         /* REPLAY KONTEXT PANEL */
         /* ==================== */
         #replay-context {
-            top: 20px;
+            position: fixed;
+            top: 80px;
             right: 20px;
-            width: 320px;
+            width: 340px;
             max-height: calc(100vh - 120px);
             overflow-y: auto;
+            background: rgba(15, 15, 30, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            z-index: 1500;
         }
 
         #replay-context h3 {
@@ -393,47 +487,43 @@
             background: rgba(255,255,255,0.3);
         }
 
-        /* Navigation Bar */
+        /* Navigation Bar - GLEICH WIE AUF STARTSEITE */
         nav {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
-            background: rgba(15, 15, 26, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 12px 0;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #2a2a3a;
+            padding: 18px 0;
             z-index: 2000;
         }
 
         nav .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
             display: flex;
             justify-content: center;
             gap: 10px;
-            flex-wrap: wrap;
-            padding: 0 20px;
         }
 
         nav a {
             text-decoration: none;
-            color: #aaa;
-            padding: 8px 20px;
+            color: #b0b0c0;
+            padding: 10px 22px;
             border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
             transition: all 0.2s;
-            font-size: 0.9rem;
             border: 1px solid transparent;
         }
 
         nav a:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(30, 30, 45, 0.85);
+            color: #ffffff;
         }
 
         nav a.active {
-            background: rgba(108, 99, 255, 0.2);
+            background: rgba(108, 99, 255, 0.15);
             color: #6c63ff;
             border-color: #6c63ff;
         }
@@ -456,9 +546,12 @@
         <p>Lade Episode...</p>
     </div>
 
-    <div class="panel" id="title">
-        <h1>🚩 Capture the Flag</h1>
-        <p class="subtitle">Multi-Agent Reinforcement Learning</p>
+    <!-- REPLAY LISTE SIDEBAR -->
+    <div id="replay-sidebar">
+        <h3>📁 Replays</h3>
+        <div id="replay-list">
+            <!-- Wird dynamisch gefüllt -->
+        </div>
     </div>
 
     <div class="panel" id="scoreboard">
@@ -544,50 +637,135 @@
     <!-- Beschreibungen hinzufügen          -->
     <!-- ================================== -->
     <script>
+        // REPLAY KONFIGURATION
         window.EMBEDDED_REPLAYS = [
+            // =========================================
+            // CHARLIE (Sparse Rewards)
+            // =========================================
             {
-                id: 'Meme',
-                filename: 'demo_episode.json',
-                title: 'LOL Gameplay',
-                shortDesc: 'Beispiel für grundlegende CTF-Mechaniken',
+                id: 'charlie_40m',
+                filename: 'replays/Charlie_40M.json',
+                title: 'Charlie - 40M Steps',
+                shortDesc: 'Sparse Rewards - Frühe Phase',
                 description: `
-                    <p>Dieses Replay zeigt die <span class="highlight">grundlegenden Spielmechaniken</span> von Capture the Flag:</p>
-                    <p>• <span class="blue-text">Blue Team</span> versucht die rote Flagge zu stehlen<br>
-                    • <span class="red-text">Red Team</span> verteidigt ihre Basis<br>
-                    • Agenten können gegnerische Spieler <span class="highlight">tacklen</span> um sie zu betäuben</p>
-                    <p>Beobachte wie die Agenten zwischen Angriff und Verteidigung wechseln.</p>
+                    <p><span class="highlight">Charlie</span> nutzt <strong>Sparse Rewards</strong> - er bekommt nur für Captures und Sieg/Niederlage Feedback.</p>
+                    <p>Bei <strong>40M Steps</strong> zeigt Charlie noch wenig taktisches Verständnis. Er experimentiert viel und entwickelt langsam erste Strategien.</p>
+                    <p>⚠️ Viele zufällige Bewegungen, wenig Koordination</p>
                 `,
-                tags: ['demo'],
+                tags: ['training', 'sparse'],
             },
             {
-                id: 'Meme2',
-                filename: 'demo_episode.json',
-                title: '2',
-                shortDesc: 'Beispiel für grundlegende CTF-Mechaniken',
+                id: 'charlie_80m',
+                filename: 'replays/Charlie_80M.json',
+                title: 'Charlie - 80M Steps',
+                shortDesc: 'Sparse Rewards - Fortgeschritten',
                 description: `
-                    <p>Dieses Replay zeigt die <span class="highlight">grundlegenden Spielmechaniken</span> von Capture the Flag:</p>
-                    <p>• <span class="blue-text">Blue Team</span> versucht die rote Flagge zu stehlen<br>
-                    • <span class="red-text">Red Team</span> verteidigt ihre Basis<br>
-                    • Agenten können gegnerische Spieler <span class="highlight">tacklen</span> um sie zu betäuben</p>
-                    <p>Beobachte wie die Agenten zwischen Angriff und Verteidigung wechseln.</p>
+                    <p>Bei <strong>80M Steps</strong> hat Charlie deutliche Fortschritte gemacht. Er versteht das Spielziel besser.</p>
+                    <p>✅ Entwickelt erste Muster<br>
+                    ⚠️ Immer noch ineffizient im Vergleich zu Dense-Agenten</p>
                 `,
-                tags: ['demo'],
+                tags: ['training', 'sparse'],
             },
-          
+            {
+                id: 'charlie_100m',
+                filename: 'replays/Charlie_100M.json',
+                title: 'Charlie - 100M Steps',
+                shortDesc: 'Sparse Rewards - Final',
+                description: `
+                    <p>Finales Modell nach <strong>100M Steps</strong>. Charlie zeigt kreative, aber unvorhersehbare Strategien.</p>
+                    <p>✅ Kreative Lösungen<br>
+                    ⚠️ Langsames Lernen<br>
+                    ✅ Kein Reward Hacking</p>
+                `,
+                tags: ['training', 'sparse'],
+            },
+
             // =========================================
-            // FÜGE HIER WEITERE REPLAYS HINZU:
+            // GORDON (Dense Rewards)
             // =========================================
-            // {
-            //     id: 'unique_id',           // Eindeutige ID
-            //     filename: 'replay.json',   // Dateiname im replays/ Ordner
-            //     title: 'Titel',            // Anzeigename
-            //     shortDesc: 'Kurz...',      // Für Dropdown
-            //     description: `
-            //         <p>Beschreibung mit <span class="highlight">Formatierung</span></p>
-            //         <p><span class="blue-text">Blau</span> vs <span class="red-text">Rot</span></p>
-            //     `,
-            //     tags: ['training', 'interesting', 'demo', 'bug'],
-            // },
+            {
+                id: 'gordon_40m',
+                filename: 'replays/Gordon_40M.json',
+                title: 'Gordon - 40M Steps',
+                shortDesc: 'Dense Rewards - Frühe Phase',
+                description: `
+                    <p><span class="highlight">Gordon</span> nutzt <strong>Dense Rewards</strong> - er bekommt für fast alles Feedback.</p>
+                    <p>Schon bei <strong>40M Steps</strong> zeigt Gordon deutlich mehr Aktivität als Charlie. Er lernt schnell, aber nicht immer die richtigen Dinge.</p>
+                    <p>✅ Schnelles Lernen<br>
+                    ⚠️ Risiko für Reward Hacking</p>
+                `,
+                tags: ['training', 'dense'],
+            },
+            {
+                id: 'gordon_80m',
+                filename: 'replays/Gordon_80M.json',
+                title: 'Gordon - 80M Steps',
+                shortDesc: 'Dense Rewards - Fortgeschritten',
+                description: `
+                    <p>Bei <strong>80M Steps</strong> ist Gordon sehr aktiv, aber oft ineffizient. Er optimiert die Rewards, nicht unbedingt den Sieg.</p>
+                    <p>✅ Hyperaktiv<br>
+                    ⚠️ Manchmal ziellos<br>
+                    ⚠️ Fokus auf Punkte statt Strategie</p>
+                `,
+                tags: ['training', 'dense'],
+            },
+            {
+                id: 'gordon_100m',
+                filename: 'replays/Gordon_100M.json',
+                title: 'Gordon - 100M Steps',
+                shortDesc: 'Dense Rewards - Final',
+                description: `
+                    <p>Finales Modell. Gordon ist effizient, aber vorhersehbar. Er hat gelernt, die Rewards zu maximieren.</p>
+                    <p>✅ Schnelle Entwicklung<br>
+                    ⚠️ Vorhersehbares Verhalten<br>
+                    ⚠️ Anfällig für Exploitation</p>
+                `,
+                tags: ['training', 'dense'],
+            },
+
+            // =========================================
+            // ALGERNON (Balanced Rewards)
+            // =========================================
+            {
+                id: 'algernon_40m',
+                filename: 'replays/Algernon_40M.json',
+                title: 'Algernon - 40M Steps',
+                shortDesc: 'Balanced Rewards - Frühe Phase',
+                description: `
+                    <p><span class="highlight">Algernon</span> nutzt <strong>Balanced Rewards</strong> - der goldene Mittelweg.</p>
+                    <p>Bei <strong>40M Steps</strong> zeigt Algernon schon bessere Koordination als Charlie, aber weniger Hyperaktivität als Gordon.</p>
+                    <p>✅ Ausgeglichenes Lernen<br>
+                    ✅ Fokus auf wichtige Aktionen</p>
+                `,
+                tags: ['training', 'balanced'],
+            },
+            {
+                id: 'algernon_80m',
+                filename: 'replays/Algernon_80M.json',
+                title: 'Algernon - 80M Steps',
+                shortDesc: 'Balanced Rewards - Fortgeschritten',
+                description: `
+                    <p>Bei <strong>80M Steps</strong> entwickelt Algernon klare taktische Muster. Er versteht Timing und Positionierung.</p>
+                    <p>✅ Koordiniert<br>
+                    ✅ Zielgerichtet<br>
+                    ✅ Adaptive Strategien</p>
+                `,
+                tags: ['training', 'balanced'],
+            },
+            {
+                id: 'algernon_100m',
+                filename: 'replays/Algernon_100M.json',
+                title: 'Algernon - 100M Steps',
+                shortDesc: 'Balanced Rewards - Final',
+                description: `
+                    <p>Finales Modell und <span class="highlight">klarer Gewinner</span> des Experiments. Algernon kombiniert Effizienz mit Kreativität.</p>
+                    <p>✅ Beste Performance<br>
+                    ✅ Koordinierte Teamarbeit<br>
+                    ✅ Kreative Taktiken<br>
+                    ✅ Hohe Win Rate</p>
+                `,
+                tags: ['training', 'balanced', 'best'],
+            },
         ];
     </script>
     

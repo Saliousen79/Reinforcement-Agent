@@ -72,6 +72,13 @@
             position: relative;
         }
 
+        /* Seite 2 kompakter - passt auf einen Screen mit nur 1 Scroll */
+        .section.project-section {
+            padding: 80px 0 30px 0;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
         .container {
             max-width: 1100px;
             margin: 0 auto;
@@ -274,7 +281,7 @@
         /* ==================== SECTIONS ==================== */
         .section-header {
             text-align: center;
-            margin-bottom: 45px;
+            margin-bottom: 35px;
         }
         /* Das zentrale Spielfeld (Vergrößert) */
         .board-center {
@@ -317,22 +324,22 @@
             position: relative;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
             overflow: hidden; /* Kein Scrollen innerhalb der Sektion */
-            padding-top: 60px; /* Ausgleich für Navbar */
+            padding-top: 95px; /* Mehr Abstand nach oben für Titel */
         }
 
         .rules-header-compact {
             text-align: center;
-            margin-bottom: 2vh; /* Relative Abstände für Responsivität */
+            margin-bottom: 1.5vh; /* Kompaktere Abstände */
             z-index: 10;
         }
 
         .rules-header-compact h2 {
             font-size: 2.5rem;
             font-weight: 700;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .rules-grid-area {
@@ -344,20 +351,26 @@
             justify-content: center;
         }
 
-        /* Das zentrale Spielfeld */
+        /* Das zentrale Spielfeld - Optimal ausbalanciert */
         .board-center {
-            width: 50vw;
-            max-width: 600px;
+            width: 48vw;
+            max-width: 800px;
             aspect-ratio: 1/1;
             background: var(--bg-card);
-            border: 2px solid var(--border);
-            border-radius: 16px;
+            border: 3px solid rgba(105, 219, 124, 0.4);
+            border-radius: 20px;
             position: relative;
-            box-shadow: 0 0 60px rgba(0,0,0,0.4);
+            box-shadow: 0 0 90px rgba(105, 219, 124, 0.25);
             overflow: hidden;
             display: flex;
             align-items: center;
             justify-content: center;
+            z-index: 10;
+        }
+
+        .board-center:hover {
+            border-color: rgba(105, 219, 124, 0.6);
+            box-shadow: 0 0 110px rgba(105, 219, 124, 0.35);
         }
 
         .board-center img {
@@ -411,16 +424,17 @@
         /* Die 4 Regel-Boxen in den Ecken */
         .rule-box-floating {
             position: absolute;
-            width: 20vw; /* Breite relativ zum Bildschirm */
-            min-width: 280px;
-            background: rgba(22, 22, 31, 0.95);
+            width: 22vw; /* Größer für bessere Lesbarkeit */
+            min-width: 300px;
+            max-width: 380px;
+            background: rgba(22, 22, 31, 0.97);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transition: transform 0.3s ease;
-            z-index: 20;
+            border-radius: 14px;
+            padding: 26px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.7);
+            transition: all 0.3s ease;
+            z-index: 5;
         }
 
         .rule-box-floating:hover {
@@ -429,16 +443,31 @@
         }
 
         .rule-box-floating h4 {
-            font-size: 1.1rem; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
         .rule-box-floating p {
-            font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 12px;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-bottom: 14px;
         }
         .rule-box-floating ul {
-            list-style: none; padding: 0; margin: 0;
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
         .rule-box-floating ul li {
-            font-size: 0.85rem; color: var(--text-muted); margin-bottom: 4px; padding-left: 12px; position: relative;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            padding-left: 16px;
+            position: relative;
+            line-height: 1.5;
         }
         .rule-box-floating ul li::before {
             content: "•"; position: absolute; left: 0; color: inherit;
@@ -607,8 +636,8 @@
             border-radius: 9px;
             font-size: 0.95rem;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-
+        }  
+        
         .agent-name {
             display: inline-block;
             background: rgba(108, 99, 255, 0.15);
@@ -705,17 +734,82 @@
         .nav-links {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 28px;
-            padding: 30px 0;
+            gap: 32px;
+            padding: 0;
+            margin-top: 50px;
         }
 
         .nav-link-card {
             background: var(--bg-elevated);
-            border: 1px solid var(--border-light);
-            border-radius: 14px;
-            padding: 36px 28px;
+            border: 2px solid var(--border-light);
+            border-radius: 16px;
+            padding: 48px 32px;
             backdrop-filter: blur(5px);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
+
+        .nav-link-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent), var(--blue));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--accent);
+            box-shadow: 0 20px 50px rgba(108, 99, 255, 0.3);
+        }
+
+        .nav-link-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .nav-link-card .card-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        .nav-link-card h3 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .nav-link-card p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .nav-link-card .arrow {
+            font-size: 1.8rem;
+            color: var(--accent);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-link-card:hover .arrow {
+            transform: translateX(8px);
+        }
+
+        .nav-link-card:nth-child(1) .card-icon { color: var(--blue); }
+        .nav-link-card:nth-child(2) .card-icon { color: var(--accent); }
+        .nav-link-card:nth-child(3) .card-icon { color: var(--green); }
 
         /* ==================== MODELS SECTION ==================== */
         .models-section {
@@ -1331,12 +1425,12 @@
                         <p class="model-description">
                             Charlie ist der "Purist". Er erhält nur Feedback für das absolute Endergebnis:
                             Capture und Sieg/Niederlage. Kein Lob für Zwischenschritte, keine Hilfe beim Lernen.
-                            Das Ergebnis? Langsames Lernen, aber potenziell kreativere Strategien.
+                            Das Ergebnis? <strong>Kein messbares Lernen</strong> - nach 95M Steps immer noch bei 0 Reward.
                         </p>
                         <ul class="model-features">
-                            <li><i class="bi bi-hourglass-split"></i> Lernkurve: Extrem langsam, aber kontinuierlich</li>
-                            <li><i class="bi bi-lightbulb"></i> Verhalten: Entwickelt eigene, unvorhersehbare Taktiken</li>
-                            <li><i class="bi bi-shield-check"></i> Vorteil: Kein Risiko für Reward Hacking</li>
+                            <li><i class="bi bi-x-circle"></i> Lernkurve: Keine erkennbare Verbesserung</li>
+                            <li><i class="bi bi-exclamation-triangle"></i> Problem: Sparse Rewards zu extrem für diese Aufgabe</li>
+                            <li><i class="bi bi-clock"></i> Trainingszeit: 9.15 Stunden für 95.4M Steps</li>
                         </ul>
 
                         <div class="reward-details">
@@ -1361,24 +1455,25 @@
 
                         <div class="model-stats">
                             <div class="stat">
-                                <div class="stat-value" style="color: var(--yellow);">45%</div>
-                                <div class="stat-label">Win Rate</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-value">100M</div>
+                                <div class="stat-value" style="color: var(--yellow);">95.4M</div>
                                 <div class="stat-label">Steps</div>
                             </div>
                             <div class="stat">
-                                <div class="stat-value">1.8</div>
-                                <div class="stat-label">Avg Score</div>
+                                <div class="stat-value">0.00</div>
+                                <div class="stat-label">Final Reward</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">500</div>
+                                <div class="stat-label">Avg Episode</div>
                             </div>
                         </div>
                     </div>
                     <div class="model-video">
-                        <div class="placeholder">
-                            <i class="bi bi-play-circle"></i>
-                            <p>Replay: Charlie (Sparse Explorer)</p>
-                        </div>
+                    <video autoplay loop muted playsinline>
+                        <source src="visualization/assets/videos/Charlie.mp4" type="video/mp4">
+                        Dein Browser unterstützt dieses Video nicht.
+                        </video>
+</div>
                     </div>
                 </div>
             </div>
@@ -1392,12 +1487,12 @@
                         <p class="model-description">
                             Gordon ist der "Overachiever". Er bekommt Punkte für alles: Bewegung zur Flagge,
                             Tackles, Distanzverkleinerung, sogar für das bloße Sehen von Gegnern.
-                            Das Ergebnis? Schnelles Lernen, aber anfällig für Reward Hacking.
+                            Das Ergebnis? <strong>Deutliche Verbesserung (+47.26)</strong>, aber instabil mit hoher Varianz.
                         </p>
                         <ul class="model-features">
-                            <li><i class="bi bi-graph-up-arrow"></i> Lernkurve: Schießt sofort nach oben (trügerisch)</li>
-                            <li><i class="bi bi-lightning-charge"></i> Verhalten: Hyperaktiv, aggressiv, oft ziellos</li>
-                            <li><i class="bi bi-exclamation-triangle"></i> Problem: Optimiert Punkte, nicht Siege</li>
+                            <li><i class="bi bi-graph-up-arrow"></i> Lernkurve: Von 4.34 auf 51.60 Reward gestiegen</li>
+                            <li><i class="bi bi-lightning-charge"></i> Peak Performance: 113.13 Max Reward</li>
+                            <li><i class="bi bi-exclamation-triangle"></i> Problem: Lange Trainingszeit (15.56h für 100M Steps)</li>
                         </ul>
 
                         <div class="reward-details">
@@ -1430,23 +1525,24 @@
 
                         <div class="model-stats">
                             <div class="stat">
-                                <div class="stat-value" style="color: var(--red);">62%</div>
-                                <div class="stat-label">Win Rate</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-value">100M</div>
+                                <div class="stat-value" style="color: var(--red);">100.1M</div>
                                 <div class="stat-label">Steps</div>
                             </div>
                             <div class="stat">
-                                <div class="stat-value">15.4</div>
-                                <div class="stat-label">Avg Reward</div>
+                                <div class="stat-value">51.60</div>
+                                <div class="stat-label">Final Reward</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">113.13</div>
+                                <div class="stat-label">Max Reward</div>
                             </div>
                         </div>
                     </div>
                     <div class="model-video">
-                        <div class="placeholder">
-                            <i class="bi bi-play-circle"></i>
-                            <p>Replay: Gordon (Reward Hacking)</p>
+                        <video autoplay loop muted playsinline>
+                            <source src="visualization\assets\videos\Bildschirmaufnahme 2025-12-03 201233.mp4" type="video/mp4" type="video/mp4">
+                            Dein Browser unterstützt dieses Video nicht.
+                        </video>
                         </div>
                     </div>
                 </div>
@@ -1460,13 +1556,13 @@
                         <h3>Algernon</h3>
                         <p class="model-description">
                             Algernon ist der "Goldene Mittelweg". Er erhält große Belohnungen nur für kritische
-                            Momente: Captures, Flaggenträger tacklen, Flagge zurückbringen. Kleine Hinweise
-                            helfen beim Lernen, ohne das Ziel aus den Augen zu verlieren.
+                            Momente: Captures, Flaggenträger tacklen, Flagge zurückbringen.
+                            Das Ergebnis? <strong>+79.62 Reward-Verbesserung</strong> und kürzeste Episoden (357 Steps = schnellste Captures).
                         </p>
                         <ul class="model-features">
-                            <li><i class="bi bi-graph-up"></i> Lernkurve: Stetig und stabil</li>
-                            <li><i class="bi bi-bullseye"></i> Verhalten: Koordiniert, zielgerichtet, taktisch</li>
-                            <li><i class="bi bi-trophy-fill"></i> Ergebnis: Klarer Gewinner des Experiments</li>
+                            <li><i class="bi bi-trophy-fill"></i> Beste Reward-Entwicklung: 0.00 → 79.62</li>
+                            <li><i class="bi bi-lightning-fill"></i> Schnellstes Training: 15.3M Steps/h (6.53h für 100M)</li>
+                            <li><i class="bi bi-shield-check"></i> Beste Value Function: 0.911 Explained Variance</li>
                         </ul>
 
                         <div class="reward-details">
@@ -1495,25 +1591,25 @@
 
                         <div class="model-stats">
                             <div class="stat">
-                                <div class="stat-value" style="color: var(--green);">91%</div>
-                                <div class="stat-label">Win Rate</div>
-                            </div>
-                            <div class="stat">
-                                <div class="stat-value">250M</div>
+                                <div class="stat-value" style="color: var(--green);">100.1M</div>
                                 <div class="stat-label">Steps</div>
                             </div>
                             <div class="stat">
-                                <div class="stat-value">3.2</div>
-                                <div class="stat-label">Avg Score</div>
+                                <div class="stat-value">79.62</div>
+                                <div class="stat-label">Final Reward</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">357</div>
+                                <div class="stat-label">Min Episode</div>
                             </div>
                         </div>
                     </div>
                     <div class="model-video">
-                        <div class="placeholder">
-                            <i class="bi bi-play-circle"></i>
-                            <p>Replay: Algernon (Victory)</p>
-                        </div>
-                    </div>
+    <video autoplay loop muted playsinline>
+        <source src="visualization\assets\videos\Algernon.mp4" type="video/mp4">
+        Dein Browser unterstützt dieses Video nicht.
+    </video>
+</div>
                 </div>
             </div>
 
@@ -1551,32 +1647,35 @@
                 <h1>
                     <span class="prefix">EXPLORE</span>
                     <br>
-                    <span class="highlight" style="font-size: 2.5rem;">THE DATA</span>
+                    <span class="highlight" style="font-size: 2.8rem;">THE DATA</span>
                 </h1>
-                
+
                 <div class="separator"></div>
 
-                <p class="subtitle" style="margin-bottom: 60px;">
-                    Detaillierte Analysen, technische Dokumentation und <br>
-                    Live-Visualisierungen der Trainingsdaten.
+                <p class="subtitle" style="margin-bottom: 30px; font-size: 1.15rem;">
+                    Tauche tiefer ein in die Daten, Analysen und Live-Visualisierungen.<br>
+                    Entdecke, wie die Agenten lernen und sich entwickeln.
                 </p>
 
                 <div class="nav-links">
                     <a href="dokumentation.html" class="nav-link-card">
+                        <div class="card-icon"><i class="bi bi-file-text"></i></div>
                         <h3>Dokumentation</h3>
-                        <p>Technische Details & Architektur</p>
+                        <p>Technische Details, Architektur und vollständige Spielregeln</p>
                         <span class="arrow">&rarr;</span>
                     </a>
-                    
-                    <a href="visualization/index.html" class="nav-link-card" style="border-color: var(--accent);">
-                        <h3 style="color: var(--accent);">Visualisierung</h3>
-                        <p>3D Replays im Browser</p>
+
+                    <a href="visualization/index.html" class="nav-link-card">
+                        <div class="card-icon"><i class="bi bi-controller"></i></div>
+                        <h3>Visualisierung</h3>
+                        <p>Interaktive 3D Replays der trainierten Agenten im Browser</p>
                         <span class="arrow">&rarr;</span>
                     </a>
-                    
+
                     <a href="kennzahlen.html" class="nav-link-card">
+                        <div class="card-icon"><i class="bi bi-graph-up"></i></div>
                         <h3>Kennzahlen</h3>
-                        <p>Metriken & Graphen</p>
+                        <p>Live-Metriken, Trainingskurven und Performance-Analysen</p>
                         <span class="arrow">&rarr;</span>
                     </a>
                 </div>
