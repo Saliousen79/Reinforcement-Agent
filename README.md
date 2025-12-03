@@ -170,6 +170,20 @@ The repository includes three models with different training durations and perfo
 | Explained Variance | 0.820 | 0.651 | **0.911** |
 | Training Time | 9.15h | 15.56h | **6.53h** |
 
+#### Understanding Charlie's Paradox
+
+Charlie presents an interesting phenomenon in RL: **high Explained Variance (0.820) despite zero reward improvement**.
+
+**What does this mean?**
+- The **Value Function (Critic)** successfully learned to predict state values with high consistency
+- The **Policy (Actor)** found no gradient for improvement due to extremely sparse rewards
+- The Critic learned that "all states are equally bad" - a correct but useless prediction
+
+**Why does this happen?**
+In sparse reward environments, the agent rarely encounters positive signals. The Value Function can achieve high Explained Variance by simply predicting low/zero returns consistently, while the Policy never receives actionable feedback to improve behavior.
+
+**Key Insight:** This demonstrates the critical importance of reward shaping balance - too little feedback leads to learning stagnation, even when the value network appears to be "learning" based on metrics alone.
+
 **All models are ready to play!** Simply start the server and view them in the 3D viewer.
 
 ## 🏋️ Training Your Own Models
@@ -208,14 +222,19 @@ tensorboard --logdir training/logs
 
 ## 🎯 Environment Details
 
-### Observation Space (22 values per agent)
+### Observation Space (31 values per agent)
 
-Each agent observes:
-- **Self**: position (x, y), has_flag, is_stunned, tackle_cooldown
-- **Teammate**: position (x, y), has_flag
-- **Opponents** (×2): position (x, y), has_flag
-- **Flags** (×2): position (x, y), at_base
-- **Score**: own_score, enemy_score
+Each agent receives a **31-dimensional feature vector** with ego-centric, relative observations:
+
+- **Self Info (5)**: normalized position (x, y), has_flag, is_stunned, tackle_cooldown
+- **Vector to Own Base (2)**: relative direction (dx, dy)
+- **Vector to Enemy Flag (2)**: relative direction to target
+- **Vector to Own Flag (2)**: relative direction to defend
+- **Teammate Info (4)**: relative position (dx, dy), has_flag, is_stunned
+- **Opponents Sorted by Distance (8)**: 2× (relative dx, dy, has_flag, is_stunned)
+- **Flag Status (2)**: enemy_flag_at_base, own_flag_at_base
+- **Map Boundaries (4)**: distance to walls (top, bottom, left, right)
+- **Scores (2)**: own_score, enemy_score (normalized)
 
 ### Action Space
 
@@ -226,23 +245,45 @@ Each agent observes:
 ### Game Mechanics
 
 1. **Objective**: Capture the enemy flag 3 times or have the highest score after 500 steps
-2. **Flag Carrier**: Moves 20% slower
-3. **Tackle**: Stuns enemies for 1.5s (Cooldown: 5s)
+2. **Flag Carrier**: Moves 30% slower (carrier_speed_penalty = 0.3)
+3. **Tackle**: Stuns enemies for ~1 second (20 steps @ 20 FPS, Cooldown: ~3.25s / 65 steps)
 4. **Safe Zone**: Protection in own base
 5. **Victory Condition**: First to 3 captures or highest score at timeout
 
-### Reward Structure
+### Reward Shaping Experiment
 
-| Action | Reward |
-|--------|--------|
-| Pick up flag | +5 |
-| Return own flag | +8 |
-| Stun enemy | +3 |
-| Stun flag carrier | +13 |
-| Capture flag | +50 |
-| Win game | +100 |
-| Lose game | -50 |
-| Time step | -0.01 |
+This project explores **three different reward profiles** to study the impact of reward shaping on learning behavior:
+
+#### 🟡 Sparse (Charlie)
+**Philosophy:** Reward only final outcomes
+- Capture: +100
+- Win/Lose: ±50
+- Everything else: 0
+
+**Result:** No measurable learning (Final Reward: 0.00)
+
+#### 🔴 Dense / Micromanager (Gordon)
+**Philosophy:** Reward almost every action
+- Capture: +50
+- Win/Lose: ±20
+- Flag Pickup: +10
+- Tackle (any): +3
+- Tackle Flag Carrier: +8
+- Flag Return: +5
+- Distance Shaping: +0.15 to +0.3 per step
+- Step Penalty: -0.01
+
+**Result:** Moderate performance (Final Reward: 51.60) but high variance
+
+#### 🟢 Balanced (Algernon) ✨ **Recommended**
+**Philosophy:** Reward only critical milestones
+- Capture: +100
+- Win/Lose: ±30
+- Tackle Flag Carrier: +8
+- Flag Return: +5
+- Distance Bonus: +0.1 per step (only for flag carriers)
+
+**Result:** Best performance (Final Reward: 79.62, Explained Variance: 0.911)
 
 ## ⚙️ Configuration
 
@@ -255,10 +296,10 @@ CaptureTheFlagEnv(
     grid_size=24,          # Grid dimensions
     max_steps=500,         # Episode length
     win_score=3,           # Captures to win
-    stun_duration=30,      # Steps stunned
-    tackle_cooldown=100,   # Steps between tackles
-    tackle_range=1.5,      # Tackle distance
-    carrier_speed_penalty=0.2  # Flag carrier slowdown
+    stun_duration=20,      # Steps stunned (~1s @ 20 FPS)
+    tackle_cooldown=65,    # Steps between tackles (~3.25s @ 20 FPS)
+    tackle_range=2.0,      # Tackle distance
+    carrier_speed_penalty=0.3  # Flag carrier slowdown (30%)
 )
 ```
 
