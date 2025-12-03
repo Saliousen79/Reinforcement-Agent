@@ -8,35 +8,7 @@ SPIELREGELN (Klassisches CTF):
 3. Tackle Gegner um sie zu stoppen und Flaggen zu droppen
 4. Verteidige deine Flagge und bringe sie zurück wenn gestohlen
 
-═══════════════════════════════════════════════════════════════════
-REWARD EXPERIMENT: 3 VERSCHIEDENE PROFILE
-═══════════════════════════════════════════════════════════════════
-
-MICROMANAGER (Heavy Shaping):
-  • CAPTURE:              +50.0
-  • WIN/LOSE:             ±20.0
-  • FLAG_PICKUP:          +10.0    (Jede Aufnahme)
-  • DISTANCE_TO_FLAG:     +0.2     (Alle Agenten)
-  • CARRIER_DISTANCE:     +0.3     (Richtung Base)
-  • TACKLE_ANY:           +3.0     (Jeder Tackle)
-  • TACKLE_FLAG_CARRIER:  +8.0
-  • FLAG_RETURN:          +5.0
-  • DISTANCE_TO_CARRIER:  +0.15    (Flaggenträger jagen)
-  • STEP_PENALTY:         -0.01    (Anti-Idle)
-
-SPARSE (Minimalist):
-  • CAPTURE:              +100.0
-  • WIN/LOSE:             ±50.0
-  • Sonst: NICHTS
-
-BALANCED (Current Best):
-  • CAPTURE:              +100.0
-  • WIN/LOSE:             ±30.0
-  • CARRIER_DISTANCE:     +0.1     (Nur Carrier)
-  • TACKLE_FLAG_CARRIER:  +8.0
-  • FLAG_RETURN:          +5.0
-
-═══════════════════════════════════════════════════════════════════
+WICHTIG: Alle Konfigurationswerte (Rewards, Walls, etc.) werden aus config.py importiert!
 """
 
 import numpy as np
@@ -45,50 +17,8 @@ from pettingzoo import ParallelEnv
 from typing import Dict, Optional, List
 import functools
 
-
-# ========== REWARD PROFILES ==========
-
-REWARD_PROFILES = {
-    "micromanager": {
-        "CAPTURE": 50.0,
-        "WIN": 20.0,
-        "LOSE": -20.0,
-        "FLAG_PICKUP": 10.0,
-        "DISTANCE_TO_FLAG": 0.2,
-        "CARRIER_DISTANCE": 0.3,
-        "TACKLE_ANY": 3.0,
-        "TACKLE_FLAG_CARRIER": 8.0,
-        "FLAG_RETURN": 5.0,
-        "DISTANCE_TO_CARRIER": 0.15,
-        "STEP_PENALTY": -0.01,
-    },
-    "sparse": {
-        "CAPTURE": 100.0,
-        "WIN": 50.0,
-        "LOSE": -50.0,
-        "FLAG_PICKUP": 0.0,
-        "DISTANCE_TO_FLAG": 0.0,
-        "CARRIER_DISTANCE": 0.0,
-        "TACKLE_ANY": 0.0,
-        "TACKLE_FLAG_CARRIER": 0.0,
-        "FLAG_RETURN": 0.0,
-        "DISTANCE_TO_CARRIER": 0.0,
-        "STEP_PENALTY": 0.0,
-    },
-    "balanced": {
-        "CAPTURE": 100.0,
-        "WIN": 30.0,
-        "LOSE": -30.0,
-        "FLAG_PICKUP": 0.0,
-        "DISTANCE_TO_FLAG": 0.0,
-        "CARRIER_DISTANCE": 0.1,
-        "TACKLE_ANY": 0.0,
-        "TACKLE_FLAG_CARRIER": 8.0,
-        "FLAG_RETURN": 5.0,
-        "DISTANCE_TO_CARRIER": 0.0,
-        "STEP_PENALTY": 0.0,
-    },
-}
+# Import configuration from central config file (Single Source of Truth!)
+from config import REWARD_PROFILES, WALLS
 
 
 class CaptureTheFlagEnv(ParallelEnv):
@@ -135,25 +65,8 @@ class CaptureTheFlagEnv(ParallelEnv):
         self.reward_profile = REWARD_PROFILES[reward_profile]
         self.reward_profile_name = reward_profile
 
-        # Statische Wände (Rechtecke) blockieren direkte Wege
-        # Layout: "Die Arena" - Taktische Map mit Deckung und Flanken-Möglichkeiten
-        self.walls = [
-            # --- ZENTRUM (Sichtschutz) ---
-            # Vier Säulen, die einen "Platz" in der Mitte bilden
-            {"x_min": 10, "x_max": 11, "y_min": 10, "y_max": 11},
-            {"x_min": 13, "x_max": 14, "y_min": 10, "y_max": 11},
-            {"x_min": 10, "x_max": 11, "y_min": 13, "y_max": 14},
-            {"x_min": 13, "x_max": 14, "y_min": 13, "y_max": 14},
-
-            # --- BLUE DEFENSE (Links) ---
-            # Ein "Bunker" oben und unten zum Verstecken
-            {"x_min": 5, "x_max": 7, "y_min": 4, "y_max": 5},   # Unten
-            {"x_min": 5, "x_max": 7, "y_min": 19, "y_max": 20}, # Oben
-
-            # --- RED DEFENSE (Rechts - Gespiegelt) ---
-            {"x_min": 17, "x_max": 19, "y_min": 4, "y_max": 5},   # Unten
-            {"x_min": 17, "x_max": 19, "y_min": 19, "y_max": 20}, # Oben
-        ]
+        # Wände (importiert aus config.py - Single Source of Truth!)
+        self.walls = WALLS
 
         # Teams
         self.blue_agents = ["blue_0", "blue_1"]

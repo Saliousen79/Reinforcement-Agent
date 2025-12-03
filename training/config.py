@@ -17,64 +17,82 @@ ENV_CONFIG = {
     "carrier_speed_penalty": 0.3,  # Flaggenträger 30% langsamer
 }
 
+# Wände (Map Layout) - Single Source of Truth für Python & JavaScript
+WALLS = [
+    # --- ZENTRUM (Sichtschutz) ---
+    {"x_min": 10, "x_max": 11, "y_min": 10, "y_max": 11},
+    {"x_min": 13, "x_max": 14, "y_min": 10, "y_max": 11},
+    {"x_min": 10, "x_max": 11, "y_min": 13, "y_max": 14},
+    {"x_min": 13, "x_max": 14, "y_min": 13, "y_max": 14},
+    # --- BLUE DEFENSE (Links) ---
+    {"x_min": 5, "x_max": 7, "y_min": 4, "y_max": 5},
+    {"x_min": 5, "x_max": 7, "y_min": 19, "y_max": 20},
+    # --- RED DEFENSE (Rechts) ---
+    {"x_min": 17, "x_max": 19, "y_min": 4, "y_max": 5},
+    {"x_min": 17, "x_max": 19, "y_min": 19, "y_max": 20},
+]
+
 # ========== REWARD PROFILES ==========
+# Diese Struktur wird direkt von environment.py verwendet!
 
 REWARD_PROFILES = {
+    "sparse": {
+        "CAPTURE": 100.0,
+        "WIN": 50.0,
+        "LOSE": -50.0,
+        "FLAG_PICKUP": 0.0,
+        "DISTANCE_TO_FLAG": 0.0,
+        "CARRIER_DISTANCE": 0.0,
+        "TACKLE_ANY": 0.0,
+        "TACKLE_FLAG_CARRIER": 0.0,
+        "FLAG_RETURN": 0.0,
+        "DISTANCE_TO_CARRIER": 0.0,
+        "STEP_PENALTY": 0.0,
+    },
+    "micromanager": {
+        "CAPTURE": 50.0,
+        "WIN": 20.0,
+        "LOSE": -20.0,
+        "FLAG_PICKUP": 10.0,
+        "DISTANCE_TO_FLAG": 0.2,
+        "CARRIER_DISTANCE": 0.3,
+        "TACKLE_ANY": 3.0,
+        "TACKLE_FLAG_CARRIER": 8.0,
+        "FLAG_RETURN": 5.0,
+        "DISTANCE_TO_CARRIER": 0.15,
+        "STEP_PENALTY": -0.01,
+    },
+    "balanced": {
+        "CAPTURE": 100.0,
+        "WIN": 30.0,
+        "LOSE": -30.0,
+        "FLAG_PICKUP": 0.0,
+        "DISTANCE_TO_FLAG": 0.0,
+        "CARRIER_DISTANCE": 0.1,
+        "TACKLE_ANY": 0.0,
+        "TACKLE_FLAG_CARRIER": 8.0,
+        "FLAG_RETURN": 5.0,
+        "DISTANCE_TO_CARRIER": 0.0,
+        "STEP_PENALTY": 0.0,
+    },
+}
+
+# Metadaten für Dokumentation und Dashboard
+REWARD_PROFILE_META = {
     "sparse": {
         "description": "Minimalist - Nur finale Ergebnisse zählen",
         "philosophy": "Reward only final outcomes",
         "agent": "Charlie",
-        "rewards": {
-            "CAPTURE": 100.0,
-            "WIN": 50.0,
-            "LOSE": -50.0,
-            "FLAG_PICKUP": 0.0,
-            "DISTANCE_TO_FLAG": 0.0,
-            "CARRIER_DISTANCE": 0.0,
-            "TACKLE_ANY": 0.0,
-            "TACKLE_FLAG_CARRIER": 0.0,
-            "FLAG_RETURN": 0.0,
-            "DISTANCE_TO_CARRIER": 0.0,
-            "STEP_PENALTY": 0.0,
-        }
     },
-
     "micromanager": {
         "description": "Dense - Kontinuierliches Feedback für fast alles",
         "philosophy": "Reward almost every action",
         "agent": "Gordon",
-        "rewards": {
-            "CAPTURE": 50.0,
-            "WIN": 20.0,
-            "LOSE": -20.0,
-            "FLAG_PICKUP": 10.0,
-            "DISTANCE_TO_FLAG": 0.2,
-            "CARRIER_DISTANCE": 0.3,
-            "TACKLE_ANY": 3.0,
-            "TACKLE_FLAG_CARRIER": 8.0,
-            "FLAG_RETURN": 5.0,
-            "DISTANCE_TO_CARRIER": 0.15,
-            "STEP_PENALTY": -0.01,
-        }
     },
-
     "balanced": {
         "description": "Balanced - Selektive Belohnung kritischer Meilensteine",
         "philosophy": "Reward only critical milestones",
         "agent": "Algernon",
-        "rewards": {
-            "CAPTURE": 100.0,
-            "WIN": 30.0,
-            "LOSE": -30.0,
-            "FLAG_PICKUP": 0.0,
-            "DISTANCE_TO_FLAG": 0.0,
-            "CARRIER_DISTANCE": 0.1,  # Nur für Flaggenträger
-            "TACKLE_ANY": 0.0,
-            "TACKLE_FLAG_CARRIER": 8.0,
-            "FLAG_RETURN": 5.0,
-            "DISTANCE_TO_CARRIER": 0.0,
-            "STEP_PENALTY": 0.0,
-        }
     },
 }
 
@@ -210,7 +228,7 @@ def get_reward_profile(profile_name: str) -> dict:
     """
     if profile_name not in REWARD_PROFILES:
         raise ValueError(f"Unknown reward profile: {profile_name}. Available: {list(REWARD_PROFILES.keys())}")
-    return REWARD_PROFILES[profile_name]["rewards"]
+    return REWARD_PROFILES[profile_name]
 
 
 def print_config_summary():
@@ -223,16 +241,20 @@ def print_config_summary():
     for key, value in ENV_CONFIG.items():
         print(f"  {key:25s}: {value}")
 
+    print(f"\n[WALLS]")
+    print(f"  Total: {len(WALLS)} wall sections")
+
     print("\n[PPO HYPERPARAMETERS]")
     for key, value in PPO_CONFIG.items():
         print(f"  {key:25s}: {value}")
 
     print("\n[REWARD PROFILES]")
     for profile_name, profile_data in REWARD_PROFILES.items():
-        print(f"\n  {profile_name.upper()} ({profile_data['agent']}):")
-        print(f"    {profile_data['description']}")
-        print(f"    Capture: {profile_data['rewards']['CAPTURE']}")
-        print(f"    Win/Lose: ±{profile_data['rewards']['WIN']}")
+        meta = REWARD_PROFILE_META[profile_name]
+        print(f"\n  {profile_name.upper()} ({meta['agent']}):")
+        print(f"    {meta['description']}")
+        print(f"    Capture: {profile_data['CAPTURE']}")
+        print(f"    Win/Lose: ±{profile_data['WIN']}/{profile_data['LOSE']}")
 
     print("\n[TRAINED MODELS]")
     for model_name, metadata in MODELS_METADATA.items():

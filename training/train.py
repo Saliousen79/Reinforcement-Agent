@@ -1,5 +1,7 @@
 """
 PPO Training für Capture the Flag.
+
+WICHTIG: Alle Konfigurationswerte werden aus config.py importiert (Single Source of Truth!)
 """
 
 import os
@@ -13,6 +15,7 @@ from stable_baselines3.common.vec_env import VecMonitor
 from supersuit import pettingzoo_env_to_vec_env_v1, concat_vec_envs_v1
 
 from environment import CaptureTheFlagEnv
+from config import ENV_CONFIG, PPO_CONFIG, POLICY_KWARGS, TRAINING_CONFIG
 
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = BASE_DIR.parent
@@ -144,11 +147,15 @@ class BestGameCallback(BaseCallback):
 
 
 def make_env(reward_profile: str = "balanced"):
-    """Environment Factory."""
+    """Environment Factory - Uses ENV_CONFIG from config.py."""
     return CaptureTheFlagEnv(
-        grid_size=24,
-        max_steps=500,
-        win_score=3,
+        grid_size=ENV_CONFIG["grid_size"],
+        max_steps=ENV_CONFIG["max_steps"],
+        win_score=ENV_CONFIG["win_score"],
+        stun_duration=ENV_CONFIG["stun_duration"],
+        tackle_cooldown=ENV_CONFIG["tackle_cooldown"],
+        tackle_range=ENV_CONFIG["tackle_range"],
+        carrier_speed_penalty=ENV_CONFIG["carrier_speed_penalty"],
         reward_profile=reward_profile,
     )
 
@@ -197,18 +204,28 @@ def create_replay(model_path: str, output_dir: str | Path = None, seed: int = 42
 
 
 def train(
-    total_timesteps: int = 100_000_000,  # 100M für Portfolio-Experimente
-    n_envs: int = 8,                     # Mehr parallele Envs für schnelleres Training
-    learning_rate: float = 3e-4,
-    save_freq: int = 10_000_000,         # Checkpoint alle 10M Steps (→ 10M, 20M, ..., 100M)
+    total_timesteps: int = None,         # Default from TRAINING_CONFIG
+    n_envs: int = None,                  # Default from TRAINING_CONFIG
+    learning_rate: float = None,         # Default from PPO_CONFIG
+    save_freq: int = None,               # Default from TRAINING_CONFIG
     log_dir: str | Path = DEFAULT_LOG_DIR,
     model_dir: str | Path = DEFAULT_MODEL_DIR,
     load_path: str = None,
     run_name: str = None,
-    cleanup_checkpoints: bool = False,   # NICHT löschen - wir brauchen alle für Replays
+    cleanup_checkpoints: bool = False,
     reward_profile: str = "balanced",    # "micromanager", "sparse", or "balanced"
 ):
-    """Training starten."""
+    """Training starten - verwendet Defaults aus config.py."""
+    # Apply defaults from config.py if not specified
+    if total_timesteps is None:
+        total_timesteps = TRAINING_CONFIG["total_timesteps"]
+    if n_envs is None:
+        n_envs = TRAINING_CONFIG["n_envs"]
+    if learning_rate is None:
+        learning_rate = PPO_CONFIG["learning_rate"]
+    if save_freq is None:
+        save_freq = TRAINING_CONFIG["save_freq"]
+
     log_dir = Path(log_dir)
     model_dir = Path(model_dir)
     tensorboard_dir = DEFAULT_TENSORBOARD_DIR
@@ -227,6 +244,7 @@ def train(
     print("=" * 50)
     print(f"Timesteps: {total_timesteps:,} | Parallel Envs: {n_envs}")
     print(f"Checkpoints: Every {save_freq:,} steps (cleanup={cleanup_checkpoints})")
+    print(f"Config Source: config.py (Single Source of Truth)")
 
     # Environment
     env = make_env(reward_profile=reward_profile)
@@ -270,21 +288,29 @@ def train(
         reset_timesteps = False
     else:
         print("\n✨ Erstelle neues Modell (Training von Null)")
+        print("   Using hyperparameters from config.py:")
+        print(f"   - Learning Rate: {PPO_CONFIG['learning_rate']}")
+        print(f"   - Batch Size: {PPO_CONFIG['batch_size']}")
+        print(f"   - Network: {POLICY_KWARGS['net_arch']}")
+
         model = PPO(
-            policy="MlpPolicy",
+            policy=PPO_CONFIG["policy"],
             env=vec_env,
-            device="cpu",
-            learning_rate=learning_rate,
-            n_steps=2048,        # Schritte pro Update pro Env
-            batch_size=512,      # Größere Batch Size für stabilere Gradients
-            n_epochs=10,
-            gamma=0.99,
-            gae_lambda=0.95,
-            clip_range=0.2,
-            ent_coef=0.03,       # Exploration erzwingen
-            verbose=1,
+            device=PPO_CONFIG["device"],
+            learning_rate=learning_rate,  # Kann überschrieben werden
+            n_steps=PPO_CONFIG["n_steps"],
+            batch_size=PPO_CONFIG["batch_size"],
+            n_epochs=PPO_CONFIG["n_epochs"],
+            gamma=PPO_CONFIG["gamma"],
+            gae_lambda=PPO_CONFIG["gae_lambda"],
+            clip_range=PPO_CONFIG["clip_range"],
+            clip_range_vf=PPO_CONFIG["clip_range_vf"],
+            max_grad_norm=PPO_CONFIG["max_grad_norm"],
+            vf_coef=PPO_CONFIG["vf_coef"],
+            ent_coef=PPO_CONFIG["ent_coef"],
+            verbose=PPO_CONFIG["verbose"],
             tensorboard_log=str(tensorboard_dir),
-            policy_kwargs=dict(net_arch=[512, 512])  # Größeres Netzwerk für komplexere Observations
+            policy_kwargs=POLICY_KWARGS
         )
         reset_timesteps = True
 
@@ -347,14 +373,24 @@ def train(
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--timesteps", type=int, default=100_000_000, help="Total timesteps (default: 100M)")
-    parser.add_argument("--envs", type=int, default=8, help="Parallel environments")
-    parser.add_argument("--load", type=str, default=None, help="Pfad zum Laden (.zip)")
-    parser.add_argument("--name", type=str, default=None, help="Name des Agenten (z.B. 'Micromanager')")
+    parser = argparse.ArgumentParser(description="Train CTF agents with PPO (config from config.py)")
+    parser.add_argument("--timesteps", type=int, default=None,
+                        help=f"Total timesteps (default from config.py: {TRAINING_CONFIG['total_timesteps']:,})")
+    parser.add_argument("--envs", type=int, default=None,
+                        help=f"Parallel environments (default from config.py: {TRAINING_CONFIG['n_envs']})")
+    parser.add_argument("--load", type=str, default=None, help="Path to model to continue training (.zip)")
+    parser.add_argument("--name", type=str, default=None, help="Agent name (e.g. 'Algernon_v2')")
     parser.add_argument("--profile", type=str, default="balanced", choices=["micromanager", "sparse", "balanced"],
-                        help="Reward profile: micromanager (heavy shaping), sparse (minimal), balanced (current)")
+                        help="Reward profile: micromanager (dense), sparse (minimal), balanced (recommended)")
     args = parser.parse_args()
+
+    print("\n🎮 Starting CTF Training with config.py defaults")
+    print(f"   Reward Profile: {args.profile}")
+    if args.timesteps:
+        print(f"   Custom Timesteps: {args.timesteps:,}")
+    if args.envs:
+        print(f"   Custom Envs: {args.envs}")
+    print()
 
     train(
         total_timesteps=args.timesteps,

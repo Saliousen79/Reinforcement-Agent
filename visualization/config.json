@@ -1,0 +1,123 @@
+{
+  "environment": {
+    "grid_size": 24,
+    "max_steps": 500,
+    "win_score": 3,
+    "stun_duration": 20,
+    "tackle_cooldown": 65,
+    "tackle_range": 2.0,
+    "carrier_speed_penalty": 0.3
+  },
+  "walls": [
+    {
+      "x_min": 10,
+      "x_max": 11,
+      "y_min": 10,
+      "y_max": 11
+    },
+    {
+      "x_min": 13,
+      "x_max": 14,
+      "y_min": 10,
+      "y_max": 11
+    },
+    {
+      "x_min": 10,
+      "x_max": 11,
+      "y_min": 13,
+      "y_max": 14
+    },
+    {
+      "x_min": 13,
+      "x_max": 14,
+      "y_min": 13,
+      "y_max": 14
+    },
+    {
+      "x_min": 5,
+      "x_max": 7,
+      "y_min": 4,
+      "y_max": 5
+    },
+    {
+      "x_min": 5,
+      "x_max": 7,
+      "y_min": 19,
+      "y_max": 20
+    },
+    {
+      "x_min": 17,
+      "x_max": 19,
+      "y_min": 4,
+      "y_max": 5
+    },
+    {
+      "x_min": 17,
+      "x_max": 19,
+      "y_min": 19,
+      "y_max": 20
+    }
+  ],
+  "reward_profiles": {
+    "sparse": {
+      "rewards": {
+        "CAPTURE": 100.0,
+        "WIN": 50.0,
+        "LOSE": -50.0,
+        "FLAG_PICKUP": 0.0,
+        "DISTANCE_TO_FLAG": 0.0,
+        "CARRIER_DISTANCE": 0.0,
+        "TACKLE_ANY": 0.0,
+        "TACKLE_FLAG_CARRIER": 0.0,
+        "FLAG_RETURN": 0.0,
+        "DISTANCE_TO_CARRIER": 0.0,
+        "STEP_PENALTY": 0.0
+      },
+      "meta": {
+        "description": "Minimalist - Nur finale Ergebnisse zählen",
+        "philosophy": "Reward only final outcomes",
+        "agent": "Charlie"
+      }
+    },
+    "micromanager": {
+      "rewards": {
+        "CAPTURE": 50.0,
+        "WIN": 20.0,
+        "LOSE": -20.0,
+        "FLAG_PICKUP": 10.0,
+        "DISTANCE_TO_FLAG": 0.2,
+        "CARRIER_DISTANCE": 0.3,
+        "TACKLE_ANY": 3.0,
+        "TACKLE_FLAG_CARRIER": 8.0,
+        "FLAG_RETURN": 5.0,
+        "DISTANCE_TO_CARRIER": 0.15,
+        "STEP_PENALTY": -0.01
+      },
+      "meta": {
+        "description": "Dense - Kontinuierliches Feedback für fast alles",
+        "philosophy": "Reward almost every action",
+        "agent": "Gordon"
+      }
+    },
+    "balanced": {
+      "rewards": {
+        "CAPTURE": 100.0,
+        "WIN": 30.0,
+        "LOSE": -30.0,
+        "FLAG_PICKUP": 0.0,
+        "DISTANCE_TO_FLAG": 0.0,
+        "CARRIER_DISTANCE": 0.1,
+        "TACKLE_ANY": 0.0,
+        "TACKLE_FLAG_CARRIER": 8.0,
+        "FLAG_RETURN": 5.0,
+        "DISTANCE_TO_CARRIER": 0.0,
+        "STEP_PENALTY": 0.0
+      },
+      "meta": {
+        "description": "Balanced - Selektive Belohnung kritischer Meilensteine",
+        "philosophy": "Reward only critical milestones",
+        "agent": "Algernon"
+      }
+    }
+  }
+}
