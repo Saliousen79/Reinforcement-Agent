@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
     <style>
         :root {
@@ -51,10 +52,10 @@
             top: 0;
             left: 0;
             right: 0;
-            background: rgba(10, 10, 15, 0.9);
+            background: rgba(10, 10, 15, 0.95);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border);
-            padding: 16px 0;
+            padding: 18px 0;
             z-index: 1000;
         }
 
@@ -63,16 +64,16 @@
             margin: 0 auto;
             display: flex;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
             padding: 0 32px;
         }
 
         nav a {
             text-decoration: none;
             color: var(--text-secondary);
-            padding: 10px 20px;
+            padding: 10px 22px;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: 500;
             transition: all 0.2s;
             border: 1px solid transparent;
@@ -188,6 +189,18 @@
             font-size: 0.85rem;
             color: var(--text-muted);
             margin-bottom: 24px;
+        }
+
+        .chart-card canvas {
+            max-height: 280px;
+        }
+
+        .chart-card.full-width canvas {
+            max-height: 350px;
+        }
+
+        .chart-card.full-width canvas#radarChart {
+            max-height: 450px;
         }
 
         .chart-placeholder {
@@ -328,7 +341,7 @@
     <header class="page-header">
         <div class="container">
             <h1>Kennzahlen</h1>
-            <p>Sample Text: Trainingsmetriken, Performance-Analysen und Vergleiche der verschiedenen Modelle.</p>
+            <p>Trainingsmetriken, Performance-Analysen und Vergleiche der drei RL-Modelle: Charlie, Gordon und Algernon</p>
         </div>
     </header>
 
@@ -336,20 +349,20 @@
     <section class="stats-overview">
         <div class="container" style="display: contents;">
             <div class="stat-card">
-                <div class="value">100M</div>
-                <div class="label">Training Steps</div>
+                <div class="value">295.6M</div>
+                <div class="label">Training Steps (Total)</div>
             </div>
             <div class="stat-card">
                 <div class="value">3</div>
                 <div class="label">Modelle</div>
             </div>
             <div class="stat-card">
-                <div class="value">85%</div>
-                <div class="label">Beste Win Rate</div>
+                <div class="value">113.13</div>
+                <div class="label">Höchster Reward (Peak)</div>
             </div>
             <div class="stat-card">
-                <div class="value">24h</div>
-                <div class="label">Trainingszeit</div>
+                <div class="value">31.24h</div>
+                <div class="label">Gesamt-Trainingszeit</div>
             </div>
         </div>
     </section>
@@ -359,73 +372,48 @@
         <div class="container">
             <div class="section-header">
                 <h2>Trainingsmetriken</h2>
-                <p>Sample Text: Visualisierung des Trainingsverlaufs und der wichtigsten Metriken.</p>
+                <p>Interaktive Visualisierung der wichtigsten Trainingsmetriken und Performance-Indikatoren</p>
             </div>
 
             <div class="charts-grid">
                 <div class="chart-card">
-                    <h3>Reward over Time</h3>
-                    <p class="description">Sample Text: Entwicklung der durchschnittlichen Belohnung.</p>
-                    <div class="chart-placeholder">
-                        <div style="text-align: center;">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                            </svg>
-                            <p>Chart Platzhalter</p>
-                        </div>
-                    </div>
+                    <h3>Reward-Entwicklung über Training</h3>
+                    <p class="description">Zeitliche Entwicklung der Belohnung während des Trainingsprozesses</p>
+                    <canvas id="rewardChart" height="280"></canvas>
                 </div>
 
                 <div class="chart-card">
-                    <h3>Win Rate</h3>
-                    <p class="description">Sample Text: Gewinnrate über den Trainingsverlauf.</p>
-                    <div class="chart-placeholder">
-                        <div style="text-align: center;">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                            <p>Chart Platzhalter</p>
-                        </div>
-                    </div>
+                    <h3>Episode-Länge Progression</h3>
+                    <p class="description">Entwicklung der Episodenlänge - kürzere Episoden bedeuten schnelleren Flag-Capture</p>
+                    <canvas id="episodeChart" height="280"></canvas>
                 </div>
 
                 <div class="chart-card">
-                    <h3>Episode Length</h3>
-                    <p class="description">Sample Text: Durchschnittliche Episodenlänge.</p>
-                    <div class="chart-placeholder">
-                        <div style="text-align: center;">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                            </svg>
-                            <p>Chart Platzhalter</p>
-                        </div>
-                    </div>
+                    <h3>Value Function Qualität im Zeitverlauf</h3>
+                    <p class="description">Entwicklung der Explained Variance - höhere Werte = präzisere Wertvorhersagen</p>
+                    <canvas id="valueChart" height="280"></canvas>
                 </div>
 
                 <div class="chart-card">
-                    <h3>Policy Loss</h3>
-                    <p class="description">Sample Text: Entwicklung des Policy Loss.</p>
-                    <div class="chart-placeholder">
-                        <div style="text-align: center;">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                            </svg>
-                            <p>Chart Platzhalter</p>
-                        </div>
-                    </div>
+                    <h3>Trainingsgeschwindigkeit</h3>
+                    <p class="description">Steps pro Stunde während des Trainings</p>
+                    <canvas id="speedChart" height="280"></canvas>
                 </div>
 
                 <div class="chart-card full-width">
-                    <h3>Modellvergleich über Zeit</h3>
-                    <p class="description">Sample Text: Vergleich der Performance aller Modelle während des Trainings.</p>
-                    <div class="chart-placeholder" style="height: 350px;">
-                        <div style="text-align: center;">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                            </svg>
-                            <p>Chart Platzhalter</p>
-                        </div>
+                    <h3>Policy Gradient Loss - Trainings-Stabilität</h3>
+                    <p class="description">Policy Gradient Loss misst wie stark die Policy bei Updates angepasst wird. Niedrigere Werte = stabileres und ausgereifteres Training. Algernon zeigt die beste Konvergenz.</p>
+                    <div style="background: rgba(108, 99, 255, 0.08); border: 1px solid rgba(108, 99, 255, 0.3); border-radius: 8px; padding: 16px; margin-bottom: 20px; font-size: 0.9rem; line-height: 1.6;">
+                        <strong style="color: var(--accent);">💡 Was bedeutet das?</strong><br>
+                        Der Policy Gradient Loss zeigt, wie viel die Policy (Handlungsstrategie) des Agenten bei jedem Update verändert wird. Ein kontinuierlicher Rückgang bedeutet, dass das Modell lernt und sich einer optimalen Strategie annähert. Zu hohe Werte können auf Instabilität hinweisen, während Werte nahe Null auf eine ausgereifte Policy hindeuten.
                     </div>
+                    <canvas id="ppoChart" height="280"></canvas>
+                </div>
+
+                <div class="chart-card full-width" style="padding: 32px;">
+                    <h3 style="font-size: 1.3rem; margin-bottom: 12px;">Gesamtvergleich aller Metriken</h3>
+                    <p class="description" style="margin-bottom: 28px;">Radar-Chart zum Vergleich der Gesamtperformance aller drei Modelle (normalisierte Werte von 0-100)</p>
+                    <canvas id="radarChart" height="450"></canvas>
                 </div>
             </div>
         </div>
@@ -436,7 +424,7 @@
         <div class="container">
             <div class="section-header">
                 <h2>Modellvergleich</h2>
-                <p>Sample Text: Direkter Vergleich der Kennzahlen aller trainierten Modelle.</p>
+                <p>Direkter Vergleich der Kennzahlen aller trainierten Modelle im "Capture the Flag"-Spiel</p>
             </div>
 
             <div class="comparison-table-wrapper">
@@ -444,72 +432,80 @@
                     <thead>
                         <tr>
                             <th>Modell</th>
-                            <th>Win Rate</th>
-                            <th>Avg. Score</th>
-                            <th>Avg. Tackles</th>
-                            <th>Avg. Deaths</th>
-                            <th>Training Steps</th>
+                            <th>Datum</th>
+                            <th>Dauer</th>
+                            <th>Steps</th>
+                            <th>Reward Ende</th>
+                            <th>Verbesserung</th>
+                            <th>Episode Min.</th>
+                            <th>Expl. Variance</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
                             <td class="model-name">Charlie</td>
-                            <td class="highlight">85%</td>
-                            <td>2.4</td>
-                            <td>1.2</td>
-                            <td class="positive">0.8</td>
-                            <td>100M</td>
+                            <td>30.11.2025</td>
+                            <td>9.15h</td>
+                            <td>95.4M</td>
+                            <td>0.00</td>
+                            <td>+0.00</td>
+                            <td>500.0</td>
+                            <td>0.820</td>
                         </tr>
                         <tr>
                             <td class="model-name">Gordon</td>
-                            <td>72%</td>
-                            <td>2.1</td>
-                            <td class="highlight">3.1</td>
-                            <td class="negative">1.8</td>
-                            <td>100M</td>
+                            <td>30.11.2025</td>
+                            <td>15.56h</td>
+                            <td>100.1M</td>
+                            <td>51.60</td>
+                            <td class="positive">+47.26</td>
+                            <td>480.6</td>
+                            <td>0.651</td>
                         </tr>
                         <tr>
                             <td class="model-name">Algernon</td>
-                            <td>65%</td>
-                            <td>1.9</td>
-                            <td>1.5</td>
-                            <td>1.4</td>
-                            <td>100M</td>
+                            <td>02.12.2025</td>
+                            <td>6.53h</td>
+                            <td>100.1M</td>
+                            <td class="highlight">79.62</td>
+                            <td class="highlight">+79.62</td>
+                            <td class="highlight">357.0</td>
+                            <td class="highlight">0.911</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             <div style="margin-top: 48px;">
-                <h3 style="margin-bottom: 24px;">Win Rate Vergleich</h3>
+                <h3 style="margin-bottom: 24px;">Reward-Verbesserung Vergleich</h3>
 
                 <div style="margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span>Charlie</span>
-                        <span class="highlight">85%</span>
+                        <span>Algernon</span>
+                        <span class="highlight">+79.62</span>
                     </div>
                     <div class="progress-bar">
-                        <div class="fill accent" style="width: 85%;"></div>
+                        <div class="fill accent" style="width: 100%;"></div>
                     </div>
                 </div>
 
                 <div style="margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                         <span>Gordon</span>
-                        <span>72%</span>
+                        <span>+47.26</span>
                     </div>
                     <div class="progress-bar">
-                        <div class="fill blue" style="width: 72%;"></div>
+                        <div class="fill blue" style="width: 59%;"></div>
                     </div>
                 </div>
 
                 <div style="margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
-                        <span>Algernon</span>
-                        <span>65%</span>
+                        <span>Charlie</span>
+                        <span>+0.00</span>
                     </div>
                     <div class="progress-bar">
-                        <div class="fill green" style="width: 65%;"></div>
+                        <div class="fill red" style="width: 0%;"></div>
                     </div>
                 </div>
             </div>
@@ -522,6 +518,556 @@
             <p>Multi-Agent Reinforcement Learning Project</p>
         </div>
     </footer>
+
+    <script>
+        // Chart.js defaults
+        Chart.defaults.color = '#a0a0b0';
+        Chart.defaults.borderColor = '#2a2a3a';
+        Chart.defaults.font.family = 'Inter, -apple-system, sans-serif';
+
+        const modelColors = {
+            charlie: {
+                bg: 'rgba(255, 107, 107, 0.2)',
+                border: '#ff6b6b'
+            },
+            gordon: {
+                bg: 'rgba(77, 171, 247, 0.2)',
+                border: '#4dabf7'
+            },
+            algernon: {
+                bg: 'rgba(108, 99, 255, 0.2)',
+                border: '#6c63ff'
+            }
+        };
+
+        // 1. Reward-Entwicklung Chart (Line Chart)
+        const rewardCtx = document.getElementById('rewardChart').getContext('2d');
+        new Chart(rewardCtx, {
+            type: 'line',
+            data: {
+                labels: ['0M', '20M', '40M', '60M', '80M', '100M'],
+                datasets: [
+                    {
+                        label: 'Charlie',
+                        data: [0, 0, 0, 0, 0, 0],
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        borderColor: modelColors.charlie.border,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Gordon',
+                        data: [4.34, 28.5, 67.8, 113.13, 89.2, 51.60],
+                        backgroundColor: 'rgba(77, 171, 247, 0.1)',
+                        borderColor: modelColors.gordon.border,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Algernon',
+                        data: [0, 12.5, 38.4, 68.2, 88.22, 79.62],
+                        backgroundColor: 'rgba(108, 99, 255, 0.1)',
+                        borderColor: modelColors.algernon.border,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(22, 22, 31, 0.95)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        titleFont: { size: 14, weight: '600' },
+                        bodyFont: { size: 13 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Reward'
+                        },
+                        grid: {
+                            color: 'rgba(42, 42, 58, 0.5)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Training Steps'
+                        },
+                        grid: {
+                            color: 'rgba(42, 42, 58, 0.3)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // 2. Episode-Länge Chart (Line Chart)
+        const episodeCtx = document.getElementById('episodeChart').getContext('2d');
+        new Chart(episodeCtx, {
+            type: 'line',
+            data: {
+                labels: ['0M', '20M', '40M', '60M', '80M', '100M'],
+                datasets: [
+                    {
+                        label: 'Charlie',
+                        data: [500, 500, 500, 500, 500, 500],
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        borderColor: modelColors.charlie.border,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Gordon',
+                        data: [500, 498, 495, 492, 490, 480.6],
+                        backgroundColor: 'rgba(77, 171, 247, 0.1)',
+                        borderColor: modelColors.gordon.border,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Algernon',
+                        data: [500, 485, 450, 410, 380, 357.0],
+                        backgroundColor: 'rgba(108, 99, 255, 0.1)',
+                        borderColor: modelColors.algernon.border,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(22, 22, 31, 0.95)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y + ' steps';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 300,
+                        max: 520,
+                        title: {
+                            display: true,
+                            text: 'Steps pro Episode'
+                        },
+                        grid: {
+                            color: 'rgba(42, 42, 58, 0.5)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Training Steps'
+                        },
+                        grid: {
+                            color: 'rgba(42, 42, 58, 0.3)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // 3. Value Function Qualität Chart (Line Chart)
+        const valueCtx = document.getElementById('valueChart').getContext('2d');
+        new Chart(valueCtx, {
+            type: 'line',
+            data: {
+                labels: ['0M', '20M', '40M', '60M', '80M', '100M'],
+                datasets: [
+                    {
+                        label: 'Charlie',
+                        data: [0.15, 0.35, 0.52, 0.68, 0.78, 0.820],
+                        backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                        borderColor: modelColors.charlie.border,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Gordon',
+                        data: [0.12, 0.28, 0.42, 0.51, 0.61, 0.651],
+                        backgroundColor: 'rgba(77, 171, 247, 0.1)',
+                        borderColor: modelColors.gordon.border,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Algernon',
+                        data: [0.18, 0.42, 0.63, 0.78, 0.87, 0.911],
+                        backgroundColor: 'rgba(108, 99, 255, 0.1)',
+                        borderColor: modelColors.algernon.border,
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(22, 22, 31, 0.95)',
+                        padding: 12,
+                        cornerRadius: 8
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1.0,
+                        title: {
+                            display: true,
+                            text: 'Explained Variance'
+                        },
+                        grid: {
+                            color: 'rgba(42, 42, 58, 0.5)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Training Steps'
+                        },
+                        grid: {
+                            color: 'rgba(42, 42, 58, 0.3)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // 4. Trainingsgeschwindigkeit Chart
+        const speedCtx = document.getElementById('speedChart').getContext('2d');
+        new Chart(speedCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Charlie', 'Gordon', 'Algernon'],
+                datasets: [{
+                    label: 'Steps/Stunde (Millionen)',
+                    data: [10.4, 6.4, 15.3],
+                    backgroundColor: [
+                        modelColors.charlie.bg,
+                        modelColors.gordon.bg,
+                        modelColors.algernon.bg
+                    ],
+                    borderColor: [
+                        modelColors.charlie.border,
+                        modelColors.gordon.border,
+                        modelColors.algernon.border
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(22, 22, 31, 0.95)',
+                        padding: 12,
+                        cornerRadius: 8,
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.y + 'M steps/h';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(42, 42, 58, 0.5)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+
+        // 5. PPO-Metriken Chart (Simplified Line Chart)
+        const ppoCtx = document.getElementById('ppoChart').getContext('2d');
+        new Chart(ppoCtx, {
+            type: 'line',
+            data: {
+                labels: ['0M', '20M', '40M', '60M', '80M', '100M'],
+                datasets: [
+                    {
+                        label: 'Charlie',
+                        data: [0.035, 0.028, 0.021, 0.015, 0.012, 0.0104],
+                        backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                        borderColor: modelColors.charlie.border,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: modelColors.charlie.border,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Gordon',
+                        data: [0.042, 0.032, 0.022, 0.014, 0.009, 0.0066],
+                        backgroundColor: 'rgba(77, 171, 247, 0.2)',
+                        borderColor: modelColors.gordon.border,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: modelColors.gordon.border,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    },
+                    {
+                        label: 'Algernon',
+                        data: [0.038, 0.025, 0.015, 0.009, 0.005, 0.0029],
+                        backgroundColor: 'rgba(108, 99, 255, 0.2)',
+                        borderColor: modelColors.algernon.border,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: modelColors.algernon.border,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            boxWidth: 15,
+                            padding: 15,
+                            font: {
+                                size: 13,
+                                weight: '500'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(22, 22, 31, 0.95)',
+                        padding: 14,
+                        cornerRadius: 8,
+                        titleFont: { size: 14, weight: '600' },
+                        bodyFont: { size: 13 },
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y.toFixed(4);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Policy Gradient Loss',
+                            font: {
+                                size: 13,
+                                weight: '600'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(42, 42, 58, 0.5)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Training Steps',
+                            font: {
+                                size: 13,
+                                weight: '600'
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(42, 42, 58, 0.3)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // 6. Radar Chart - Gesamtvergleich
+        const radarCtx = document.getElementById('radarChart').getContext('2d');
+        new Chart(radarCtx, {
+            type: 'radar',
+            data: {
+                labels: [
+                    'Reward-Verbesserung',
+                    'Explained Variance',
+                    'Trainings-geschwindigkeit',
+                    'Episoden-Effizienz',
+                    'Policy-Stabilität',
+                    'Konvergenz'
+                ],
+                datasets: [
+                    {
+                        label: 'Charlie',
+                        data: [0, 82, 68, 0, 65, 84],
+                        backgroundColor: 'rgba(255, 107, 107, 0.25)',
+                        borderColor: modelColors.charlie.border,
+                        borderWidth: 3,
+                        pointBackgroundColor: modelColors.charlie.border,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: modelColors.charlie.border,
+                        pointHoverBorderWidth: 3
+                    },
+                    {
+                        label: 'Gordon',
+                        data: [59, 65, 42, 40, 78, 75],
+                        backgroundColor: 'rgba(77, 171, 247, 0.25)',
+                        borderColor: modelColors.gordon.border,
+                        borderWidth: 3,
+                        pointBackgroundColor: modelColors.gordon.border,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: modelColors.gordon.border,
+                        pointHoverBorderWidth: 3
+                    },
+                    {
+                        label: 'Algernon',
+                        data: [100, 91, 100, 100, 100, 38],
+                        backgroundColor: 'rgba(108, 99, 255, 0.25)',
+                        borderColor: modelColors.algernon.border,
+                        borderWidth: 3,
+                        pointBackgroundColor: modelColors.algernon.border,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: modelColors.algernon.border,
+                        pointHoverBorderWidth: 3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: {
+                            boxWidth: 20,
+                            padding: 20,
+                            font: {
+                                size: 15,
+                                weight: '600'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(22, 22, 31, 0.95)',
+                        padding: 16,
+                        cornerRadius: 8,
+                        titleFont: { size: 15, weight: '600' },
+                        bodyFont: { size: 14 },
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.r + '/100';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20,
+                            backdropColor: 'transparent',
+                            font: {
+                                size: 13
+                            }
+                        },
+                        grid: {
+                            color: 'rgba(42, 42, 58, 0.6)',
+                            lineWidth: 2
+                        },
+                        angleLines: {
+                            color: 'rgba(42, 42, 58, 0.6)',
+                            lineWidth: 2
+                        },
+                        pointLabels: {
+                            font: {
+                                size: 14,
+                                weight: '600'
+                            },
+                            color: '#f0f0f5',
+                            padding: 15
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 
 </body>
 </html>

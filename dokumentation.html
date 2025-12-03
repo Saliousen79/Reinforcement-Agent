@@ -9,6 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+
     <style>
         :root {
             --bg-primary: #0a0a0f;
@@ -52,10 +54,10 @@
             top: 0;
             left: 0;
             right: 0;
-            background: rgba(10, 10, 15, 0.9);
+            background: rgba(10, 10, 15, 0.95);
             backdrop-filter: blur(12px);
             border-bottom: 1px solid var(--border);
-            padding: 16px 0;
+            padding: 18px 0;
             z-index: 1000;
         }
 
@@ -64,16 +66,16 @@
             margin: 0 auto;
             display: flex;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
             padding: 0 32px;
         }
 
         nav a {
             text-decoration: none;
             color: var(--text-secondary);
-            padding: 10px 20px;
+            padding: 10px 22px;
             border-radius: 8px;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: 500;
             transition: all 0.2s;
             border: 1px solid transparent;
@@ -126,6 +128,7 @@
             margin-bottom: 24px;
             padding-bottom: 12px;
             border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
         }
 
         .doc-section h3 {
@@ -151,6 +154,10 @@
             margin-bottom: 8px;
             line-height: 1.7;
         }
+        
+        .doc-section strong {
+            color: var(--text-primary);
+        }
 
         /* Video Embeds */
         .video-embed {
@@ -175,23 +182,7 @@
             width: 100%;
             height: 100%;
             border: 0;
-        }
-
-        .video-embed .video-placeholder {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            text-align: center;
-        }
-
-        .video-embed .video-placeholder svg {
-            width: 48px;
-            height: 48px;
-            margin-bottom: 12px;
-            opacity: 0.5;
+            object-fit: contain;
         }
 
         .video-embed .video-caption {
@@ -203,24 +194,13 @@
             font-size: 0.95rem;
             font-weight: 600;
             margin-bottom: 4px;
+            color: var(--text-primary);
         }
 
         .video-embed .video-caption p {
             font-size: 0.85rem;
             color: var(--text-muted);
             margin-bottom: 0;
-        }
-
-        /* Inline Video (smaller) */
-        .video-inline {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin: 32px 0;
-        }
-
-        .video-inline .video-embed {
-            margin: 0;
         }
 
         /* Code blocks */
@@ -231,6 +211,17 @@
             padding: 20px;
             margin: 20px 0;
             overflow-x: auto;
+            position: relative;
+        }
+        
+        .code-label {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .code-block code {
@@ -238,7 +229,14 @@
             font-size: 0.85rem;
             color: var(--text-primary);
             white-space: pre;
+            display: block;
         }
+        
+        .code-comment { color: #606070; font-style: italic; }
+        .code-keyword { color: #c678dd; }
+        .code-function { color: #61afef; }
+        .code-number { color: #d19a66; }
+        .code-string { color: #98c379; }
 
         .inline-code {
             font-family: 'JetBrains Mono', monospace;
@@ -247,24 +245,25 @@
             padding: 2px 8px;
             border-radius: 4px;
             color: var(--accent);
+            border: 1px solid var(--border-light);
         }
 
         /* Tables */
         .table-wrapper {
             overflow-x: auto;
-            margin: 20px 0;
+            margin: 25px 0;
+            border-radius: 8px;
+            border: 1px solid var(--border);
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             background: var(--bg-card);
-            border-radius: 8px;
-            overflow: hidden;
         }
 
         th, td {
-            padding: 14px 16px;
+            padding: 16px 20px;
             text-align: left;
             border-bottom: 1px solid var(--border);
         }
@@ -279,9 +278,11 @@
         }
 
         td {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: var(--text-secondary);
         }
+        
+        td strong { color: var(--text-primary); }
 
         tr:last-child td {
             border-bottom: none;
@@ -289,31 +290,38 @@
 
         /* Info boxes */
         .info-box {
-            background: var(--bg-card);
+            background: rgba(22, 22, 31, 0.6);
             border: 1px solid var(--border);
-            border-left: 3px solid var(--accent);
-            border-radius: 8px;
-            padding: 20px;
-            margin: 24px 0;
+            border-left: 4px solid var(--accent);
+            border-radius: 12px;
+            padding: 28px 36px;
+            margin: 32px 0;
+            font-size: 1.05rem;
         }
 
         .info-box.warning {
             border-left-color: var(--yellow);
+            background: rgba(255, 212, 59, 0.05);
         }
 
         .info-box.success {
             border-left-color: var(--green);
+            background: rgba(105, 219, 124, 0.05);
         }
 
         .info-box h4 {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 8px;
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .info-box p {
             margin-bottom: 0;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         /* TOC */
@@ -322,29 +330,43 @@
             border: 1px solid var(--border);
             border-radius: 12px;
             padding: 24px;
-            margin-bottom: 48px;
+            margin-bottom: 60px;
         }
 
         .toc h3 {
             font-size: 1rem;
             margin-bottom: 16px;
             color: var(--text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
 
         .toc ul {
             list-style: none;
             padding: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
         }
 
         .toc li {
-            margin-bottom: 8px;
+            margin-bottom: 0;
         }
 
         .toc a {
             color: var(--text-secondary);
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .toc a::before {
+            content: "→";
+            color: var(--accent);
+            opacity: 0.5;
         }
 
         .toc a:hover {
@@ -358,20 +380,20 @@
             border-top: 1px solid var(--border);
             color: var(--text-muted);
             font-size: 0.85rem;
+            margin-top: 60px;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
             .page-header h1 { font-size: 2rem; }
-            nav .nav-container { gap: 4px; }
+            nav .nav-container { gap: 4px; padding: 0 16px; }
             nav a { padding: 8px 12px; font-size: 0.8rem; }
-            .video-inline { grid-template-columns: 1fr; }
+            .toc ul { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
 
-    <!-- Navigation -->
     <nav>
         <div class="nav-container">
             <a href="index.html">Home</a>
@@ -381,115 +403,83 @@
         </div>
     </nav>
 
-    <!-- Header -->
     <header class="page-header">
         <div class="container">
-            <h1>Dokumentation</h1>
-            <p>Sample Text: Technische Details zur Architektur, zum Training und zu den Hyperparametern.</p>
+            <h1>Technische Dokumentation</h1>
+            <p>Ein tiefer Einblick in die Architektur, das Trainings-Setup und die mathematischen Grundlagen des Algernon-Projekts.</p>
         </div>
     </header>
 
-    <!-- Content -->
     <main class="content">
         <div class="container">
 
-            <!-- Table of Contents -->
             <div class="toc">
                 <h3>Inhaltsverzeichnis</h3>
                 <ul>
-                    <li><a href="#architektur">1. Architektur</a></li>
-                    <li><a href="#training">2. Training</a></li>
+                    <li><a href="#architektur">1. System-Architektur</a></li>
+                    <li><a href="#training">2. Infrastruktur & Training</a></li>
                     <li><a href="#hyperparameter">3. Hyperparameter</a></li>
-                    <li><a href="#rewards">4. Reward-System</a></li>
+                    <li><a href="#rewards">4. Reward Shaping</a></li>
                     <li><a href="#observation">5. Observation Space</a></li>
                     <li><a href="#action">6. Action Space</a></li>
                 </ul>
             </div>
 
-            <!-- Architektur -->
             <section class="doc-section" id="architektur">
-                <h2>1. Architektur</h2>
-                <p>Sample Text: Beschreibung der Netzwerkarchitektur und des Gesamtaufbaus des Systems. Hier kannst du ausführlich erklären, wie das System aufgebaut ist.</p>
+                <h2>1. System-Architektur</h2>
+                <p>
+                    Das Projekt implementiert eine strikte Trennung von Environment-Logik und Agenten-Training über das 
+                    <strong>Gymnasium Interface</strong>. Als Algorithmus kommt <strong>PPO (Proximal Policy Optimization)</strong> 
+                    zum Einsatz, da er als On-Policy-Verfahren einen exzellenten Kompromiss 
+                    zwischen Trainingsstabilität und Sample Efficiency bietet.
+                </p>
 
-                <!-- Video Embed -->
-                <div class="video-embed">
-                    <div class="video-wrapper">
-                        <!-- Video hier einbetten: <iframe src="..." allowfullscreen></iframe> -->
-                        <div class="video-placeholder">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <p>Video Platzhalter</p>
-                        </div>
-                    </div>
-                    <div class="video-caption">
-                        <h4>Sample: Architektur-Übersicht</h4>
-                        <p>Sample Text: Kurze Beschreibung des Videos und was darin erklärt wird.</p>
-                    </div>
-                </div>
-
-                <h3>Netzwerkstruktur</h3>
-                <p>Sample Text: Das neuronale Netzwerk besteht aus mehreren Schichten. Hier werden die Details der Architektur beschrieben.</p>
+                <h3>Netzwerkstruktur (MLP)</h3>
+                <p>
+                    Da der Observation Space bereits abstrahierte Vektoren statt roher Pixel liefert, ist der Einsatz von Convolutional Neural Networks (CNNs) nicht notwendig.
+                    Stattdessen nutze ich ein tiefes <strong>Multi-Layer Perceptron (MLP)</strong>.
+                </p>
+                
+                <ul>
+                    <li><strong>Policy Network (Actor):</strong> Zwei Hidden Layers mit je 512 Neuronen.</li>
+                    <li><strong>Value Network (Critic):</strong> Spiegelt die Policy-Struktur, teilt aber keine Gewichte (separate Networks).</li>
+                    <li><strong>Aktivierungsfunktion:</strong> Tanh (Hyperbolischer Tangens), um stetige Gradienten zu gewährleisten.</li>
+                </ul>
 
                 <div class="code-block">
-                    <code># Sample Code: Netzwerkarchitektur
-policy_net = nn.Sequential(
-    nn.Linear(obs_size, 256),
-    nn.ReLU(),
-    nn.Linear(256, 256),
-    nn.ReLU(),
-    nn.Linear(256, action_size)
+                    <span class="code-label">train.py</span>
+                    <code><span class="code-comment"># Konfiguration des PPO-Modells mit Stable Baselines 3</span>
+<span class="code-keyword">model</span> = PPO(
+    policy=<span class="code-string">"MlpPolicy"</span>,
+    env=vec_env,
+    learning_rate=<span class="code-number">3e-4</span>,
+    n_steps=<span class="code-number">2048</span>,
+    batch_size=<span class="code-number">512</span>,
+    policy_kwargs=<span class="code-keyword">dict</span>(
+        net_arch=[<span class="code-number">512</span>, <span class="code-number">512</span>]  <span class="code-comment"># Deep Network für komplexe Strategien</span>
+    )
 )</code>
                 </div>
 
-                <div class="info-box">
-                    <h4>Hinweis</h4>
-                    <p>Sample Text: Wichtige Information zur Architektur oder ein besonderer Hinweis für den Leser.</p>
+                <div class="info-box success">
+                    <h4><i class="bi bi-lightbulb"></i> Warum kein CNN?</h4>
+                    <p>Durch den Verzicht auf Pixel-Verarbeitung (CNN) und die Nutzung kompakter Feature-Vektoren konnte die Trainingsgeschwindigkeit um den Faktor 10-20 erhöht werden, ohne strategische Tiefe zu verlieren.</p>
                 </div>
             </section>
 
-            <!-- Training -->
             <section class="doc-section" id="training">
-                <h2>2. Training</h2>
-                <p>Sample Text: Details zum Trainingsprozess, zur verwendeten Hardware und zur Trainingsdauer.</p>
+                <h2>2. Infrastruktur & Training</h2>
+                <p>
+                    Ein zentrales Problem bei Multi-Agent Reinforcement Learning (MARL) ist die hohe Varianz der Trainingsdaten. 
+                    Um dies zu kompensieren, setzt das Projekt auf massive Parallelisierung.
+                </p>
 
-                <!-- Two Videos Side by Side -->
-                <div class="video-inline">
-                    <div class="video-embed">
-                        <div class="video-wrapper">
-                            <div class="video-placeholder">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <p>Video</p>
-                            </div>
-                        </div>
-                        <div class="video-caption">
-                            <h4>Training Start</h4>
-                            <p>Sample Text: Frühes Trainingsverhalten</p>
-                        </div>
-                    </div>
-                    <div class="video-embed">
-                        <div class="video-wrapper">
-                            <div class="video-placeholder">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <p>Video</p>
-                            </div>
-                        </div>
-                        <div class="video-caption">
-                            <h4>Training Ende</h4>
-                            <p>Sample Text: Finales Verhalten nach 100M Steps</p>
-                        </div>
-                    </div>
-                </div>
-
-                <h3>Trainingssetup</h3>
-                <p>Sample Text: Beschreibung des Trainingssetups, der verwendeten Hardware und der Umgebungskonfiguration.</p>
+                <h3>Vektorisierte Umgebungen</h3>
+                <p>
+                    Statt einer einzelnen Simulations-Instanz nutze ich <strong>16 vektorisierte Umgebungen (SubprocVecEnv)</strong>,
+                    die auf separaten CPU-Kernen laufen. Dies ermöglichte das Sammeln von über <strong>100 Millionen Experience-Steps</strong>
+                    in einer akzeptablen Zeit.
+                </p>
 
                 <div class="table-wrapper">
                     <table>
@@ -497,34 +487,36 @@ policy_net = nn.Sequential(
                             <tr>
                                 <th>Parameter</th>
                                 <th>Wert</th>
-                                <th>Beschreibung</th>
+                                <th>Bedeutung</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td>Training Steps</td>
-                                <td><span class="inline-code">100M</span></td>
-                                <td>Sample Text: Gesamtanzahl der Trainingsschritte</td>
+                                <td><strong>Total Timesteps</strong></td>
+                                <td><span class="inline-code">100.000.000</span></td>
+                                <td>Massive Datenmenge für statistische Signifikanz.</td>
                             </tr>
                             <tr>
-                                <td>Parallel Environments</td>
+                                <td><strong>Parallel Envs</strong></td>
                                 <td><span class="inline-code">16</span></td>
-                                <td>Sample Text: Anzahl paralleler Umgebungen</td>
+                                <td>Anzahl gleichzeitiger Simulationen (Multiprocessing).</td>
                             </tr>
                             <tr>
-                                <td>Trainingsdauer</td>
-                                <td><span class="inline-code">~24h</span></td>
-                                <td>Sample Text: Ungefähre Trainingsdauer</td>
+                                <td><strong>Hardware</strong></td>
+                                <td><span class="inline-code">CPU-Cluster</span></td>
+                                <td>Optimiert für parallele Logik-Berechnungen statt GPU-Rendering.</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- Hyperparameter -->
             <section class="doc-section" id="hyperparameter">
                 <h2>3. Hyperparameter</h2>
-                <p>Sample Text: Alle verwendeten Hyperparameter und deren Werte.</p>
+                <p>
+                    Die Hyperparameter wurden speziell angepasst, um das "Exploration vs. Exploitation"-Dilemma in einer kompetitiven Umgebung zu lösen.
+                    Besonders der <strong>Entropy Coefficient</strong> wurde erhöht, um ein vorzeitiges Konvergieren auf suboptimale Strategien zu verhindern.
+                </p>
 
                 <div class="table-wrapper">
                     <table>
@@ -532,151 +524,128 @@ policy_net = nn.Sequential(
                             <tr>
                                 <th>Hyperparameter</th>
                                 <th>Wert</th>
+                                <th>Begründung</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
                                 <td>Learning Rate</td>
                                 <td><span class="inline-code">3e-4</span></td>
+                                <td>Standard für Adam Optimizer, bietet stabilen Gradient Descent.</td>
                             </tr>
                             <tr>
                                 <td>Batch Size</td>
+                                <td><span class="inline-code">512</span></td>
+                                <td>Erhöht für stabilere Updates in hoch-dynamischen Umgebungen.</td>
+                            </tr>
+                            <tr>
+                                <td>N_Steps</td>
                                 <td><span class="inline-code">2048</span></td>
+                                <td>Langer "Lookahead"-Horizont für strategische Planung.</td>
+                            </tr>
+                            <tr>
+                                <td>Entropy Coef</td>
+                                <td><span class="inline-code">0.03</span></td>
+                                <td><strong>Wichtig:</strong> Zwingt den Agenten zum Experimentieren (Exploration).</td>
                             </tr>
                             <tr>
                                 <td>Gamma (Discount)</td>
                                 <td><span class="inline-code">0.99</span></td>
-                            </tr>
-                            <tr>
-                                <td>GAE Lambda</td>
-                                <td><span class="inline-code">0.95</span></td>
-                            </tr>
-                            <tr>
-                                <td>Clip Range</td>
-                                <td><span class="inline-code">0.2</span></td>
-                            </tr>
-                            <tr>
-                                <td>Entropy Coefficient</td>
-                                <td><span class="inline-code">0.01</span></td>
+                                <td>Fokus auf langfristige Belohnungen (Sieg) statt sofortiger Punkte.</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- Rewards -->
             <section class="doc-section" id="rewards">
-                <h2>4. Reward-System</h2>
-                <p>Sample Text: Das Belohnungssystem und wie verschiedene Aktionen bewertet werden.</p>
+                <h2>4. Reward Shaping (Forschungskern)</h2>
+                <p>
+                    In Reinforcement Learning ist die Definition der Belohnungsfunktion (Reward Function) oft anspruchsvoller als der Lernalgorithmus selbst.
+                    Das <strong>Temporal Credit Assignment Problem</strong> – also die Frage, welche vergangene Aktion für den aktuellen Erfolg verantwortlich ist – wurde durch drei verschiedene Profile untersucht.
+                </p>
 
-                <!-- Video für Reward-System -->
-                <div class="video-embed">
-                    <div class="video-wrapper">
-                        <div class="video-placeholder">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <p>Video Platzhalter</p>
-                        </div>
-                    </div>
-                    <div class="video-caption">
-                        <h4>Reward Shaping Erklärung</h4>
-                        <p>Sample Text: Visualisierung wie verschiedene Rewards das Verhalten beeinflussen.</p>
-                    </div>
+                <div class="info-box">
+                    <h4><i class="bi bi-layers-fill"></i> Die 3 Profile</h4>
+                    <ul>
+                        <li><strong>Charlie (Sparse):</strong> Erhält Rewards <em>nur</em> für Capture (+100) und Sieg/Niederlage (±50). Extrem schwer zu lernen, da Feedback sehr selten ist.</li>
+                        <li><strong>Gordon (Dense/Micromanager):</strong> Erhält kontinuierliches Feedback für fast alles (Bewegung zur Flagge +0.2, Flagge berühren +10.0, etc.). Führt oft zu "Reward Hacking" (z.B. im Kreis laufen für Punkte).</li>
+                        <li><strong>Algernon (Balanced):</strong> Belohnt nur <em>signifikante</em> Meilensteine (Tackle auf Träger +8.0, Flagge zurückbringen +5.0), fördert strategisches Denken.</li>
+                    </ul>
                 </div>
-
-                <h3>Reward-Komponenten</h3>
-                <ul>
-                    <li><strong>Flagge erobern:</strong> Sample Text: +X Punkte</li>
-                    <li><strong>Flagge zurückbringen:</strong> Sample Text: +X Punkte</li>
-                    <li><strong>Gegner tacklen:</strong> Sample Text: +X Punkte</li>
-                    <li><strong>Getackled werden:</strong> Sample Text: -X Punkte</li>
-                    <li><strong>Zeitstrafe:</strong> Sample Text: -X pro Step</li>
-                </ul>
 
                 <div class="info-box warning">
-                    <h4>Reward Shaping</h4>
-                    <p>Sample Text: Hinweis zum Reward Shaping und möglichen Auswirkungen auf das Verhalten der Agenten.</p>
+                    <h4>Erkenntnis: Reward Hacking</h4>
+                    <p>
+                        Agenten mit "Dense Rewards" (Gordon) neigten dazu, die Flagge aufzuheben und sofort fallen zu lassen, um den "Pickup Reward" (+10.0) wiederholt zu farmen, statt das Spielziel zu verfolgen.
+                    </p>
                 </div>
             </section>
 
-            <!-- Observation Space -->
             <section class="doc-section" id="observation">
-                <h2>5. Observation Space</h2>
-                <p>Sample Text: Was die Agenten als Input erhalten und wie die Beobachtungen strukturiert sind.</p>
+                <h2>5. Observation Space (Feature Engineering)</h2>
+                <p>
+                    Ein Netz lernt "Gegner ist bei x=20" schlecht, aber "Gegner ist 5 Meter vor mir" sehr gut.
+                    Daher erhält der Agent statt absoluter Koordinaten ein <strong>relatives, ego-zentrisches Weltbild</strong>.
+                    Der Observation Vector besteht aus <strong>31 kontinuierlichen Werten</strong>.
+                </p>
 
-                <h3>Beobachtungsvektor</h3>
-                <p>Sample Text: Beschreibung der einzelnen Komponenten des Beobachtungsvektors.</p>
-
+                <h3>Inhalt des Vektors:</h3>
                 <ul>
-                    <li>Eigene Position (x, y)</li>
-                    <li>Positionen der Teammitglieder</li>
-                    <li>Positionen der Gegner</li>
-                    <li>Flaggenpositionen</li>
-                    <li>Stun-Status aller Agenten</li>
+                    <li><strong>Relative Vektoren (Normalized):</strong> Zur eigenen Basis, zur eigenen Flagge, zur gegnerischen Flagge.</li>
+                    <li><strong>Permutation Invariance:</strong> Die Inputs für die zwei Gegner sind nach Distanz sortiert (Nächster Gegner zuerst). So lernt der Agent "Umgang mit Bedrohung", egal welche ID der Gegner hat.</li>
+                    <li><strong>Status Flags:</strong> Bin ich gestunned? Habe ich die Flagge? Ist meine Flagge sicher?</li>
+                    <li><strong>LIDAR-Sensorik:</strong> Distanz zu den vier Spielfeldgrenzen (Wanderkennung).</li>
                 </ul>
-
-                <div class="video-embed">
-                    <div class="video-wrapper">
-                        <div class="video-placeholder">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <p>Video Platzhalter</p>
-                        </div>
-                    </div>
-                    <div class="video-caption">
-                        <h4>Observation Space Visualisierung</h4>
-                        <p>Sample Text: Was der Agent "sieht" und wie die Inputs strukturiert sind.</p>
-                    </div>
-                </div>
             </section>
 
-            <!-- Action Space -->
             <section class="doc-section" id="action">
                 <h2>6. Action Space</h2>
-                <p>Sample Text: Die möglichen Aktionen der Agenten.</p>
+                <p>
+                    Der Action Space ist <strong>diskret (Discrete 6)</strong>. Die Reduktion auf diskrete Aktionen vereinfacht den Entscheidungsbaum für das neuronale Netz massiv im Vergleich zu kontinuierlichen Actions (Box).
+                </p>
 
                 <div class="table-wrapper">
                     <table>
                         <thead>
                             <tr>
+                                <th>ID</th>
                                 <th>Aktion</th>
-                                <th>Beschreibung</th>
+                                <th>Effekt</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td><span class="inline-code">0</span></td>
-                                <td>Sample Text: Keine Bewegung / Stehen bleiben</td>
+                                <td><span class="inline-code">0-3</span></td>
+                                <td>Bewegung</td>
+                                <td>Oben, Unten, Links, Rechts (mit Kollisionsabfrage)</td>
                             </tr>
                             <tr>
-                                <td><span class="inline-code">1-4</span></td>
-                                <td>Sample Text: Bewegung in vier Richtungen</td>
+                                <td><span class="inline-code">4</span></td>
+                                <td>Idle</td>
+                                <td>Warten / Position halten</td>
                             </tr>
                             <tr>
-                                <td><span class="inline-code">5-8</span></td>
-                                <td>Sample Text: Diagonale Bewegung</td>
+                                <td><span class="inline-code">5</span></td>
+                                <td><strong>Tackle</strong></td>
+                                <td>Spezial-Aktion: Betäubt Gegner in Reichweite (Stun) und zwingt zum Flaggen-Abwurf. Hat einen Cooldown von 3.25s.</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
                 <div class="info-box success">
-                    <h4>Diskreter Action Space</h4>
-                    <p>Sample Text: Der Action Space ist diskret, was die Komplexität reduziert und das Training stabilisiert.</p>
+                    <h4>Strategische Tiefe</h4>
+                    <p>Die "Tackle"-Aktion führt zu komplexem Verhalten: Agenten lernen, Gegner nicht nur zu blockieren, sondern gezielt dann anzugreifen, wenn diese die Flagge tragen.</p>
                 </div>
             </section>
 
         </div>
     </main>
 
-    <!-- Footer -->
     <footer>
         <div class="container">
-            <p>Multi-Agent Reinforcement Learning Project</p>
+            <p>Project Algernon — Multi-Agent Reinforcement Learning Study</p>
         </div>
     </footer>
 
