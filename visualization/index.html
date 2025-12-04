@@ -19,6 +19,9 @@
             height: 100vh;
         }
 
+        /* ==================== */
+        /* PANEL BASE STYLE     */
+        /* ==================== */
         .panel {
             position: fixed;
             background: rgba(15, 15, 30, 0.92);
@@ -29,6 +32,52 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
+        /* ==================== */
+        /* NAVIGATION           */
+        /* ==================== */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 10, 15, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid #2a2a3a;
+            padding: 18px 0;
+            z-index: 2000;
+        }
+
+        nav .nav-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #b0b0c0;
+            padding: 10px 22px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+
+        nav a:hover {
+            background: rgba(30, 30, 45, 0.85);
+            color: #ffffff;
+        }
+
+        nav a.active {
+            background: rgba(108, 99, 255, 0.15);
+            color: #6c63ff;
+            border-color: #6c63ff;
+        }
+
+        /* ==================== */
+        /* SCOREBOARD           */
+        /* ==================== */
         #scoreboard {
             top: 80px;
             left: 50%;
@@ -43,154 +92,9 @@
         .blue-score { color: #4dabf7; }
         .red-score { color: #ff6b6b; }
 
-        #title {
-            display: none;
-        }
-
-        #controls {
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 12px;
-            align-items: center;
-            flex-wrap: wrap;
-            justify-content: center;
-            max-width: 90vw;
-        }
-
-        button {
-            background: #2a2a4a;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 10px 18px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.2s;
-        }
-
-        button:hover {
-            background: #3a3a6a;
-            border-color: rgba(255, 255, 255, 0.4);
-            transform: translateY(-1px);
-        }
-
-        button.active {
-            background: #6c63ff;
-            border-color: #6c63ff;
-        }
-
-        #speed-control {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #aaa;
-        }
-
-        input[type="range"] {
-            width: 80px;
-            accent-color: #6c63ff;
-        }
-
-        select {
-            background: #2a2a4a;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            max-width: 220px;
-        }
-
-        #step-info {
-            bottom: 20px;
-            left: 20px;
-        }
-
-        #step-display {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: #6c63ff;
-        }
-
-        #legend {
-            top: 500px;
-            left: 20px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 5px 0;
-            font-size: 0.85rem;
-        }
-
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-        }
-
-        .blue { background: #4dabf7; }
-        .red { background: #ff6b6b; }
-        .flag { background: #ffd43b; }
-        .stunned { 
-            background: #555555; 
-            position: relative;
-        }
-
-        #loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 100;
-        }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top-color: #6c63ff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 12px;
-        }
-
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        #file-upload-btn {
-            background: #69db7c;
-            border-color: #69db7c;
-        }
-
-        #file-upload-btn:hover {
-            background: #51cf66;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        #dashboard-btn {
-            background: #ff922b;
-            border-color: #ff922b;
-            position: fixed;
-            top: 20px;
-            right: 350px;
-            padding: 12px 24px;
-            font-weight: bold;
-            z-index: 1000;
-        }
-
-        #dashboard-btn:hover {
-            background: #fd7e14;
-            border-color: #fd7e14;
-        }
-
-        /* Flaggenträger Status */
+        /* ==================== */
+        /* FLAG STATUS          */
+        /* ==================== */
         #flag-status {
             top: 140px;
             left: 50%;
@@ -228,6 +132,9 @@
             height: 10px;
             border-radius: 50%;
         }
+
+        .team-dot.blue { background: #4dabf7; }
+        .team-dot.red { background: #ff6b6b; }
 
         .flag-holder .carrier-name {
             font-weight: 500;
@@ -268,80 +175,171 @@
             z-index: 1500;
         }
 
-        #replay-sidebar h3 {
+        #replay-sidebar > h3 {
             font-size: 1.1rem;
             color: #6c63ff;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .replay-list-item {
+        /* Modell-Gruppen */
+        .model-group {
+            margin-bottom: 16px;
+        }
+
+        .model-group-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            margin-bottom: 8px;
             background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 8px;
-            padding: 12px 14px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
+            border-left: 4px solid;
         }
 
-        .replay-list-item:hover {
-            background: rgba(108, 99, 255, 0.1);
-            border-color: rgba(108, 99, 255, 0.3);
-            transform: translateX(4px);
+        .model-group-header.charlie {
+            border-left-color: #ffd43b;
+            background: rgba(255, 212, 59, 0.05);
+        }
+        .model-group-header.gordon {
+            border-left-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.05);
+        }
+        .model-group-header.algernon {
+            border-left-color: #69db7c;
+            background: rgba(105, 219, 124, 0.05);
         }
 
-        .replay-list-item.active {
-            background: rgba(108, 99, 255, 0.2);
-            border-color: #6c63ff;
+        .model-group-header .model-name {
+            font-weight: 700;
+            font-size: 1rem;
         }
+        .model-group-header.charlie .model-name { color: #ffd43b; }
+        .model-group-header.gordon .model-name { color: #ff6b6b; }
+        .model-group-header.algernon .model-name { color: #69db7c; }
 
-        .replay-list-item .replay-name {
-            font-weight: 600;
-            font-size: 0.95rem;
-            color: #fff;
-            margin-bottom: 4px;
-        }
-
-        .replay-list-item .replay-desc {
-            font-size: 0.8rem;
-            color: #888;
-            line-height: 1.4;
-        }
-
-        .replay-list-item .replay-badge {
-            display: inline-block;
-            font-size: 0.7rem;
+        .model-group-header .model-tag {
+            margin-left: auto;
+            font-size: 0.65rem;
             padding: 3px 8px;
             border-radius: 4px;
-            margin-top: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: 600;
         }
-
-        /* Farbige Badges je nach Tag */
-        .replay-list-item .badge-sparse {
-            background: #ffd43b;
-            color: #000;
+        .model-group-header.charlie .model-tag {
+            background: rgba(255, 212, 59, 0.2);
+            color: #ffd43b;
+        }
+        .model-group-header.gordon .model-tag {
+            background: rgba(255, 107, 107, 0.2);
+            color: #ff6b6b;
+        }
+        .model-group-header.algernon .model-tag {
+            background: rgba(105, 219, 124, 0.2);
+            color: #69db7c;
         }
 
-        .replay-list-item .badge-dense {
-            background: #ff6b6b;
+        /* Replay Items */
+        .replay-list-item {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin-bottom: 6px;
+            margin-left: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .replay-list-item:hover {
+            transform: translateX(4px);
+        }
+
+        /* Modell-spezifische Hover & Active States */
+        .replay-list-item.charlie:hover {
+            background: rgba(255, 212, 59, 0.1);
+            border-color: rgba(255, 212, 59, 0.3);
+        }
+        .replay-list-item.charlie.active {
+            background: rgba(255, 212, 59, 0.15);
+            border-color: #ffd43b;
+        }
+
+        .replay-list-item.gordon:hover {
+            background: rgba(255, 107, 107, 0.1);
+            border-color: rgba(255, 107, 107, 0.3);
+        }
+        .replay-list-item.gordon.active {
+            background: rgba(255, 107, 107, 0.15);
+            border-color: #ff6b6b;
+        }
+
+        .replay-list-item.algernon:hover {
+            background: rgba(105, 219, 124, 0.1);
+            border-color: rgba(105, 219, 124, 0.3);
+        }
+        .replay-list-item.algernon.active {
+            background: rgba(105, 219, 124, 0.15);
+            border-color: #69db7c;
+        }
+
+        .replay-list-item .replay-name {
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #ccc;
+        }
+
+        .replay-list-item.active .replay-name {
             color: #fff;
         }
 
-        .replay-list-item .badge-balanced {
-            background: #69db7c;
-            color: #000;
+        .replay-list-item .step-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            color: #666;
         }
 
-        .replay-list-item .badge-training,
-        .replay-list-item .badge-best {
-            background: rgba(108, 99, 255, 0.3);
+        .replay-list-item.active .step-badge {
+            background: rgba(255, 255, 255, 0.1);
+            color: #aaa;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .upload-btn {
+            width: 100%;
+            background: rgba(108, 99, 255, 0.1);
+            border: 1px solid rgba(108, 99, 255, 0.3);
             color: #a29bff;
+            padding: 10px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .upload-btn:hover {
+            background: rgba(108, 99, 255, 0.2);
+            border-color: #6c63ff;
+            color: #fff;
         }
 
         /* ==================== */
@@ -455,6 +453,130 @@
         .tag-bug { background: #fa5252; }
         .tag-custom { background: #495057; }
 
+        /* ==================== */
+        /* CONTROLS             */
+        /* ==================== */
+        #controls {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 90vw;
+        }
+
+        button {
+            background: #2a2a4a;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #3a3a6a;
+            border-color: rgba(255, 255, 255, 0.4);
+            transform: translateY(-1px);
+        }
+
+        button.active {
+            background: #6c63ff;
+            border-color: #6c63ff;
+        }
+
+        #speed-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #aaa;
+        }
+
+        input[type="range"] {
+            width: 80px;
+            accent-color: #6c63ff;
+        }
+
+        select {
+            background: #2a2a4a;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            max-width: 220px;
+        }
+
+        #step-info {
+            bottom: 20px;
+            left: 20px;
+        }
+
+        #step-display {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #6c63ff;
+        }
+
+        /* ==================== */
+        /* LEGEND               */
+        /* ==================== */
+        #legend {
+            top: 500px;
+            left: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px 0;
+            font-size: 0.85rem;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .blue { background: #4dabf7; }
+        .red { background: #ff6b6b; }
+        .flag { background: #ffd43b; }
+        .stunned { background: #555555; }
+
+        /* ==================== */
+        /* LOADING              */
+        /* ==================== */
+        #loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 100;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #6c63ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        input[type="file"] {
+            display: none;
+        }
+
         /* Keyboard hints */
         #keyboard-hints {
             position: fixed;
@@ -486,47 +608,6 @@
         ::-webkit-scrollbar-thumb:hover {
             background: rgba(255,255,255,0.3);
         }
-
-        /* Navigation Bar - GLEICH WIE AUF STARTSEITE */
-        nav {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: rgba(10, 10, 15, 0.95);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid #2a2a3a;
-            padding: 18px 0;
-            z-index: 2000;
-        }
-
-        nav .nav-container {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: #b0b0c0;
-            padding: 10px 22px;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            font-weight: 500;
-            transition: all 0.2s;
-            border: 1px solid transparent;
-        }
-
-        nav a:hover {
-            background: rgba(30, 30, 45, 0.85);
-            color: #ffffff;
-        }
-
-        nav a.active {
-            background: rgba(108, 99, 255, 0.15);
-            color: #6c63ff;
-            border-color: #6c63ff;
-        }
     </style>
 </head>
 <body>
@@ -549,8 +630,43 @@
     <!-- REPLAY LISTE SIDEBAR -->
     <div id="replay-sidebar">
         <h3>📁 Replays</h3>
-        <div id="replay-list">
-            <!-- Wird dynamisch gefüllt -->
+        
+        <!-- Charlie Gruppe -->
+        <div class="model-group">
+            <div class="model-group-header charlie">
+                <span class="model-name">Charlie</span>
+                <span class="model-tag">Sparse</span>
+            </div>
+            <div class="model-replays" data-model="charlie">
+                <!-- Wird dynamisch gefüllt -->
+            </div>
+        </div>
+
+        <!-- Gordon Gruppe -->
+        <div class="model-group">
+            <div class="model-group-header gordon">
+                <span class="model-name">Gordon</span>
+                <span class="model-tag">Dense</span>
+            </div>
+            <div class="model-replays" data-model="gordon">
+                <!-- Wird dynamisch gefüllt -->
+            </div>
+        </div>
+
+        <!-- Algernon Gruppe -->
+        <div class="model-group">
+            <div class="model-group-header algernon">
+                <span class="model-name">Algernon</span>
+                <span class="model-tag">Balanced</span>
+            </div>
+            <div class="model-replays" data-model="algernon">
+                <!-- Wird dynamisch gefüllt -->
+            </div>
+        </div>
+
+        <!-- Upload -->
+        <div class="upload-section">
+            <button class="upload-btn" id="file-upload-btn">📁 Eigenes Replay laden</button>
         </div>
     </div>
 
@@ -607,11 +723,7 @@
             <input type="range" id="speed" min="0.5" max="3" step="0.5" value="1">
             <span id="speed-val">1x</span>
         </div>
-        <select id="episode-select">
-            <option value="">Wähle Replay...</option>
-        </select>
         <input type="file" id="file-input" accept=".json">
-        <button id="file-upload-btn">📁 Eigenes Replay</button>
     </div>
 
     <div class="panel" id="step-info">
@@ -621,8 +733,8 @@
     <div class="panel" id="legend">
         <div class="legend-item"><div class="legend-color blue"></div> Blue Team</div>
         <div class="legend-item"><div class="legend-color red"></div> Red Team</div>
-        <div class="legend-item"><div class="legend-color flag"></div> Flaggenträger</div>
-        <div class="legend-item"><div class="legend-color stunned"></div> Betäubt</div>
+        <div class="legend-item"><div class="legend-color flag"></div> Flaggenträger (Glow)</div>
+        <div class="legend-item"><div class="legend-color stunned"></div> Betäubt (⭐ Sterne)</div>
     </div>
 
     <div id="keyboard-hints">
@@ -633,8 +745,6 @@
     
     <!-- ================================== -->
     <!-- EMBEDDED REPLAYS KONFIGURATION     -->
-    <!-- Hier kannst du deine Replays mit   -->
-    <!-- Beschreibungen hinzufügen          -->
     <!-- ================================== -->
     <script>
         // REPLAY KONFIGURATION
@@ -769,6 +879,860 @@
         ];
     </script>
     
-    <script src="main.js?v=6"></script>
+    <script>
+        // ==========================================
+        // THREE.JS VISUALISIERUNG
+        // ==========================================
+        let scene, camera, renderer;
+        let replayData = null;
+        let currentFrame = 0;
+        let isPlaying = true;
+        let playbackSpeed = 1;
+        let lastFrameTime = 0;
+        const FRAME_DURATION = 50;
+        let tackle_cooldown = 65;
+        let stun_duration = 20;
+        let animationTime = 0;
+
+        const agentMeshes = {};
+        const flagMeshes = {};
+        const wallMeshes = [];
+
+        function init() {
+            setupScene();
+            setupLights();
+            setupGround();
+            setupBases();
+            setupWalls();
+            setupControls();
+            buildReplayList();
+            
+            // Lade erstes Replay
+            if (window.EMBEDDED_REPLAYS && window.EMBEDDED_REPLAYS.length > 0) {
+                loadReplayByIndex(window.EMBEDDED_REPLAYS.length - 1); // Algernon 100M
+            }
+            
+            animate(0);
+        }
+
+        function setupScene() {
+            const container = document.getElementById('canvas-container');
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0f0f1a);
+            scene.fog = new THREE.Fog(0x0f0f1a, 40, 80);
+
+            camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(12, 25, 35);
+            camera.lookAt(12, 0, 12);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+
+            // Kamera-Steuerung
+            let isDragging = false;
+            let prevMouse = { x: 0, y: 0 };
+
+            renderer.domElement.addEventListener('mousedown', e => {
+                isDragging = true;
+                prevMouse = { x: e.clientX, y: e.clientY };
+            });
+            renderer.domElement.addEventListener('mouseup', () => isDragging = false);
+            renderer.domElement.addEventListener('mouseleave', () => isDragging = false);
+            renderer.domElement.addEventListener('mousemove', e => {
+                if (!isDragging) return;
+                camera.position.x -= (e.clientX - prevMouse.x) * 0.05;
+                camera.position.z -= (e.clientY - prevMouse.y) * 0.05;
+                camera.lookAt(12, 0, 12);
+                prevMouse = { x: e.clientX, y: e.clientY };
+            });
+            renderer.domElement.addEventListener('wheel', e => {
+                camera.position.y = Math.max(10, Math.min(50, camera.position.y + e.deltaY * 0.02));
+            });
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+        }
+
+        function setupLights() {
+            // Ambient Light für Grundbeleuchtung
+            scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+            
+            // Hauptlicht (Sonne)
+            const sun = new THREE.DirectionalLight(0xffffff, 0.9);
+            sun.position.set(20, 35, 20);
+            sun.castShadow = true;
+            sun.shadow.mapSize.width = 2048;
+            sun.shadow.mapSize.height = 2048;
+            sun.shadow.camera.near = 0.5;
+            sun.shadow.camera.far = 100;
+            sun.shadow.camera.left = -30;
+            sun.shadow.camera.right = 30;
+            sun.shadow.camera.top = 30;
+            sun.shadow.camera.bottom = -30;
+            scene.add(sun);
+            
+            // Hemisphere Light für natürlichere Beleuchtung
+            scene.add(new THREE.HemisphereLight(0x6c63ff, 0x0f0f1a, 0.4));
+            
+            // Punktlicht auf jeder Basis für Atmosphäre
+            const blueLight = new THREE.PointLight(0x4dabf7, 0.5, 10);
+            blueLight.position.set(2, 3, 12);
+            scene.add(blueLight);
+            
+            const redLight = new THREE.PointLight(0xff6b6b, 0.5, 10);
+            redLight.position.set(22, 3, 12);
+            scene.add(redLight);
+        }
+
+        function setupGround() {
+            const ground = new THREE.Mesh(
+                new THREE.PlaneGeometry(30, 30),
+                new THREE.MeshStandardMaterial({ color: 0x1a1a2e })
+            );
+            ground.rotation.x = -Math.PI / 2;
+            ground.position.set(12, -0.01, 12);
+            ground.receiveShadow = true;
+            scene.add(ground);
+
+            const grid = new THREE.GridHelper(24, 24, 0x333366, 0x222244);
+            grid.position.set(12, 0, 12);
+            scene.add(grid);
+        }
+
+        function setupBases() {
+            // Blue Base
+            const blueMat = new THREE.MeshStandardMaterial({ 
+                color: 0x4dabf7, 
+                transparent: true, 
+                opacity: 0.4,
+                emissive: 0x4dabf7,
+                emissiveIntensity: 0.1
+            });
+            const blueBase = new THREE.Mesh(new THREE.PlaneGeometry(4, 8), blueMat);
+            blueBase.rotation.x = -Math.PI / 2;
+            blueBase.position.set(2, 0.02, 12);
+            scene.add(blueBase);
+            
+            // Blue Base Border
+            const blueBorder = new THREE.Mesh(
+                new THREE.RingGeometry(2.8, 3, 4),
+                new THREE.MeshBasicMaterial({ color: 0x4dabf7, transparent: true, opacity: 0.6 })
+            );
+            blueBorder.rotation.x = -Math.PI / 2;
+            blueBorder.rotation.z = Math.PI / 4;
+            blueBorder.position.set(2, 0.03, 12);
+            scene.add(blueBorder);
+
+            // Red Base
+            const redMat = new THREE.MeshStandardMaterial({ 
+                color: 0xff6b6b, 
+                transparent: true, 
+                opacity: 0.4,
+                emissive: 0xff6b6b,
+                emissiveIntensity: 0.1
+            });
+            const redBase = new THREE.Mesh(new THREE.PlaneGeometry(4, 8), redMat);
+            redBase.rotation.x = -Math.PI / 2;
+            redBase.position.set(22, 0.02, 12);
+            scene.add(redBase);
+            
+            // Red Base Border
+            const redBorder = new THREE.Mesh(
+                new THREE.RingGeometry(2.8, 3, 4),
+                new THREE.MeshBasicMaterial({ color: 0xff6b6b, transparent: true, opacity: 0.6 })
+            );
+            redBorder.rotation.x = -Math.PI / 2;
+            redBorder.rotation.z = Math.PI / 4;
+            redBorder.position.set(22, 0.03, 12);
+            scene.add(redBorder);
+        }
+
+        function setupWalls(customWalls = null) {
+            wallMeshes.forEach(m => scene.remove(m));
+            wallMeshes.length = 0;
+
+            const walls = customWalls || [
+                { x_min: 10, x_max: 11, y_min: 10, y_max: 11 },
+                { x_min: 13, x_max: 14, y_min: 10, y_max: 11 },
+                { x_min: 10, x_max: 11, y_min: 13, y_max: 14 },
+                { x_min: 13, x_max: 14, y_min: 13, y_max: 14 },
+                { x_min: 5, x_max: 7, y_min: 4, y_max: 5 },
+                { x_min: 5, x_max: 7, y_min: 19, y_max: 20 },
+                { x_min: 17, x_max: 19, y_min: 4, y_max: 5 },
+                { x_min: 17, x_max: 19, y_min: 19, y_max: 20 }
+            ];
+
+            const wallMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x3a3a4a,
+                roughness: 0.8,
+                metalness: 0.2
+            });
+
+            walls.forEach(wall => {
+                const width = wall.x_max - wall.x_min;
+                const depth = wall.y_max - wall.y_min;
+                
+                const mesh = new THREE.Mesh(
+                    new THREE.BoxGeometry(width, 1.5, depth),
+                    wallMaterial
+                );
+                mesh.position.set(
+                    (wall.x_min + wall.x_max) / 2, 
+                    0.75, 
+                    (wall.y_min + wall.y_max) / 2
+                );
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                scene.add(mesh);
+                wallMeshes.push(mesh);
+                
+                // Wand-Top als Akzent
+                const topMesh = new THREE.Mesh(
+                    new THREE.BoxGeometry(width + 0.1, 0.1, depth + 0.1),
+                    new THREE.MeshStandardMaterial({ 
+                        color: 0x5a5a6a,
+                        roughness: 0.5,
+                        metalness: 0.3
+                    })
+                );
+                topMesh.position.set(
+                    (wall.x_min + wall.x_max) / 2, 
+                    1.55, 
+                    (wall.y_min + wall.y_max) / 2
+                );
+                scene.add(topMesh);
+                wallMeshes.push(topMesh);
+            });
+        }
+
+        function setupControls() {
+            document.getElementById('play-btn').onclick = () => {
+                isPlaying = true;
+                document.getElementById('play-btn').classList.add('active');
+                document.getElementById('pause-btn').classList.remove('active');
+            };
+            document.getElementById('pause-btn').onclick = () => {
+                isPlaying = false;
+                document.getElementById('pause-btn').classList.add('active');
+                document.getElementById('play-btn').classList.remove('active');
+            };
+            document.getElementById('reset-btn').onclick = () => {
+                currentFrame = 0;
+                updateScene();
+            };
+            document.getElementById('speed').oninput = e => {
+                playbackSpeed = parseFloat(e.target.value);
+                document.getElementById('speed-val').textContent = playbackSpeed + 'x';
+            };
+            document.querySelector('.upload-btn').onclick = () => {
+                document.getElementById('file-input').click();
+            };
+            document.getElementById('file-input').onchange = e => {
+                if (e.target.files[0]) loadReplayFromFile(e.target.files[0]);
+            };
+        }
+
+        // ==========================================
+        // REPLAY LISTE BAUEN
+        // ==========================================
+        function buildReplayList() {
+            // Replays nach Modell gruppieren
+            const modelGroups = {
+                charlie: [],
+                gordon: [],
+                algernon: []
+            };
+
+            window.EMBEDDED_REPLAYS.forEach((replay, index) => {
+                const model = replay.id.split('_')[0]; // charlie, gordon, algernon
+                if (modelGroups[model]) {
+                    modelGroups[model].push({ replay, index });
+                }
+            });
+
+            // Für jedes Modell die Replays einfügen
+            Object.entries(modelGroups).forEach(([model, replays]) => {
+                const container = document.querySelector(`.model-replays[data-model="${model}"]`);
+                if (!container) return;
+
+                container.innerHTML = '';
+
+                replays.forEach(({ replay, index }) => {
+                    const steps = replay.id.split('_')[1].toUpperCase(); // 40m, 80m, 100m
+                    let phase = 'Früh';
+                    if (steps === '80M') phase = 'Mitte';
+                    if (steps === '100M') phase = 'Final';
+
+                    const item = document.createElement('div');
+                    item.className = `replay-list-item ${model}`;
+                    item.dataset.index = index;
+
+                    item.innerHTML = `
+                        <span class="replay-name">${steps} Steps</span>
+                        <span class="step-badge">${phase}</span>
+                    `;
+
+                    item.onclick = () => loadReplayByIndex(index);
+                    container.appendChild(item);
+                });
+            });
+        }
+
+        function loadReplayByIndex(index) {
+            const replay = window.EMBEDDED_REPLAYS[index];
+            if (!replay) return;
+
+            // Active-State setzen
+            document.querySelectorAll('.replay-list-item').forEach(el => {
+                el.classList.remove('active');
+            });
+            const activeItem = document.querySelector(`.replay-list-item[data-index="${index}"]`);
+            if (activeItem) activeItem.classList.add('active');
+
+            // Kontext-Panel updaten
+            document.getElementById('replay-title').textContent = replay.title;
+            document.getElementById('replay-description').innerHTML = replay.description;
+            document.getElementById('no-replay-hint')?.remove();
+
+            // Tags
+            const tagsContainer = document.getElementById('replay-tags');
+            tagsContainer.innerHTML = replay.tags.map(tag => 
+                `<span class="replay-tag tag-${tag}">${tag}</span>`
+            ).join('');
+
+            // Replay laden
+            loadReplayFile(replay.filename);
+        }
+
+        async function loadReplayFile(filename) {
+            document.getElementById('loading').style.display = 'block';
+
+            try {
+                const res = await fetch(filename);
+                const data = await res.json();
+
+                if (!data.frames || data.frames.length === 0) throw new Error('Keine Frames');
+
+                replayData = data;
+                if (data.metadata?.tackle_cooldown) tackle_cooldown = data.metadata.tackle_cooldown;
+                if (data.metadata?.stun_duration) stun_duration = data.metadata.stun_duration;
+                if (data.metadata?.walls) setupWalls(data.metadata.walls);
+
+                clearAgents();
+                createAgents();
+                createFlags();
+
+                currentFrame = 0;
+                updateScene();
+
+                // Meta-Infos
+                document.getElementById('replay-meta').style.display = 'block';
+                document.getElementById('meta-frames').textContent = data.frames.length;
+                document.getElementById('meta-agents').textContent = Object.keys(data.frames[0].agents).length;
+                document.getElementById('meta-map').textContent = '24x24';
+
+                document.getElementById('loading').style.display = 'none';
+            } catch (err) {
+                console.error('Load error:', err);
+                document.getElementById('loading').innerHTML = `<p style="color:#ff6b6b;">⚠️ Replay nicht gefunden: ${filename}</p>`;
+            }
+        }
+
+        function loadReplayFromFile(file) {
+            document.getElementById('loading').style.display = 'block';
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (!data.frames) throw new Error('Ungültiges Format');
+                    
+                    replayData = data;
+                    clearAgents();
+                    createAgents();
+                    createFlags();
+                    currentFrame = 0;
+                    updateScene();
+                    
+                    document.getElementById('replay-title').textContent = file.name;
+                    document.getElementById('replay-description').innerHTML = '<p>Eigenes Replay aus lokaler Datei geladen.</p>';
+                    document.getElementById('replay-tags').innerHTML = '<span class="replay-tag tag-custom">Custom</span>';
+                    
+                    document.getElementById('loading').style.display = 'none';
+                } catch (err) {
+                    document.getElementById('loading').innerHTML = `<p style="color:#ff6b6b;">⚠️ Fehler: ${err.message}</p>`;
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ==========================================
+        // AGENT & FLAG CREATION (VERBESSERT)
+        // ==========================================
+        function clearAgents() {
+            Object.values(agentMeshes).forEach(m => scene.remove(m));
+            Object.values(flagMeshes).forEach(m => scene.remove(m));
+            Object.keys(agentMeshes).forEach(k => delete agentMeshes[k]);
+            Object.keys(flagMeshes).forEach(k => delete flagMeshes[k]);
+        }
+
+        function createAgents() {
+            if (!replayData?.frames?.[0]?.agents) return;
+
+            Object.entries(replayData.frames[0].agents).forEach(([id, data]) => {
+                const isBlue = data.team === 'blue';
+                const color = isBlue ? 0x4dabf7 : 0xff6b6b;
+
+                const agent = new THREE.Group();
+                agent.userData = { 
+                    team: data.team, 
+                    originalColor: color,
+                    lastPosition: { x: data.position[0], z: data.position[1] },
+                    velocity: { x: 0, z: 0 },
+                    targetRotation: 0,
+                    isMoving: false,
+                    bobPhase: Math.random() * Math.PI * 2 // Zufälliger Start für Lauf-Animation
+                };
+
+                // Körper-Container für Animationen
+                const bodyContainer = new THREE.Group();
+                bodyContainer.name = 'bodyContainer';
+                agent.add(bodyContainer);
+
+                // Hauptkörper
+                const body = new THREE.Mesh(
+                    new THREE.CapsuleGeometry(0.4, 0.8, 8, 16),
+                    new THREE.MeshStandardMaterial({ 
+                        color,
+                        roughness: 0.4,
+                        metalness: 0.1
+                    })
+                );
+                body.castShadow = true;
+                body.name = 'body';
+                bodyContainer.add(body);
+
+                // Gesicht-Container (für Augen-Rotation bei Stun)
+                const faceContainer = new THREE.Group();
+                faceContainer.name = 'faceContainer';
+                faceContainer.position.set(0, 0.3, 0.35);
+                body.add(faceContainer);
+
+                // Augen mit besserer Struktur
+                [-0.15, 0.15].forEach((x, idx) => {
+                    // Augapfel
+                    const eyeWhite = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.12, 16, 16),
+                        new THREE.MeshStandardMaterial({ color: 0xffffff })
+                    );
+                    eyeWhite.position.set(x, 0, 0);
+                    eyeWhite.name = idx === 0 ? 'eyeLeft' : 'eyeRight';
+                    faceContainer.add(eyeWhite);
+                    
+                    // Pupille (bewegt sich)
+                    const pupil = new THREE.Mesh(
+                        new THREE.SphereGeometry(0.06, 8, 8),
+                        new THREE.MeshStandardMaterial({ color: 0x111111 })
+                    );
+                    pupil.position.set(0, 0, 0.08);
+                    pupil.name = 'pupil';
+                    eyeWhite.add(pupil);
+                });
+
+                // Stun-Spiralen (versteckt bis benötigt)
+                const stunGroup = new THREE.Group();
+                stunGroup.name = 'stunGroup';
+                stunGroup.visible = false;
+                stunGroup.position.set(0, 0.5, 0);
+                body.add(stunGroup);
+
+                // Spiralen-Augen für Stun
+                [-0.2, 0.2].forEach((x, idx) => {
+                    const spiralGroup = new THREE.Group();
+                    spiralGroup.position.set(x, 0, 0.4);
+                    spiralGroup.name = idx === 0 ? 'spiralLeft' : 'spiralRight';
+                    
+                    // Spiral-Linien
+                    const spiralMat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
+                    for (let i = 0; i < 2; i++) {
+                        const line = new THREE.Mesh(
+                            new THREE.BoxGeometry(0.18, 0.03, 0.01),
+                            spiralMat
+                        );
+                        line.rotation.z = (i * Math.PI / 2);
+                        spiralGroup.add(line);
+                    }
+                    stunGroup.add(spiralGroup);
+                });
+
+                // Sterne über dem Kopf bei Stun
+                const starsGroup = new THREE.Group();
+                starsGroup.name = 'starsGroup';
+                starsGroup.visible = false;
+                starsGroup.position.set(0, 0.9, 0);
+                body.add(starsGroup);
+
+                for (let i = 0; i < 3; i++) {
+                    const star = createStar(0.12, 0xffd43b);
+                    star.position.set(
+                        Math.cos(i * Math.PI * 2 / 3) * 0.3,
+                        0,
+                        Math.sin(i * Math.PI * 2 / 3) * 0.3
+                    );
+                    star.name = `star${i}`;
+                    starsGroup.add(star);
+                }
+
+                // Aura für Flaggenträger (verbessert)
+                const aura = new THREE.Mesh(
+                    new THREE.RingGeometry(0.5, 0.7, 32),
+                    new THREE.MeshBasicMaterial({ 
+                        color: 0xffd43b, 
+                        transparent: true, 
+                        opacity: 0, 
+                        side: THREE.DoubleSide 
+                    })
+                );
+                aura.rotation.x = -Math.PI / 2;
+                aura.position.y = -0.7;
+                aura.name = 'aura';
+                agent.add(aura);
+
+                // Schatten unter dem Agenten
+                const shadow = new THREE.Mesh(
+                    new THREE.CircleGeometry(0.5, 32),
+                    new THREE.MeshBasicMaterial({ 
+                        color: 0x000000, 
+                        transparent: true, 
+                        opacity: 0.3 
+                    })
+                );
+                shadow.rotation.x = -Math.PI / 2;
+                shadow.position.y = -0.79;
+                shadow.name = 'shadow';
+                agent.add(shadow);
+
+                agent.position.set(data.position[0], 0.8, data.position[1]);
+                scene.add(agent);
+                agentMeshes[id] = agent;
+            });
+        }
+
+        // Stern-Geometrie für Stun-Effekt
+        function createStar(size, color) {
+            const shape = new THREE.Shape();
+            const points = 5;
+            const outerRadius = size;
+            const innerRadius = size * 0.4;
+            
+            for (let i = 0; i < points * 2; i++) {
+                const radius = i % 2 === 0 ? outerRadius : innerRadius;
+                const angle = (i * Math.PI) / points - Math.PI / 2;
+                if (i === 0) {
+                    shape.moveTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+                } else {
+                    shape.lineTo(Math.cos(angle) * radius, Math.sin(angle) * radius);
+                }
+            }
+            shape.closePath();
+            
+            const geometry = new THREE.ShapeGeometry(shape);
+            const material = new THREE.MeshBasicMaterial({ 
+                color, 
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.9
+            });
+            return new THREE.Mesh(geometry, material);
+        }
+
+        function createFlags() {
+            ['blue', 'red'].forEach(team => {
+                const color = team === 'blue' ? 0x4dabf7 : 0xff6b6b;
+                const flagGroup = new THREE.Group();
+
+                const pole = new THREE.Mesh(
+                    new THREE.CylinderGeometry(0.05, 0.05, 2),
+                    new THREE.MeshStandardMaterial({ color: 0x888888 })
+                );
+                flagGroup.add(pole);
+
+                const flag = new THREE.Mesh(
+                    new THREE.PlaneGeometry(0.8, 0.5),
+                    new THREE.MeshStandardMaterial({ color, side: THREE.DoubleSide, emissive: color, emissiveIntensity: 0.3 })
+                );
+                flag.position.set(0.4, 0.5, 0);
+                pole.add(flag);
+
+                flagGroup.position.set(team === 'blue' ? 2 : 22, 1, 12);
+                scene.add(flagGroup);
+                flagMeshes[team] = flagGroup;
+            });
+        }
+
+        // ==========================================
+        // UPDATE & ANIMATION (VERBESSERT)
+        // ==========================================
+        function updateScene() {
+            if (!replayData?.frames?.[currentFrame]) return;
+
+            const frame = replayData.frames[currentFrame];
+            const deltaTime = 0.016;
+            animationTime += deltaTime;
+
+            // Flaggenträger finden
+            const flagCarriers = {};
+            Object.entries(frame.flags).forEach(([team, data]) => {
+                if (data.carried_by) flagCarriers[data.carried_by] = team;
+            });
+
+            // Agenten updaten
+            Object.entries(frame.agents).forEach(([id, data]) => {
+                const agent = agentMeshes[id];
+                if (!agent) return;
+
+                const ud = agent.userData;
+                const bodyContainer = agent.getObjectByName('bodyContainer');
+                const body = agent.getObjectByName('body');
+                const faceContainer = agent.getObjectByName('faceContainer');
+                const stunGroup = agent.getObjectByName('stunGroup');
+                const starsGroup = agent.getObjectByName('starsGroup');
+                const aura = agent.getObjectByName('aura');
+                const shadow = agent.getObjectByName('shadow');
+
+                // Berechne Geschwindigkeit und Bewegung
+                const targetX = data.position[0];
+                const targetZ = data.position[1];
+                const dx = targetX - ud.lastPosition.x;
+                const dz = targetZ - ud.lastPosition.z;
+                const speed = Math.sqrt(dx * dx + dz * dz);
+                
+                ud.velocity.x = dx;
+                ud.velocity.z = dz;
+                ud.isMoving = speed > 0.01;
+
+                // Position interpolieren (smooth)
+                agent.position.x += (targetX - agent.position.x) * 0.2;
+                agent.position.z += (targetZ - agent.position.z) * 0.2;
+
+                // =====================
+                // DREHUNG IN BEWEGUNGSRICHTUNG
+                // =====================
+                if (ud.isMoving && !data.is_stunned) {
+                    // Berechne Ziel-Rotation basierend auf Bewegungsrichtung
+                    ud.targetRotation = Math.atan2(dx, dz);
+                }
+                
+                // Smooth Rotation Interpolation
+                let currentRot = bodyContainer.rotation.y;
+                let targetRot = ud.targetRotation;
+                
+                // Handle rotation wrap-around
+                let diff = targetRot - currentRot;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                
+                bodyContainer.rotation.y += diff * 0.15;
+
+                // =====================
+                // LAUF-ANIMATION
+                // =====================
+                if (ud.isMoving && !data.is_stunned) {
+                    ud.bobPhase += deltaTime * 15 * Math.min(speed * 5, 1);
+                    
+                    // Bounce (auf und ab)
+                    const bounce = Math.abs(Math.sin(ud.bobPhase)) * 0.12;
+                    bodyContainer.position.y = bounce;
+                    
+                    // Leichtes Wackeln (links/rechts tilt)
+                    bodyContainer.rotation.z = Math.sin(ud.bobPhase) * 0.08;
+                    
+                    // Squash & Stretch
+                    const squash = 1 + Math.sin(ud.bobPhase * 2) * 0.05;
+                    bodyContainer.scale.set(1 / squash, squash, 1 / squash);
+                    
+                    // Schatten pulsiert mit Sprung
+                    if (shadow) {
+                        shadow.scale.set(1 - bounce * 0.5, 1 - bounce * 0.5, 1);
+                        shadow.material.opacity = 0.3 - bounce * 0.3;
+                    }
+                } else if (!data.is_stunned) {
+                    // Zurück zur Ruheposition
+                    bodyContainer.position.y *= 0.9;
+                    bodyContainer.rotation.z *= 0.9;
+                    bodyContainer.scale.lerp(new THREE.Vector3(1, 1, 1), 0.1);
+                    
+                    if (shadow) {
+                        shadow.scale.set(1, 1, 1);
+                        shadow.material.opacity = 0.3;
+                    }
+                }
+
+                // =====================
+                // STUN-ANIMATION
+                // =====================
+                if (data.is_stunned) {
+                    // Graue Farbe
+                    body.material.color.setHex(0x555555);
+                    body.material.emissive = new THREE.Color(0x000000);
+                    
+                    // Wackeliger Körper
+                    bodyContainer.rotation.z = Math.sin(animationTime * 8) * 0.2;
+                    bodyContainer.position.y = Math.sin(animationTime * 4) * 0.05;
+                    
+                    // Normale Augen verstecken, Stun-Spiralen zeigen
+                    if (faceContainer) faceContainer.visible = false;
+                    if (stunGroup) {
+                        stunGroup.visible = true;
+                        // Spiralen drehen
+                        stunGroup.children.forEach((spiral, idx) => {
+                            spiral.rotation.z = animationTime * 10 * (idx === 0 ? 1 : -1);
+                        });
+                    }
+                    
+                    // Sterne über dem Kopf
+                    if (starsGroup) {
+                        starsGroup.visible = true;
+                        starsGroup.rotation.y = animationTime * 3;
+                        starsGroup.children.forEach((star, idx) => {
+                            star.position.y = Math.sin(animationTime * 5 + idx * 2) * 0.15;
+                            star.rotation.z = animationTime * 2;
+                        });
+                    }
+                    
+                    // Schatten kleiner
+                    if (shadow) {
+                        shadow.scale.set(0.7, 0.7, 1);
+                        shadow.material.opacity = 0.2;
+                    }
+                } else {
+                    // Normale Farbe
+                    body.material.color.setHex(ud.originalColor);
+                    
+                    // Normale Augen zeigen, Stun-Effekte verstecken
+                    if (faceContainer) faceContainer.visible = true;
+                    if (stunGroup) stunGroup.visible = false;
+                    if (starsGroup) starsGroup.visible = false;
+                    
+                    // Pupillen schauen in Bewegungsrichtung
+                    if (faceContainer && ud.isMoving) {
+                        const eyeLeft = faceContainer.getObjectByName('eyeLeft');
+                        const eyeRight = faceContainer.getObjectByName('eyeRight');
+                        [eyeLeft, eyeRight].forEach(eye => {
+                            if (eye) {
+                                const pupil = eye.getObjectByName('pupil');
+                                if (pupil) {
+                                    // Pupillen leicht in Bewegungsrichtung verschieben
+                                    pupil.position.x = Math.sin(bodyContainer.rotation.y) * 0.02;
+                                    pupil.position.y = 0;
+                                }
+                            }
+                        });
+                    }
+                }
+
+                // =====================
+                // FLAGGENTRÄGER-EFFEKTE
+                // =====================
+                if (flagCarriers[id]) {
+                    if (aura) {
+                        aura.material.opacity = 0.6 + Math.sin(animationTime * 5) * 0.2;
+                        aura.rotation.z = animationTime * 2;
+                    }
+                    if (!data.is_stunned) {
+                        body.material.emissive = new THREE.Color(0xffd43b);
+                        body.material.emissiveIntensity = 0.15 + Math.sin(animationTime * 4) * 0.1;
+                    }
+                } else {
+                    if (aura) aura.material.opacity = 0;
+                    if (!data.is_stunned) {
+                        body.material.emissive = new THREE.Color(0x000000);
+                        body.material.emissiveIntensity = 0;
+                    }
+                }
+
+                // Position für nächsten Frame speichern
+                ud.lastPosition.x = targetX;
+                ud.lastPosition.z = targetZ;
+            });
+
+            // =====================
+            // FLAGGEN UPDATEN
+            // =====================
+            Object.entries(frame.flags).forEach(([team, data]) => {
+                const flagGroup = flagMeshes[team];
+                if (!flagGroup) return;
+
+                const carrier = data.carried_by ? agentMeshes[data.carried_by] : null;
+                if (carrier) {
+                    flagGroup.position.x = carrier.position.x;
+                    flagGroup.position.z = carrier.position.z;
+                    flagGroup.position.y = 2.2 + Math.sin(animationTime * 4) * 0.1;
+                    
+                    // Flagge weht stärker wenn getragen
+                    const flag = flagGroup.children[0]?.children[0];
+                    if (flag) {
+                        flag.rotation.y = Math.sin(animationTime * 8) * 0.3;
+                    }
+                } else {
+                    flagGroup.position.x += (data.position[0] - flagGroup.position.x) * 0.2;
+                    flagGroup.position.z += (data.position[1] - flagGroup.position.z) * 0.2;
+                    flagGroup.position.y = 1;
+                    
+                    // Flagge weht sanft
+                    const flag = flagGroup.children[0]?.children[0];
+                    if (flag) {
+                        flag.rotation.y = Math.sin(animationTime * 3) * 0.1;
+                    }
+                }
+            });
+
+            // =====================
+            // UI UPDATEN
+            // =====================
+            document.getElementById('step-display').textContent = 'Step: ' + frame.step;
+            document.getElementById('blue-score').textContent = frame.scores.blue;
+            document.getElementById('red-score').textContent = frame.scores.red;
+
+            // Flaggen-Status
+            ['blue', 'red'].forEach(team => {
+                const el = document.getElementById(`${team}-flag-status`);
+                const flagData = frame.flags[team];
+                if (flagData.carried_by) {
+                    el.classList.add('carried');
+                    el.classList.remove('at-base');
+                    el.querySelector('.carrier-name').textContent = `${flagData.carried_by}`;
+                } else {
+                    el.classList.remove('carried');
+                    el.classList.add('at-base');
+                    el.querySelector('.carrier-name').textContent = 'An der Basis';
+                }
+            });
+        }
+
+        function animate(timestamp) {
+            requestAnimationFrame(animate);
+
+            if (isPlaying && replayData) {
+                const elapsed = timestamp - lastFrameTime;
+                if (elapsed > FRAME_DURATION / playbackSpeed) {
+                    currentFrame = (currentFrame + 1) % replayData.frames.length;
+                    lastFrameTime = timestamp;
+                }
+            }
+
+            updateScene();
+            renderer.render(scene, camera);
+        }
+
+        // Start
+        init();
+    </script>
 </body>
 </html>
